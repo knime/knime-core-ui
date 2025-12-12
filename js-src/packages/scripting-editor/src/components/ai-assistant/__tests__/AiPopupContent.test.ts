@@ -2,9 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { getScriptingService, getSettingsService } from "../../../init";
+import { getScriptingService } from "../../../init";
 import { DEFAULT_INITIAL_DATA } from "../../../initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "../../../settings-service-browser-mock";
 import {
   clearPromptResponseStore,
   currentInputOutputItems,
@@ -12,6 +11,7 @@ import {
   usageData,
   usePromptResponseStore,
 } from "../../../store/ai-bar";
+import { useReadonlyStore } from "../../../store/readOnly";
 import InfinityLoadingBar from "../../InfinityLoadingBar.vue";
 import AiPopupContent from "../AiPopupContent.vue";
 import AiSuggestion from "../AiSuggestion.vue";
@@ -48,6 +48,7 @@ describe("AiPopup", () => {
       text: ref(""),
       editorModel: "myEditorModel",
     } as any);
+    useReadonlyStore().value = false;
   });
 
   afterEach(() => {
@@ -239,12 +240,7 @@ describe("AiPopup", () => {
   });
 
   it("show flow variable message if readonly", async () => {
-    vi.mocked(getSettingsService().getSettings).mockReturnValue({
-      ...DEFAULT_INITIAL_SETTINGS,
-      scriptUsedFlowVariable: "myVar",
-      settingsAreOverriddenByFlowVariable: true,
-      script: "myScript",
-    });
+    useReadonlyStore().value = true;
 
     const bar = await doMount();
     await flushPromises();

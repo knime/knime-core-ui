@@ -15,6 +15,7 @@ describe("settings-service", () => {
 
     const service = new SettingsService(
       initialSettings,
+      undefined,
       mockDialogService,
       mockJsonDataService,
     );
@@ -29,11 +30,37 @@ describe("settings-service", () => {
 
     const service = new SettingsService(
       initialSettings,
+      undefined,
       mockDialogService,
       mockJsonDataService,
     );
 
     expect(service.getSettings()).toBe(initialSettings);
+    expect(service.getSettingsInitialData()).toBeUndefined();
+  });
+
+  it("should return settings initial data from getSettingsInitialData", () => {
+    const initialSettings: GenericNodeSettings = { script: "test script" };
+    const settingsInitialData = {
+      data: { model: { a: "b" } },
+      schema: {} as any,
+      flowVariableSettings: {} as any,
+      persist: {} as any,
+      // eslint-disable-next-line camelcase
+      ui_schema: {} as any,
+    };
+    const mockDialogService = {} as DialogService;
+    const mockJsonDataService = {} as JsonDataService;
+
+    const service = new SettingsService(
+      initialSettings,
+      settingsInitialData,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    expect(service.getSettings()).toBe(initialSettings);
+    expect(service.getSettingsInitialData()).toBe(settingsInitialData);
   });
 
   it("should register apply listener successfully", async () => {
@@ -52,6 +79,7 @@ describe("settings-service", () => {
 
     const service = new SettingsService(
       initialSettings,
+      undefined,
       mockDialogService,
       mockJsonDataService,
     );
@@ -86,6 +114,7 @@ describe("settings-service", () => {
 
     const service = new SettingsService(
       initialSettings,
+      undefined,
       mockDialogService,
       mockJsonDataService,
     );
@@ -116,6 +145,7 @@ describe("settings-service", () => {
 
     const service = new SettingsService(
       initialSettings,
+      undefined,
       mockDialogService,
       mockJsonDataService,
     );

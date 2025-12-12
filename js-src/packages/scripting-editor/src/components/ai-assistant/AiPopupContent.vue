@@ -15,11 +15,7 @@ import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
 
-import {
-  getInitialData,
-  getScriptingService,
-  getSettingsService,
-} from "../../init";
+import { getInitialData, getScriptingService } from "../../init";
 import { type UsageData } from "../../scripting-service";
 import {
   type Message,
@@ -31,6 +27,7 @@ import {
   usageData,
   usePromptResponseStore,
 } from "../../store/ai-bar";
+import { useReadonlyStore } from "../../store/readOnly";
 import InfinityLoadingBar from "../InfinityLoadingBar.vue";
 
 import AiDisclaimer from "./AiDisclaimer.vue";
@@ -158,7 +155,6 @@ onMounted(async () => {
   const [currentIsKaiEnabledStatus] = await Promise.all([
     getScriptingService().isKaiEnabled(),
   ]);
-  const settings = getSettingsService().getSettings();
   const initialData = getInitialData();
 
   if (!initialData.kAiConfig.isKaiEnabled) {
@@ -167,7 +163,7 @@ onMounted(async () => {
   } else if (!currentIsKaiEnabledStatus) {
     // K-AI is enabled on launch, but got disabled while the scripting editor was open
     status.value = "newlyDisabled";
-  } else if (settings.settingsAreOverriddenByFlowVariable) {
+  } else if (useReadonlyStore().value) {
     status.value = "readonly";
   } else if (await getScriptingService().isLoggedIntoHub()) {
     // Fetch initial usage data if K-AI is available and user is logged in

@@ -48,13 +48,17 @@ export const init = async () => {
 
   const initialDataAndSettings: {
     initialData: GenericInitialData;
-    settings: GenericNodeSettings;
+    settings: GenericNodeSettings | undefined;
+    settingsInitialData: string | undefined;
   } = await jsonDataService.initialData();
 
   initialData = initialDataAndSettings.initialData;
 
   settingsService = new SettingsService(
     initialDataAndSettings.settings,
+    initialDataAndSettings.settingsInitialData
+      ? JSON.parse(initialDataAndSettings.settingsInitialData)
+      : undefined,
     dialogService,
     jsonDataService,
   );

@@ -81,6 +81,11 @@ export const createScriptingServiceMock = (
       return Promise.resolve();
     },
 
+    async callRpcMethod({ method, options }) {
+      log(`Called scriptingService.callRpcMethod("${method}")`, options);
+      await sleep(SLEEP_TIME_ANY_CALL);
+    },
+
     getOutputPreviewTableInitialData() {
       return Promise.resolve(undefined);
     },
