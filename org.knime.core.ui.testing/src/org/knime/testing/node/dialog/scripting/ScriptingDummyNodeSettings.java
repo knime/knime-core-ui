@@ -81,11 +81,11 @@ class ScriptingDummyNodeSettings extends ScriptingNodeSettings implements Generi
 
     private static final String JSON_KEY_OVERRIDING_FLOW_VARIABLE = "scriptUsedFlowVariable";
 
-    // NOTE: The default is set in the NodeModel and loaded in loadSettingsFrom before converting to JSON
     private String m_script;
 
     ScriptingDummyNodeSettings() {
         super(SettingsType.MODEL);
+        m_script = "# This is a dummy scripting node.\n# Write your script here.";
     }
 
     @Override

@@ -50,6 +50,7 @@ package org.knime.testing.node.dialog.scripting;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,9 +59,10 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultDialogDataConverterImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.scripting.GenericInitialDataBuilder;
 import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.ScriptingNodeSettingsService;
 import org.knime.core.webui.node.dialog.scripting.ScriptingService;
 import org.knime.core.webui.node.dialog.scripting.WorkflowControl;
 import org.knime.core.webui.page.Page;
@@ -116,14 +118,20 @@ public class ScriptingDummyNodeDialog implements NodeDialog {
             .addDataSupplier("fileName", () -> "script.java") //
         ;
 
-        return new ScriptingNodeSettingsService(ScriptingDummyNodeSettings::new, initialData);
+        return new ScriptingDummyNodeSettingsService(ScriptingDummyNodeSettings::new, initialData,
+            ScriptingDummyAdditionalSettings.class);
     }
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
+        var dialogDataConverter =
+            new DefaultDialogDataConverterImpl(Map.of(SettingsType.MODEL, ScriptingDummyAdditionalSettings.class));
+        var flowVarDataService = new FlowVariableDataServiceImpl(dialogDataConverter);
+
         return Optional.of(RpcDataService.builder() //
             .addService("ScriptingService", m_scriptingService.getJsonRpcService()) //
             .onDeactivate(m_scriptingService::onDeactivate) //
+            .addService("flowVariables", flowVarDataService) //
             .build());
     }
 

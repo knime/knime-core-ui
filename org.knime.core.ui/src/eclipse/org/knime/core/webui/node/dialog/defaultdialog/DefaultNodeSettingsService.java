@@ -85,7 +85,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class DefaultNodeSettingsService implements NodeSettingsService {
+// TODO extract logic that is necessary for scripting nodes into a separate class
+public final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
@@ -143,6 +144,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
             JobManagerParametersPersistUtil
                 .setPersistSchema(((ObjectNode)((ObjectNode)root.get("persist")).get("properties")));
         }
+        // TODO for the scripting node we need the JSON not a string
         return jsonToString(root);
     }
 

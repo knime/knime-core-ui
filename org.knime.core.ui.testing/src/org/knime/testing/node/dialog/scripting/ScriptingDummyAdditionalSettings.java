@@ -42,85 +42,38 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Dec 12, 2025 (benjaminwilhelm): created
  */
-
 package org.knime.testing.node.dialog.scripting;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
- * The node model for Dummy Scripting Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-final class ScriptingDummyNodeModel extends NodeModel {
+public class ScriptingDummyAdditionalSettings implements NodeParameters {
 
-    private final ScriptingDummyNodeSettings m_settings = new ScriptingDummyNodeSettings();
-
-    private ScriptingDummyAdditionalSettings m_additionalSettings;
-
-    ScriptingDummyNodeModel() {
-        super(0, 0);
+    @Section(title = "Multiple SQL Statements",
+        description = "Settings for handling multiple SQL statements in the scripting node.")
+    interface MultipleSQLStatemetsSection {
     }
 
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new PortObjectSpec[0];
-    }
+    @Widget(title = "Support Multiple Statements",
+        description = "If enabled, the scripting node will support multiple statements execution.")
+    @Layout(MultipleSQLStatemetsSection.class)
+    boolean m_supportMultipleStatements = false;
 
-    @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        // TODO output current settings as a table
-        return new PortObject[0];
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
-
-        var additionalSettings = m_additionalSettings == null
-            ? NodeParametersUtil.createSettings(ScriptingDummyAdditionalSettings.class) : m_additionalSettings;
-        NodeParametersUtil.saveSettings(ScriptingDummyAdditionalSettings.class, additionalSettings, settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // NOOP
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadSettingsFrom(settings);
-        m_additionalSettings = NodeParametersUtil.loadSettings(settings, ScriptingDummyAdditionalSettings.class);
-    }
-
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // NOOP
-    }
-
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // NOOP
-    }
-
-    @Override
-    protected void reset() {
-        // NOOP
-    }
+    @Widget(title = "Statement Separator",
+        description = "The separator used to split multiple statements. Only relevant if 'Support Multiple Statements' is enabled.")
+    @TextInputWidget()
+    @Layout(MultipleSQLStatemetsSection.class)
+    String m_separator = ";";
 
 }
