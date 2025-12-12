@@ -85,7 +85,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class DefaultNodeSettingsService implements NodeSettingsService {
+public final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
