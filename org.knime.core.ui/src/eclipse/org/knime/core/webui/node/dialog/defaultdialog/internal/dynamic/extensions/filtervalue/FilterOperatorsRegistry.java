@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -667,8 +668,11 @@ public final class FilterOperatorsRegistry {
             return true;
         }
         LOGGER.errorWithFormat(
-            "Operator \"%s\" from \"%s\" declares reserved ID \"%s\", which is of non-override operator.",
-            op.getLabel(), operatorId, contributor);
+            "Operator \"%s\" from \"%s\" declares reserved ID \"%s\", which is of non-override operator. "
+                + "Class: %s; implemented interfaces: %s",
+            op.getLabel(), contributor, operatorId, //
+            op.getClass().getCanonicalName(), //
+            Arrays.stream(op.getClass().getInterfaces()).map(Class::getSimpleName).collect(Collectors.joining(", ")));
         return false;
     }
 
