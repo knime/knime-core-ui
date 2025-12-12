@@ -6,7 +6,7 @@ Vue-based views and dialogs for KNIME Analytics Platform built as libraries and 
 
 ### Prerequisites
 
-- Node.js 22.x
+- Node.js 24.x
 - pnpm workspace (install from root: `pnpm install`)
 
 ### View Development in KNIME Analytics Platform
