@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@knime/components": "1.43.0",
-    "@knime/eslint-config": "9.1.3",
+    "@knime/eslint-config": "9.5.2",
     "@knime/licenses": "1.4.0",
     "@knime/ui-extension-service": "2.6.0",
     "@tsconfig/node24": "24.0.3",

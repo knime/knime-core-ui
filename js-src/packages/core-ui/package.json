@@ -71,7 +71,7 @@
   "devDependencies": {
     "@cyclonedx/cyclonedx-library": "^9.2.0",
     "@cyclonedx/cyclonedx-npm": "1.16.1",
-    "@knime/eslint-config": "8.3.0",
+    "@knime/eslint-config": "9.5.2",
     "@knime/kds-styles": "catalog:",
     "@knime/licenses": "1.4.0",
     "@knime/ui-extension-renderer": "2.3.39",
@@ -88,7 +88,7 @@
     "@vue/test-utils": "2.4.6",
     "@vue/tsconfig": "0.5.1",
     "consola": "3.2.3",
-    "eslint": "8.57.1",
+    "eslint": "9.39.1",
     "flush-promises": "1.0.2",
     "jsdom": "20.0.3",
     "npm-run-all2": "^8.0.4",
