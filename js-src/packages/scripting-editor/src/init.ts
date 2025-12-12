@@ -28,6 +28,9 @@ export const getInitialData = (): GenericInitialData => initialData;
 let settingsService: SettingsServiceType;
 export const getSettingsService = (): SettingsServiceType => settingsService;
 
+let additionalSettings: unknown;
+export const getAdditionalSettings = (): unknown => additionalSettings;
+
 // --- INIT FUNCTION ---
 
 /**
@@ -48,10 +51,12 @@ export const init = async () => {
 
   const initialDataAndSettings: {
     initialData: GenericInitialData;
+    additionalSettings: unknown;
     settings: GenericNodeSettings;
   } = await jsonDataService.initialData();
 
   initialData = initialDataAndSettings.initialData;
+  additionalSettings = initialDataAndSettings.additionalSettings;
 
   settingsService = new SettingsService(
     initialDataAndSettings.settings,

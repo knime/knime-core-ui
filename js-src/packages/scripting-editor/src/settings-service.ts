@@ -37,10 +37,11 @@ export class SettingsService {
     this.dialogService.setApplyListener(async () => {
       const settings = settingsGetter();
       try {
+        console.log("Applying settings:", settings);
         await this.jsonDataService.applyData(settings);
         return { isApplied: true };
       } catch (e) {
-        consola.warn("Failed to apply settings", e);
+        console.warn("Failed to apply settings", e);
         return { isApplied: false };
       }
     });
