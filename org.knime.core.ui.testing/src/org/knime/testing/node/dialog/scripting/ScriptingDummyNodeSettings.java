@@ -44,109 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 11, 2023 (benjamin): created
+ *   Dec 12, 2025 (benjaminwilhelm): created
  */
 package org.knime.testing.node.dialog.scripting;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
-import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
-import org.knime.core.webui.node.dialog.scripting.GenericSettingsIOManager;
-import org.knime.core.webui.node.dialog.scripting.ScriptingNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
- * Settings of the DB Query node for the WebUI.
+ * Settings for the Scripting Dummy Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction") // SettingsType is not yet public API
-class ScriptingDummyNodeSettings extends ScriptingNodeSettings implements GenericSettingsIOManager {
+class ScriptingDummyNodeSettings implements NodeParameters {
 
-    private static final String JSON_KEY_SCRIPT = "script";
+    @Persist(configKey = "expression")
+    String m_script = "A dummy script";
 
-    private static final String CFG_KEY_SCRIPT = "script";
-
-    private static final String JSON_KEY_ARE_SETTINGS_OVERRIDDEN_BY_FLOW_VARIABLES =
-        "settingsAreOverriddenByFlowVariable";
-
-    private static final String JSON_KEY_OVERRIDING_FLOW_VARIABLE = "scriptUsedFlowVariable";
-
-    // NOTE: The default is set in the NodeModel and loaded in loadSettingsFrom before converting to JSON
-    private String m_script;
-
-    ScriptingDummyNodeSettings() {
-        super(SettingsType.MODEL);
+    @Section(title = "Multiple Statements",
+        description = "Settings for handling multiple statements in the scripting node.")
+    interface MultipleStatementsSection {
     }
 
-    @Override
-    public Map<String, Object> convertNodeSettingsToMap(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
-        throws InvalidSettingsException {
+    @Widget(title = "Support Multiple Statements",
+        description = "If enabled, the scripting node will support multiple statements execution.")
+    @Layout(MultipleStatementsSection.class)
+    boolean m_supportMultipleStatements;
 
-        var nodeSettings = settings.get(m_scriptSettingsType);
-
-        loadSettingsFrom(nodeSettings);
-
-        Map<String, Object> ret = new HashMap<>(Map.of(JSON_KEY_SCRIPT, m_script));
-
-        var scriptUsedFlowVariable = getOverridingFlowVariableName(nodeSettings, CFG_KEY_SCRIPT);
-        if (scriptUsedFlowVariable.isPresent()) {
-            ret.put(JSON_KEY_OVERRIDING_FLOW_VARIABLE, scriptUsedFlowVariable.get());
-            ret.put(JSON_KEY_ARE_SETTINGS_OVERRIDDEN_BY_FLOW_VARIABLES, true);
-        } else {
-            ret.put(JSON_KEY_ARE_SETTINGS_OVERRIDDEN_BY_FLOW_VARIABLES, false);
-        }
-
-        return ret;
-    }
-
-    @Override
-    public void writeMapToNodeSettings(final Map<String, Object> data,
-        final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
-
-        m_script = (String)data.get(JSON_KEY_SCRIPT);
-
-        final var extractedSettings = new NodeSettings("extracted settings");
-        copyVariableSettings(previousSettings, settings);
-        saveSettingsTo(extractedSettings);
-
-        NodeSettingsCorrectionUtil.correctNodeSettingsRespectingFlowVariables(new ConfigMappings(List.of()),
-            extractedSettings, previousSettings.get(SettingsType.MODEL), previousSettings.get(SettingsType.MODEL));
-
-        extractedSettings.copyTo(settings.get(SettingsType.MODEL));
-    }
-
-    @Override
-    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_script = settings.getString(CFG_KEY_SCRIPT);
-    }
-
-    @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addString(CFG_KEY_SCRIPT, m_script);
-    }
-
-    /**
-     * @return the script
-     */
-    public String getScript() {
-        return m_script;
-    }
-
-    /**
-     * @param script the script to set
-     */
-    public void setScript(final String script) {
-        m_script = script;
-    }
+    @Widget(title = "Statement Separator",
+        description = "The separator used to split multiple statements. "
+            + "Only relevant if 'Support Multiple Statements' is enabled.")
+    @TextInputWidget()
+    @Layout(MultipleStatementsSection.class)
+    String m_separator = ";";
 }
