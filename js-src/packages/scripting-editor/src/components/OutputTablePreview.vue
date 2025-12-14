@@ -75,7 +75,10 @@ const apiLayer: UIExtensionAPILayer = {
     return response;
   },
   updateDataPointSelection: () => Promise.resolve({ result: null }),
-  getResourceLocation: () => Promise.resolve(resourceLocation.value),
+  // we can just forward to the baseService, because we assume that
+  // the backend provided baseUrl (e.g., org.knime.core.ui.dialog, only relevant for desktop)
+  // is same for the parent ui-extension and this nested ui-extension
+  getResourceLocation: (path) => baseService.value!.getResourceLocation(path),
   imageGenerated: noop,
   onApplied: noop,
   onDirtyStateChange: noop,
@@ -92,8 +95,8 @@ const apiLayer: UIExtensionAPILayer = {
   closeDataValueView: noop,
 };
 const updateExtensionConfig = async (config: ExtensionConfig) => {
-  // @ts-expect-error baseUrl is not part of the type definition but it exists
-  resourceLocation.value = `${config.resourceInfo.baseUrl}${config.resourceInfo.path.split("/").slice(0, -1).join("/")}/core-ui/TableView.js`;
+  const path = `${config.resourceInfo.path?.split("/").slice(0, -1).join("/")}/core-ui/TableView.js`;
+  resourceLocation.value = await apiLayer.getResourceLocation(path);
 
   extensionConfig.value = await makeExtensionConfig(
     config.nodeId,
