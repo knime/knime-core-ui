@@ -60,10 +60,16 @@ const apiLayer: UIExtensionAPILayer = {
     return response?.isSome ? { result: response.result } : { result: null };
   },
   getResourceLocation(path) {
-    return Promise.resolve(
-      (extensionConfig.value!.resourceInfo as unknown as { baseUrl: string })
-        .baseUrl + path,
-    );
+    const { baseUrl } = extensionConfig.value!.resourceInfo as unknown as {
+      baseUrl: string;
+    };
+    if (baseUrl) {
+      // baseUrl as provided by the backend (port view specific, only available in the desktop environment)
+      return Promise.resolve(baseUrl + path);
+    } else {
+      // ask the ui-extension embedder to resolve the resource location
+      return baseService.value!.getResourceLocation(path);
+    }
   },
   imageGenerated: noop,
   onApplied: noop,
@@ -99,13 +105,11 @@ watchEffect(() => {
     portIdx: props.portIdx,
     viewIdx: props.viewIdx,
   })
-    .then((response) => {
+    .then(async (response) => {
       if (response.isSome) {
         extensionConfig.value = response.result as ExtensionConfig;
-        resourceLocation.value =
-          // @ts-expect-error the baseUrl is not part of the type definition but it exists
-          extensionConfig.value?.resourceInfo?.baseUrl +
-          extensionConfig.value?.resourceInfo?.path;
+        const path = extensionConfig.value!.resourceInfo.path!;
+        resourceLocation.value = await apiLayer.getResourceLocation(path);
       }
       dataAvailable.value = true;
     })
