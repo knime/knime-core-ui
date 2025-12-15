@@ -55,6 +55,7 @@ import java.util.Set;
 
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.RpcDataService;
+import org.knime.core.webui.data.RpcDataService.RpcDataServiceBuilder;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -187,19 +188,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
-
-        final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses, m_serviceRegistry);
-        final var flowVariablesDataService =
-            new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(m_settingsClasses));
-        final var fileChooserService = new FileChooserDataService(m_serviceRegistry.fileSystemConnector());
-        final var fileFilterPreviewService = new FileFilterPreviewDataService(m_serviceRegistry.fileSystemConnector(),
-            () -> createWidgetTrees(m_settingsClasses.values()));
-
-        var serviceBuilder = RpcDataService.builder() //
-            .addService("settings", dataService) //
-            .addService("flowVariables", flowVariablesDataService) //
-            .addService("fileChooser", fileChooserService) //
-            .addService("fileFilterPreview", fileFilterPreviewService); //
+        var serviceBuilder = RpcDataService.builder();
+        addDefaultNodeDialogRpcServices(serviceBuilder, m_settingsClasses, m_serviceRegistry);
 
         createDBTableChooserService() //
             .ifPresent(s -> serviceBuilder.addService("dbTableChooser", s));
@@ -209,6 +199,30 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
                 .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
                 .build() //
         );
+    }
+
+    /**
+     * Adds the default RPC services for a node dialog to the given builder.
+     *
+     * @param builder the RPC data service builder
+     * @param settingsClasses the settings classes
+     * @param serviceRegistry the service registry
+     */
+    public static void addDefaultNodeDialogRpcServices(final RpcDataServiceBuilder builder,
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
+        final NodeDialogServiceRegistry serviceRegistry) {
+        final var dataService = new DefaultNodeDialogDataServiceImpl(settingsClasses, serviceRegistry);
+        final var flowVariablesDataService =
+            new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(settingsClasses));
+        final var fileChooserService = new FileChooserDataService(serviceRegistry.fileSystemConnector());
+        final var fileFilterPreviewService = new FileFilterPreviewDataService(serviceRegistry.fileSystemConnector(),
+            () -> createWidgetTrees(settingsClasses.values()));
+
+        builder //
+            .addService("settings", dataService) //
+            .addService("flowVariables", flowVariablesDataService) //
+            .addService("fileChooser", fileChooserService) //
+            .addService("fileFilterPreview", fileFilterPreviewService); //
     }
 
     private static Collection<Tree<WidgetGroup>>
