@@ -4,7 +4,6 @@ import { onKeyStroke } from "@vueuse/core";
 
 import { useMainCodeEditor } from "../editor";
 import { getSettingsService } from "../init";
-import { type GenericNodeSettings } from "../settings-service";
 import { useReadonlyStore } from "../store/readOnly";
 
 import { COLUMN_INSERTION_EVENT } from "./InputOutputItem.vue";
@@ -14,13 +13,13 @@ interface Props {
   showControlBar: boolean;
   language: string;
   fileName: string;
-  toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
+  toSettings?: (settings: { script: string }) => unknown;
   dropEventHandler?: (event: DragEvent) => void;
   modelOrView: "model" | "view";
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  toSettings: (settings: GenericNodeSettings) => settings,
+  toSettings: (settings: { script: string }) => settings,
   dropEventHandler: () => {},
 });
 
