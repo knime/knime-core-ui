@@ -3,6 +3,7 @@ import type { SettingState } from "@knime/ui-extension-service";
 import { log } from "./log";
 import type {
   GenericNodeSettings,
+  SettingsInitialData,
   SettingsServiceType,
 } from "./settings-service";
 
@@ -49,12 +50,20 @@ export const registerSettingsMock = () => {
   };
 };
 
-export const createSettingsServiceMock = (
-  data?: GenericNodeSettings,
-): SettingsServiceType => ({
+export const createSettingsServiceMock = ({
+  settings,
+  settingsInitialData,
+}: {
+  settings?: GenericNodeSettings;
+  settingsInitialData?: SettingsInitialData;
+}): SettingsServiceType => ({
   getSettings: () => {
     log("Called settings service mock getSettings");
-    return data ?? DEFAULT_INITIAL_SETTINGS;
+    return settings;
+  },
+  getSettingsInitialData: () => {
+    log("Called settings service mock getSettingsInitialData");
+    return settingsInitialData;
   },
   registerSettingsGetterForApply: () => {
     log("Called settings service mock registerSettingsGetterForApply");
