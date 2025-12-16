@@ -73,7 +73,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-public final class ScriptingDefaultNodeSettingsService implements NodeSettingsService {
+public final class DefaultScriptingNodeSettingsService implements NodeSettingsService {
 
     private static final ObjectMapper MAPPER = new ObjectMapper() //
         .registerModule(new Jdk8Module()) //
@@ -95,7 +95,7 @@ public final class ScriptingDefaultNodeSettingsService implements NodeSettingsSe
      * @param modelSettings the model settings class including a "script" field
      * @param serviceRegistry service registry to synchronize state with RPC services
      */
-    public ScriptingDefaultNodeSettingsService( //
+    public DefaultScriptingNodeSettingsService( //
         final GenericInitialDataBuilder initialDataBuilder, //
         final Class<? extends NodeParameters> modelSettings, //
         final NodeDialogServiceRegistry serviceRegistry //

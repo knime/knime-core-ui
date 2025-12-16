@@ -44,47 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 16, 2025 (benjaminwilhelm): created
+ *   Sep 6, 2023 (benjamin): created
  */
-package org.knime.testing.node.dialog.scripting;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.scripting.AbstractDefaultScriptingNodeDialog;
-import org.knime.core.webui.node.dialog.scripting.GenericInitialDataBuilder;
-import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.WorkflowControl;
+package org.knime.core.webui.node.dialog.scripting;
 
 /**
- * The dialog for the Dummy Scripting Node using the WebUI framework.
+ * {@link ScriptingService} implementation for the Default Scripting Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction") // WebUI API is still restricted
-public class ScriptingDummyNodeDialog extends AbstractDefaultScriptingNodeDialog {
-
-    ScriptingDummyNodeDialog() {
-        super(ScriptingDummyNodeSettings.class);
-    }
+final class DefaultScriptingNodeScriptingService extends ScriptingService {
 
     @Override
-    protected GenericInitialDataBuilder getInitialData(final NodeContext context) {
-        var workflowControl = new WorkflowControl(context.getNodeContainer());
-        return GenericInitialDataBuilder.createDefaultInitialDataBuilder(NodeContext.getContext()) //
-            .addDataSupplier("inputObjects", Collections::emptyList) //
-            .addDataSupplier("flowVariables", () -> {
-                var flowVariables = Optional.ofNullable(workflowControl.getFlowObjectStack()) //
-                    .map(stack -> stack.getAllAvailableFlowVariables().values()) //
-                    .orElseGet(List::of);
-                return InputOutputModel.flowVariables() //
-                    .subItems(flowVariables, varType -> true) //
-                    .build();
-            }) //
-            .addDataSupplier("outputObjects", Collections::emptyList) //
-            .addDataSupplier("language", () -> "java") //
-            .addDataSupplier("fileName", () -> "script.java");
+    public RpcService getJsonRpcService() {
+        return new ScriptingDummyRpcService();
+    }
+
+    final class ScriptingDummyRpcService extends RpcService {
+
+        @Override
+        protected CodeGenerationRequest getCodeSuggestionRequest(final String userPrompt, final String currentCode,
+            final InputOutputModel[] inputModels) {
+            throw new UnsupportedOperationException("Code suggestion is not supported in the Dummy Scripting Node.");
+        }
+
     }
 }
