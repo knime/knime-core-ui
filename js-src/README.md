@@ -4,8 +4,8 @@ This is a pnpm monorepo containing frontend packages for core dialogs and views.
 
 ## Prerequisites
 
-- Node.js 22.x (see `package.json`)
-- pnpm 10.20.0 or later
+- Node.js (see version in `package.json`)
+- pnpm (see version in `package.json`)
 
 ## Development
 
