@@ -15,11 +15,13 @@ export default defineConfig({
       "@": fileURLToPath(new URL("../core-ui/src", import.meta.url)),
     },
   },
+  base: "./",
   define: {
     global: "globalThis",
   },
   build: {
     target: "esnext",
+    outDir: "../../../org.knime.core.ui/js-src/dist-scripting-editor",
   },
   root: ".",
   optimizeDeps: {

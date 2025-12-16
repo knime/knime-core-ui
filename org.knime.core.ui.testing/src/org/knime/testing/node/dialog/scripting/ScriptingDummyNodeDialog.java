@@ -95,10 +95,9 @@ public class ScriptingDummyNodeDialog implements NodeDialog {
         return Page.create() //
             .fromFile() //
             .bundleClass(ScriptingService.class) // TODO use own class when resources are available
-            .basePath("js-src/dist/") //
+            .basePath("js-src/dist-scripting-editor/") //
             .relativeFilePath("index.html") //
-            .addResourceDirectory("assets") //
-            .addResourceDirectory("monacoeditorwork");
+            .addResourceDirectory("assets");
     }
 
     @Override

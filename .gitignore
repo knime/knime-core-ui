@@ -80,6 +80,7 @@ typings/
 
 # Nuxt generate
 dist
+dist-scripting-editor
 
 # Generated Sbom file
 bom.json
