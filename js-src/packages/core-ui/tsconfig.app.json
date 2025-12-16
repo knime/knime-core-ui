@@ -5,7 +5,7 @@
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
-    "lib": ["ES2023.Array", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "paths": {
       "@/*": ["./src/*"],
       "@@/*": ["./*"]
