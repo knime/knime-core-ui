@@ -1,6 +1,6 @@
 # KNIME Scripting Editor Framework
 
-Shared scripting editor components for KNIME Analytics Platform. Use this framework to build dialogs for KNIME nodes that allow users to write scripts.
+Shared scripting editor components for KNIME Analytics Platform and a standalone generic scripting editor app.
 
 ## Development
 
@@ -9,49 +9,58 @@ Shared scripting editor components for KNIME Analytics Platform. Use this framew
 - Node.js (see version in `package.json`)
 - pnpm workspace (install from root: `pnpm install`)
 
-### Standalone Development
+### Development Modes
 
-Run the demo app for UI development:
+#### Standalone Mode (Browser)
+
+Develop with mocked backend services:
 
 ```sh
-pnpm run demo
+pnpm run dev:browser
 ```
 
-Opens at [http://localhost:3000](http://localhost:3000) with mocked backend services. Perfect for developing and testing UI components without linking to other projects.
+Opens at [http://localhost:5173/](http://localhost:5173/)
 
-See [demo/README.md](demo/README.md) for detailed documentation.
+#### KNIME Dialog Development Mode
+
+Start KNIME Analytics Platform with:
+
+```
+-Dorg.knime.ui.dev.mode=true
+-Dorg.knime.ui.dev.node.dialog.url=http://localhost:5173/
+```
+
+Run the development server:
+
+```sh
+pnpm run dev:knime
+```
+
+NOTE: The dialog served by the development server is only visible with the the dialog mode "Open in new window".
 
 ### Build
 
-Development build with watch mode:
+Library:
 
 ```sh
-pnpm run build-watch
+pnpm run build:lib          # Production build
+pnpm run build:lib:watch    # Watch mode
 ```
 
-Production build:
+Application:
 
 ```sh
-pnpm run build
+pnpm run build:app
 ```
 
 ### Testing
 
-Run unit tests:
-
 ```sh
-pnpm run test:unit
-```
-
-Generate coverage report:
-
-```sh
-pnpm run coverage
+pnpm run test:unit    # Run tests
+pnpm run coverage     # Generate coverage
 ```
 
 ### Code Quality
-
-Lint and format:
 
 ```sh
 pnpm run lint
