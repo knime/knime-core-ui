@@ -7,7 +7,6 @@ import "@knime/kds-styles/kds-variables.css";
 
 import { displayMode } from "../display-mode";
 import { getInitialData } from "../init";
-import { type GenericNodeSettings } from "../settings-service";
 
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import HeaderBar from "./HeaderBar.vue";
@@ -40,7 +39,7 @@ interface Props {
    * In pixels.
    */
   initialPaneSizes?: PaneSizes;
-  toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
+  toSettings?: (settings: { script: string }) => unknown;
   additionalBottomPaneTabContent?: SlottedTab[];
   /*
    * When using the single editor pane, this prop can be used to determine
@@ -58,7 +57,7 @@ const props = withDefaults(defineProps<Props>(), {
   showControlBar: true,
   initialPaneSizes: () => ({ left: 260, right: 260, bottom: 300 }),
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
-  toSettings: (settings: GenericNodeSettings) => settings,
+  toSettings: (settings: { script: string }) => settings,
   modelOrView: "model",
 });
 

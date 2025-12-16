@@ -58,7 +58,7 @@ export class SettingsService {
     return this.settingsInitialData;
   }
 
-  registerSettingsGetterForApply(settingsGetter: () => GenericNodeSettings) {
+  registerSettingsGetterForApply(settingsGetter: () => unknown) {
     this.dialogService.setApplyListener(async () => {
       const settings = settingsGetter();
       try {
