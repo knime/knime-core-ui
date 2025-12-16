@@ -6,7 +6,6 @@ import type { NodeDialogCoreRpcMethods } from "@knime/core-ui/src/nodeDialog/api
 import useFlowVariableSystem from "@knime/core-ui/src/nodeDialog/composables/useFlowVariableSystem";
 
 import {
-  type GenericNodeSettings,
   ScriptingEditor,
   getScriptingService,
   getSettingsService,
@@ -18,8 +17,9 @@ const scriptingService = getScriptingService();
 const settingsService = getSettingsService();
 
 const coreComponent = ref<InstanceType<typeof NodeDialogCore> | null>(null);
-const callRpcMethod =
-  scriptingService.callRpcMethod.bind(scriptingService) as NodeDialogCoreRpcMethods;
+const callRpcMethod = scriptingService.callRpcMethod.bind(
+  scriptingService,
+) as NodeDialogCoreRpcMethods;
 
 const initialData = getAppInitialData();
 
@@ -32,7 +32,7 @@ if (settingsService.getSettingsInitialData() === undefined) {
   });
 }
 const settingsInitialData = settingsService.getSettingsInitialData()!;
-const toSettings = (commonSettings: GenericNodeSettings) => {
+const toSettings = (commonSettings: { script: string }) => {
   if (!coreComponent.value) {
     return { data: { model: { script: commonSettings.script } } };
   }
