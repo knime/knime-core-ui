@@ -44,47 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 16, 2025 (benjaminwilhelm): created
+ *   Nov 11, 2025 (benjaminwilhelm): created
  */
-package org.knime.testing.node.dialog.scripting;
+package org.knime.core.webui.node.dialog.scripting;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.scripting.AbstractDefaultScriptingNodeDialog;
-import org.knime.core.webui.node.dialog.scripting.GenericInitialDataBuilder;
-import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.WorkflowControl;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
 
 /**
- * The dialog for the Dummy Scripting Node using the WebUI framework.
+ * Abstract factory class for nodes using the {@link AbstractDefaultScriptingNodeDialog} as a fallback dialog for remote
+ * workflow editing. Activates the WebUI dialog if the feature flag.
+ * <p>
+ * This class could be used for nodes that use a scripting dialog (RSyntaxTextArea) in the legacy dialog and want to
+ * provide a WebUI dialog as well, but do not want to implement a full custom scripting dialog by themselves.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @param <T> the concrete type of the {@link NodeModel}
  */
-@SuppressWarnings("restriction") // WebUI API is still restricted
-public class ScriptingDummyNodeDialog extends AbstractDefaultScriptingNodeDialog {
+public abstract class AbstractFallbackScriptingNodeFactory<T extends NodeModel> extends NodeFactory<T>
+    implements NodeDialogFactory {
 
-    ScriptingDummyNodeDialog() {
-        super(ScriptingDummyNodeSettings.class);
+    private static final boolean HAS_WEBUI_DIALOG = //
+        "js".equals(System.getProperty("org.knime.scripting.ui.mode")) // feature flag for new Scripting dialogs
+            || Boolean.getBoolean("java.awt.headless"); // headless (remote workflow editing) -> we enforce webUI dialog
+
+    @Override
+    public final boolean hasNodeDialog() {
+        return HAS_WEBUI_DIALOG;
     }
 
     @Override
-    protected GenericInitialDataBuilder getInitialData(final NodeContext context) {
-        var workflowControl = new WorkflowControl(context.getNodeContainer());
-        return GenericInitialDataBuilder.createDefaultInitialDataBuilder(NodeContext.getContext()) //
-            .addDataSupplier("inputObjects", Collections::emptyList) //
-            .addDataSupplier("flowVariables", () -> {
-                var flowVariables = Optional.ofNullable(workflowControl.getFlowObjectStack()) //
-                    .map(stack -> stack.getAllAvailableFlowVariables().values()) //
-                    .orElseGet(List::of);
-                return InputOutputModel.flowVariables() //
-                    .subItems(flowVariables, varType -> true) //
-                    .build();
-            }) //
-            .addDataSupplier("outputObjects", Collections::emptyList) //
-            .addDataSupplier("language", () -> "java") //
-            .addDataSupplier("fileName", () -> "script.java");
+    public abstract AbstractDefaultScriptingNodeDialog createNodeDialog();
+
+    @Override
+    public final boolean hasDialog() { // NOSONAR - need to override the deprecated method here
+        return true;
     }
+
+    @Override
+    public final NodeDialogPane createNodeDialogPane() { // NOSONAR - need to override the deprecated method here
+        return HAS_WEBUI_DIALOG ? NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog())
+            : createLegacyNodeDialogPane();
+    }
+
+    /**
+     * Creates the legacy {@link NodeDialogPane} for this node. This method is only called if the WebUI dialog is not
+     * activated.
+     *
+     * @return the legacy node dialog pane
+     */
+    public abstract NodeDialogPane createLegacyNodeDialogPane();
 }

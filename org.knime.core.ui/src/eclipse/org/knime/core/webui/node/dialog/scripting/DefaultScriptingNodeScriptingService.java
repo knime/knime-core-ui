@@ -46,35 +46,21 @@
  * History
  *   Sep 6, 2023 (benjamin): created
  */
-package org.knime.testing.node.dialog.scripting;
-
-import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.scripting.CodeGenerationRequest;
-import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.ScriptingService;
+package org.knime.core.webui.node.dialog.scripting;
 
 /**
- * {@link ScriptingService} implementation for the Dummy Scripting Node.
+ * {@link ScriptingService} implementation for the Default Scripting Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-final class ScriptingDummyNodeScriptingService extends ScriptingService {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingDummyNodeScriptingService.class);
+final class DefaultScriptingNodeScriptingService extends ScriptingService {
 
     @Override
     public RpcService getJsonRpcService() {
-        LOGGER.debug("Creating Dummy Scripting RPC Service.");
         return new ScriptingDummyRpcService();
     }
 
-    @Override
-    public void onDeactivate() {
-        super.onDeactivate();
-        LOGGER.debug("Dummy Scripting Service deactivated.");
-    }
-
-    public final class ScriptingDummyRpcService extends RpcService {
+    final class ScriptingDummyRpcService extends RpcService {
 
         @Override
         protected CodeGenerationRequest getCodeSuggestionRequest(final String userPrompt, final String currentCode,
