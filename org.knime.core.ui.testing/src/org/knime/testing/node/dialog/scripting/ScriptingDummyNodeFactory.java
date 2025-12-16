@@ -47,21 +47,20 @@
 package org.knime.testing.node.dialog.scripting;
 
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.scripting.AbstractDefaultScriptingNodeDialog;
+import org.knime.core.webui.node.dialog.scripting.AbstractFallbackScriptingNodeFactory;
 
 /**
  * Factory class for the Dummy Scripting Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-public final class ScriptingDummyNodeFactory extends NodeFactory<ScriptingDummyNodeModel> implements NodeDialogFactory {
+@SuppressWarnings("restriction")
+public final class ScriptingDummyNodeFactory extends AbstractFallbackScriptingNodeFactory<ScriptingDummyNodeModel> {
 
     @Override
-    public NodeDialog createNodeDialog() {
+    public AbstractDefaultScriptingNodeDialog createNodeDialog() {
         return new ScriptingDummyNodeDialog();
     }
 
@@ -82,12 +81,7 @@ public final class ScriptingDummyNodeFactory extends NodeFactory<ScriptingDummyN
     }
 
     @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    public NodeDialogPane createLegacyNodeDialogPane() {
+        return null;
     }
 }

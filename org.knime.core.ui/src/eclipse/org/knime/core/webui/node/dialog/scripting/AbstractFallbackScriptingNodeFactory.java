@@ -44,43 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 6, 2023 (benjamin): created
+ *   Nov 11, 2025 (benjaminwilhelm): created
  */
-package org.knime.testing.node.dialog.scripting;
+package org.knime.core.webui.node.dialog.scripting;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.scripting.CodeGenerationRequest;
-import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.ScriptingService;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
 
 /**
- * {@link ScriptingService} implementation for the Dummy Scripting Node.
+ * Abstract factory class for nodes using the {@link AbstractDefaultScriptingNodeDialog} as a fallback dialog for remote
+ * workflow editing. Activates the WebUI dialog if the feature flag is enabled.
+ * <p>
+ * This class could be used for nodes that use a scripting dialog (RSyntaxTextArea) in the legacy dialog and want to
+ * provide a WebUI dialog as well, but do not want to implement a full custom scripting dialog by themselves.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @param <T> the concrete type of the {@link NodeModel}
  */
-final class ScriptingDummyNodeScriptingService extends ScriptingService {
+public abstract class AbstractFallbackScriptingNodeFactory<T extends NodeModel> extends NodeFactory<T>
+    implements NodeDialogFactory {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingDummyNodeScriptingService.class);
-
-    @Override
-    public RpcService getJsonRpcService() {
-        LOGGER.debug("Creating Dummy Scripting RPC Service.");
-        return new ScriptingDummyRpcService();
-    }
+    private static final boolean HAS_WEBUI_DIALOG = //
+        "js".equals(System.getProperty("org.knime.scripting.ui.mode")) // feature flag for new Scripting dialogs
+            || Boolean.getBoolean("java.awt.headless"); // headless (remote workflow editing) -> we enforce webUI dialog
 
     @Override
-    public void onDeactivate() {
-        super.onDeactivate();
-        LOGGER.debug("Dummy Scripting Service deactivated.");
+    public final boolean hasNodeDialog() {
+        return HAS_WEBUI_DIALOG;
     }
 
-    public final class ScriptingDummyRpcService extends RpcService {
+    @Override
+    public abstract AbstractDefaultScriptingNodeDialog createNodeDialog();
 
-        @Override
-        protected CodeGenerationRequest getCodeSuggestionRequest(final String userPrompt, final String currentCode,
-            final InputOutputModel[] inputModels) {
-            throw new UnsupportedOperationException("Code suggestion is not supported in the Dummy Scripting Node.");
-        }
-
+    @Override
+    public final boolean hasDialog() { // NOSONAR - need to override the deprecated method here
+        return true;
     }
+
+    @Override
+    public final NodeDialogPane createNodeDialogPane() { // NOSONAR - need to override the deprecated method here
+        return HAS_WEBUI_DIALOG ? NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog())
+            : createLegacyNodeDialogPane();
+    }
+
+    /**
+     * Creates the legacy {@link NodeDialogPane} for this node. This method is only called if the WebUI dialog is not
+     * activated.
+     *
+     * @return the legacy node dialog pane
+     */
+    public abstract NodeDialogPane createLegacyNodeDialogPane();
 }
