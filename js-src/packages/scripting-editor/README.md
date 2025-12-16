@@ -6,7 +6,7 @@ Shared scripting editor components for KNIME Analytics Platform. Use this framew
 
 ### Prerequisites
 
-- Node.js 22.x
+- Node.js (see version in `package.json`)
 - pnpm workspace (install from root: `pnpm install`)
 
 ### Standalone Development
