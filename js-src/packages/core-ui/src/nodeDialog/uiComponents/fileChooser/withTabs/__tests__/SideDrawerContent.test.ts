@@ -53,8 +53,9 @@ describe("SideDrawerContent.vue", () => {
     });
   };
 
-  it("renders", () => {
+  it("renders", async () => {
     const wrapper = mountSideDrawerContent();
+    await flushPromises();
     const tabBar = wrapper.findComponent(TabBar);
     expect(tabBar.exists()).toBeTruthy();
     expect(tabBar.props().possibleValues).toStrictEqual([
@@ -80,6 +81,7 @@ describe("SideDrawerContent.vue", () => {
     props.modelValue.fsCategory = "LOCAL";
     props.uischema.options!.isLocal = true;
     const wrapper = mountSideDrawerContent();
+    await flushPromises();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe("LOCAL");
     await flushPromises();
     const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
@@ -98,6 +100,7 @@ describe("SideDrawerContent.vue", () => {
     const spacePath = "mySpacePath";
     props.uischema.options!.spaceFSOptions!.spacePath = spacePath;
     const wrapper = mountSideDrawerContent();
+    await flushPromises();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe("SPACE");
     await flushPromises();
     const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
@@ -110,6 +113,7 @@ describe("SideDrawerContent.vue", () => {
 
   it("renders embedded data tab", async () => {
     const wrapper = mountSideDrawerContent();
+    await flushPromises();
     await wrapper
       .findComponent(TabBar)
       .vm.$emit("update:model-value", "relative-to-embedded-data");
@@ -126,6 +130,7 @@ describe("SideDrawerContent.vue", () => {
 
   it("renders URL tab", async () => {
     const wrapper = mountSideDrawerContent();
+    await flushPromises();
     await wrapper
       .findComponent(TabBar)
       .vm.$emit("update:model-value", "CUSTOM_URL");
@@ -217,6 +222,7 @@ describe("SideDrawerContent.vue", () => {
       "renders ConnectionPreventsTab for all other tabs",
       async (otherFsCategory: keyof typeof FSCategory) => {
         const wrapper = mountSideDrawerContent();
+        await flushPromises();
         await wrapper
           .findComponent(TabBar)
           .vm.$emit("update:model-value", otherFsCategory);
@@ -225,5 +231,54 @@ describe("SideDrawerContent.vue", () => {
         ).toBeTruthy();
       },
     );
+
+    it("does not render TabBar until connectedFSOptions is provided", async () => {
+      // Mount with connectedFSOptions in providedOptions but not yet provided
+      props.modelValue.fsCategory = "LOCAL";
+      props.uischema.options!.connectedFSOptions = undefined;
+      props.uischema.providedOptions = ["connectedFSOptions"];
+
+      let connectedFSOptionsCallback: ((value: unknown) => void) | undefined;
+      const addStateProviderListener = vi.fn((identifier, callback) => {
+        if (identifier.providedOptionName === "connectedFSOptions") {
+          connectedFSOptionsCallback = callback;
+        }
+      });
+
+      wrapper = shallowMount(SideDrawerContent, {
+        props,
+        global: {
+          provide: {
+            addStateProviderListener,
+          },
+        },
+      });
+
+      await flushPromises();
+
+      // TabBar should not be rendered yet
+      expect(wrapper.findComponent(TabBar).exists()).toBe(false);
+
+      // Now provide connectedFSOptions
+      const connectedFSOptions = {
+        portIndex: 1,
+        fileSystemType: "Connected File System",
+        fileSystemSpecifier: "mySpecifier",
+      };
+      connectedFSOptionsCallback!(connectedFSOptions);
+      await flushPromises();
+
+      // TabBar should now be rendered
+      expect(wrapper.findComponent(TabBar).exists()).toBe(true);
+    });
+  });
+
+  it("renders TabBar immediately when connectedFSOptions is not a provided option", async () => {
+    props.uischema.providedOptions = undefined;
+    const wrapper = mountSideDrawerContent();
+    await flushPromises();
+
+    // TabBar should be rendered immediately
+    expect(wrapper.findComponent(TabBar).exists()).toBe(true);
   });
 });
