@@ -75,6 +75,16 @@ export const useFileChooserBrowseOptions = (
 ) => {
   const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
   // Merge connectedFSOptions from state provider into options
+  const tabsCanBeRendered = ref(false);
+  watch(
+    connectedFSOptions,
+    (newVal) => {
+      if (newVal) {
+        tabsCanBeRendered.value = true;
+      }
+    },
+    { immediate: true },
+  );
   const options = computed(() => ({
     ...(uischema.value.options ?? {}),
     connectedFSOptions:
@@ -119,6 +129,9 @@ export const useFileChooserBrowseOptions = (
 
   onMounted(() => {
     const { fileExtension, fileExtensions } = options.value;
+    if (!uischema.value.providedOptions?.includes("connectedFSOptions")) {
+      tabsCanBeRendered.value = true;
+    }
     if (
       !fileExtension &&
       !uischema.value.providedOptions?.includes("fileExtension") &&
@@ -138,6 +151,7 @@ export const useFileChooserBrowseOptions = (
     appendedExtension,
     isWriter,
     isLoaded,
+    tabsCanBeRendered,
     isLocal,
     mountId,
     spacePath,
