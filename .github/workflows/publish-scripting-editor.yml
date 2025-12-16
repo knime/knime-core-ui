@@ -42,7 +42,7 @@ jobs:
           git add package.json
           git commit -m "Bump scripting-editor version to ${{ steps.version.outputs.version }} [skip ci]" --no-verify
           git tag "v${{ steps.version.outputs.version }}" -am "Bump scripting-editor version to ${{ steps.version.outputs.version }}"
-          git push && git push --tags
+          git push --no-verify && git push --tags --no-verify
       - name: Publish to npm
         run: npm publish
         env:
