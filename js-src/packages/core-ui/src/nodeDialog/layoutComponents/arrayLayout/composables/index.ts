@@ -4,14 +4,21 @@ import type { Provided } from "../../../types/provided";
 import inject from "../../../utils/inject";
 import { topLevelElementScope } from "../ArrayLayoutItemLabel.vue";
 
-const determineElementScope = (currentScope: string, parentScope: string) => {
+const determineElementIdOrScope = (
+  location: { id: string } | { scope: string },
+  parentScope: string,
+) => {
+  if ("id" in location) {
+    return { id: `${parentScope}/items${location.id.replace(/^#/, "")}` };
+  }
+  const currentScope = location.scope;
   if (!currentScope) {
-    return currentScope;
+    return { scope: currentScope };
   }
   if (currentScope === topLevelElementScope) {
-    return parentScope;
+    return { scope: parentScope };
   }
-  return `${parentScope}/items${currentScope.replace(/^#/, "")}`;
+  return { scope: `${parentScope}/items${currentScope.replace(/^#/, "")}` };
 };
 
 export const addIndexToStateProviders = (
@@ -36,6 +43,8 @@ export const addIndexToStateProviders = (
     }: {
       indexIds?: string[];
       indices?: number[];
+      id?: string;
+      scope?: string;
       [key: string]: any;
     } & Parameters<Provided[typeof injectionKey]>[0],
     callback,
@@ -48,7 +57,7 @@ export const addIndexToStateProviders = (
       : addStateProviderListener(
           {
             ...location,
-            scope: determineElementScope(location.scope, parentScope),
+            ...determineElementIdOrScope(location, parentScope),
             indexIds: [indexId, ...indexIds],
             indices: [index, ...indices],
           },

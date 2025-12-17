@@ -21,7 +21,7 @@ export const dirty = <D>(
   valueComparator?: NoInfer<() => SettingComparator<D | undefined>>,
 ): VueControl<D> =>
   defineControl((props, ctx) => {
-    if (props.control.path) {
+    if (props.control.uischema.scope) {
       useDirtySetting({
         dataPath: computed(() => props.control.path),
         value: computed(() => props.control.data),
