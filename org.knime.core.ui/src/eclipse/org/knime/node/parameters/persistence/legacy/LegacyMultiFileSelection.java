@@ -55,10 +55,10 @@ import java.util.Objects;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSLocationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FilterOptionsSettings;
@@ -111,7 +111,7 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
      * @param filterMode the initial filter mode. It must be listed in the associated MultiFileSelectionWidget.value()
      */
     public LegacyMultiFileSelection(final MultiFileSelectionMode filterMode) {
-        this(filterMode, new FSLocation(FSCategory.LOCAL, ""));
+        this(filterMode, FSLocationUtil.getDefaultFSLocation());
     }
 
     LegacyMultiFileSelection() {

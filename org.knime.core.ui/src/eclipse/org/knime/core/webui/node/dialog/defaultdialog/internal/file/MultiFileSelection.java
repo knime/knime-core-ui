@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 import java.util.Objects;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
@@ -92,7 +91,7 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
      * @param filters the filters to use initially, not null.
      */
     public MultiFileSelection(final MultiFileSelectionMode filterMode, final F filters) {
-        this(filterMode, filters, new FSLocation(FSCategory.LOCAL, ""));
+        this(filterMode, filters, FSLocationUtil.getDefaultFSLocation());
     }
 
     /**
@@ -150,7 +149,7 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
      * @throws InvalidSettingsException if the current path is invalid
      */
     public void validate() throws InvalidSettingsException {
-        FSLocationValidationUtil.validateFSLocation(m_path);
+        FSLocationUtil.validateFSLocation(m_path);
     }
 
     /**

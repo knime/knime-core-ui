@@ -50,18 +50,41 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2.LocationType;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Shared util class for validation of parameters containing {@link FSLocation} fields.
  *
  * @author Paul Bärnreuther
  */
-final class FSLocationValidationUtil {
+public final class FSLocationUtil {
 
-    private FSLocationValidationUtil() {
+    private FSLocationUtil() {
         // prevent instantiation
+    }
+
+    /**
+     * Used to get default initial parameters for file location choosers.
+     *
+     * @return the default FS location. Either LOCAL or RELATIVE to the current space, depending on whether the workflow
+     *         is running in a remote context or not.
+     */
+    public static FSLocation getDefaultFSLocation() {
+        if (isRemoteWorkflowContext()) {
+            return new FSLocation(FSCategory.RELATIVE, RelativeTo.SPACE.getSettingsValue(), "");
+        }
+        return new FSLocation(FSCategory.LOCAL, "");
+    }
+
+    static boolean isRemoteWorkflowContext() {
+        return WorkflowContextUtil.getWorkflowContextV2Optional()//
+            .map(WorkflowContextV2::getLocationType)//
+            .map(locType -> LocationType.LOCAL != locType).orElse(true);
     }
 
     /**
