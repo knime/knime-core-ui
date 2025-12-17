@@ -3,3 +3,4 @@
 
 /js-src/packages/scripting-editor @knime/rakete
 /org.knime.core.ui/src/eclipse/org/knime/core/webui/node/dialog/scripting @knime/rakete
+/org.knime.core.ui.tests/src/eclipse/org/knime/core/webui/node/dialog/scripting @knime/rakete
