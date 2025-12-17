@@ -49,18 +49,31 @@ export const useDialogFileExplorerButtons = ({
   watch(
     [selectedItem, selectionMode, isRootParent],
     ([newSelectedItem, mode, isRoot]) => {
+      if (mode === "FILE") {
+        applyText.value = "Choose file";
+      } else if (mode === "WORKFLOW") {
+        applyText.value = "Choose workflow";
+      } else {
+        /**
+         * Adjusted to "Choose file" or "Choose" below in certain cases when
+         * "FILE_OR_FOLDER" mode is active.
+         */
+        applyText.value = "Choose folder";
+      }
+      const onlyFilesAllowed = mode === "FILE" || mode === "WORKFLOW";
+      const onlyFoldersAllowed = mode === "FOLDER";
       if (!newSelectedItem) {
         goIntoFolderButtonDisabled.value = true;
-        applyButtonDisabled.value = mode === "FILE" || isRoot;
-        applyText.value = mode === "FILE" ? "Choose file" : "Choose folder";
+        applyButtonDisabled.value = onlyFilesAllowed || isRoot;
       } else if (newSelectedItem.selectionType === "FILE") {
-        applyButtonDisabled.value = mode === "FOLDER";
+        applyButtonDisabled.value = onlyFoldersAllowed;
         goIntoFolderButtonDisabled.value = true;
-        applyText.value = mode === "FOLDER" ? "Choose folder" : "Choose file";
+        if (mode === "FILE_OR_FOLDER") {
+          applyText.value = "Choose file";
+        }
       } else if (newSelectedItem.selectionType === "FOLDER") {
-        applyButtonDisabled.value = mode === "FILE";
+        applyButtonDisabled.value = onlyFilesAllowed;
         goIntoFolderButtonDisabled.value = false;
-        applyText.value = mode === "FILE" ? "Choose file" : "Choose folder";
       } else if (newSelectedItem.selectionType === "FILE_OR_FOLDER") {
         // only possible if mode is FILE_OR_FOLDER and item is determined via the text input field
         applyButtonDisabled.value = false;
