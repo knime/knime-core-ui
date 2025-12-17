@@ -216,6 +216,11 @@ final class InvokeTrigger<I> {
             }
 
             @Override
+            public void computeAfterApplyDialog() {
+                // Nothing to do here during invocation
+            }
+
+            @Override
             public <T> Supplier<T>
                 computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
                 return vertexToSupplier(

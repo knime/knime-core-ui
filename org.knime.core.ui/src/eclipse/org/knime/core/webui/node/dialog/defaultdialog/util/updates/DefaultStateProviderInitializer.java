@@ -51,10 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 import java.util.function.Supplier;
 
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
 import org.knime.node.parameters.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 
-abstract class DefaultStateProviderInitializer implements StateProviderInitializer {
+abstract class DefaultStateProviderInitializer implements StateProviderInitializerInternal {
     private final DependencyInjector<Class<? extends ParameterReference<?>>> m_dependencyInjector;
 
     protected DefaultStateProviderInitializer(

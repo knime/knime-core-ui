@@ -66,11 +66,15 @@ onMounted(async () => {
   initialData.value = initialSettings;
 
   // Set up apply listener
-  dialogService.setApplyListener(() =>
-    jsonDataService!.applyData(
+  dialogService.setApplyListener(async () => {
+    const result = await jsonDataService!.applyData(
       coreComponent.value?.getDataAndFlowVariableSettings(),
-    ),
-  );
+    );
+    if (result.isApplied) {
+      coreComponent.value?.trigger({ id: "after-apply-dialog" });
+    }
+    return result;
+  });
 });
 
 /**

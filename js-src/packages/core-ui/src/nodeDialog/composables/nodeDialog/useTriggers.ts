@@ -50,7 +50,8 @@ export default () => {
     const key = getKey(settingsId, id);
     const callback = registeredTriggers.get(key);
     if (!callback) {
-      throw new Error(`No trigger registered for id ${key}`);
+      return (_depSettings: DialogSettings) =>
+        Promise.resolve((_newSettings: DialogSettings) => {});
     }
     return callback(indexIds ?? []);
   };

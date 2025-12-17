@@ -205,6 +205,10 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
                 return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.AFTER_OPEN_DIALOG_ID));
             }
 
+            TriggerVertex getAfterApplyDialogVertex() {
+                return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.AFTER_APPLY_DIALOG_ID));
+            }
+
             /**
              * Receives or creates the {@link StateVertex} for the associated state provider and sets it as parent.
              */
@@ -256,6 +260,9 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
                 if (stateProviderDependencyReceiver.m_computeAfterOpenDialog) {
                     parentVertices.add(getAfterOpenDialogVertex());
                 }
+                if (stateProviderDependencyReceiver.m_computeAfterApplyDialog) {
+                    parentVertices.add(getAfterApplyDialogVertex());
+                }
                 return parentVertices;
             }
 
@@ -292,6 +299,8 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         boolean m_computeAfterOpenDialog;
 
+        boolean m_computeAfterApplyDialog;
+
         @Override
         public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
             getStateProviders().add(stateProviderClass);
@@ -311,6 +320,11 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         @Override
         public void computeAfterOpenDialog() {
             m_computeAfterOpenDialog = true;
+        }
+
+        @Override
+        public void computeAfterApplyDialog() {
+            m_computeAfterApplyDialog = true;
         }
 
         Collection<Class<? extends StateProvider>> getStateProviders() {

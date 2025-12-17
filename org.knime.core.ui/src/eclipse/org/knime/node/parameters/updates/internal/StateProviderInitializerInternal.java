@@ -44,72 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 14, 2025 (Paul Bärnreuther): created
+ *   Dec 16, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.node.parameters.updates.internal;
 
-import java.util.Objects;
-
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
-import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
 
 /**
- * A trigger that is not a value trigger, i.e., currently, either one of the global triggers before or after the dialog
- * is opened or a button.
- *
- * @author Paul Bärnreuther
+ * Internal implementation with additional methods that are not yet part of the public API.
  */
-final class IdTriggerVertex extends TriggerVertex {
+public interface StateProviderInitializerInternal extends StateProviderInitializer {
 
-    static final String BEFORE_OPEN_DIALOG_ID = "before-open-dialog";
-
-    static final String AFTER_OPEN_DIALOG_ID = "after-open-dialog";
-
-    static final String AFTER_APPLY_DIALOG_ID = "after-apply-dialog";
-
-    String m_id;
-
-    IdTriggerVertex(final String id) {
-        m_id = id;
-    }
-
-    IdTriggerVertex(final Class<? extends ButtonReference> buttonRef) {
-        this(extractId(buttonRef));
-    }
-
-    private static String extractId(final Class<? extends ButtonReference> buttonRef) {
-        final var internalId = buttonRef.getAnnotation(ButtonReferenceIdInternal.class);
-        return internalId == null ? buttonRef.getName() : internalId.value();
-    }
-
-    String getId() {
-        return m_id;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof final IdTriggerVertex other) {
-            return m_id.equals(other.getId());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(m_id);
-    }
-
-    @Override
-    public int compareTo(final TriggerVertex o) {
-        if (o instanceof IdTriggerVertex other) {
-            return m_id.compareTo(other.getId());
-        } else {
-            return -1; // IdTriggerVertex should always be before any value trigger vertex
-        }
-
-    }
+    /**
+     * Recalculating state after the dialog has been applied only makes sense when the dialog is still available
+     * afterwards. Currently this is only the case if the embedded dialog is used and the number of input- and output
+     * ports does not change.
+     *
+     * Applying the dialog also only has an impact on the state of the dialog if the state depends on the
+     * {@link NodeParametersInput} and we change parts of that input on apply (via an apply modifier).
+     *
+     * I.e. this method is temporarily our solution for dialogs that adjust ports on apply and need to update state
+     * because the number of ports can be the same and then the dialog remains available.
+     */
+    void computeAfterApplyDialog();
 
 }
