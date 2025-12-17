@@ -226,14 +226,14 @@ export default ({
   ) => void;
   sendAlert: (params: AlertParams) => void;
   pathIsControlledByFlowVariable: (path: string) => boolean;
-  setValueAtPath: (path: string, value: unknown) => void;
+  setValueAtPath: (path: string, value: unknown) => Promise<void>;
   globalArrayIdsRecord: ArrayRecord;
   callDataService: SettingsUpdate2 & SettingsUpdate2WithSettingsId;
 }) => {
   const resolveUpdateResult =
     (
       updateResult: UpdateResult,
-      onValueUpdate: (path: string) => void,
+      onValueUpdate: (path: string, setValuePromise: Promise<void>) => void,
       indexIds: string[],
       settingsIdContext?: SettingsIdContext,
     ) =>
@@ -262,8 +262,10 @@ export default ({
           ({ path, values: [[, value]] }) => {
             const fullToBeUpdatedPath = composePaths(path, lastPathSegment);
             if (!pathIsControlledByFlowVariable(fullToBeUpdatedPath)) {
-              setValueAtPath(fullToBeUpdatedPath, value);
-              onValueUpdate(fullToBeUpdatedPath);
+              onValueUpdate(
+                fullToBeUpdatedPath,
+                setValueAtPath(fullToBeUpdatedPath, value),
+              );
             }
           },
         );
@@ -309,12 +311,12 @@ export default ({
     indexIds: string[] = [],
     settingsIdContext?: SettingsIdContext,
   ) => {
-    const updatedPaths: string[] = [];
+    const updatedPaths: [string, Promise<void>][] = [];
     initialUpdates
       .map((updateResult) =>
         resolveUpdateResult(
           updateResult,
-          (path) => updatedPaths.push(path),
+          (...params) => updatedPaths.push(params),
           indexIds,
           settingsIdContext,
         ),
@@ -322,8 +324,11 @@ export default ({
       .forEach((transform) => {
         transform(currentSettings);
       });
-    // we have to wait one tick to ensure that array element ids are set correctly
-    nextTick(() => updateData(updatedPaths));
+    // We have to wait for all setValueAtPath promises to resolve before calling updateData
+    Promise.all(updatedPaths.map(([, promise]) => promise)).then(() =>
+      // we have to wait one tick to ensure that array element ids are set correctly
+      nextTick(() => updateData(updatedPaths.map(([path]) => path))),
+    );
   };
 
   const toScope = (scope: string, settingsIdContext?: SettingsIdContext) => {
