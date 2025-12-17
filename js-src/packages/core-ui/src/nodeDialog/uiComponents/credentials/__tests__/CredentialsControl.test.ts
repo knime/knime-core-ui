@@ -220,8 +220,7 @@ describe("CredentialsControl.vue", () => {
   });
 
   it("hides username by state provider", async () => {
-    // TODO UIEXT-3073: Remove "as any" once updated to vitest 3.2.4
-    const addStateProviderListener = vi.fn() as any;
+    const addStateProviderListener = vi.fn();
     props.control.uischema.providedOptions = ["hasUsername"];
     const { wrapper } = mountCredentialsControl({
       props,
@@ -237,8 +236,7 @@ describe("CredentialsControl.vue", () => {
   });
 
   it("hides password by state provider", async () => {
-    // TODO UIEXT-3073: Remove "as any" once updated to vitest 3.2.4
-    const addStateProviderListener = vi.fn() as any;
+    const addStateProviderListener = vi.fn();
     props.control.uischema.providedOptions = ["hasUsername"];
     const { wrapper } = mountCredentialsControl({
       props,
