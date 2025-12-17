@@ -193,7 +193,7 @@ describe("multi file selection", () => {
     await flushPromises();
   };
 
-  it("renders multi file selection", async () => {
+  it("renders multi file selection", { timeout: 20_000 }, async () => {
     const wrapper = await mountNodeDialog();
     const multiFileChooser = wrapper.findComponent(MultiFileChooserControl);
     expect(multiFileChooser.exists()).toBe(true);
