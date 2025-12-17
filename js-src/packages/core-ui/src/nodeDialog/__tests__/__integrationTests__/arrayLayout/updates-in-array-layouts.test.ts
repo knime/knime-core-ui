@@ -535,6 +535,71 @@ describe("updates in array layouts", () => {
     );
   });
 
+  describe("id-based ui state updates (like TextMessage)", () => {
+    const addTextMessageToElements = () => {
+      const textMessageId = "myTextMessageId";
+      initialDataJson[uiSchemaKey].elements[0].options.detail.push({
+        type: "Control",
+        id: textMessageId,
+        options: {
+          format: "textMessage",
+        },
+        providedOptions: ["message"],
+      });
+
+      return {
+        textMessageId,
+        getTextMessage: (wrapper: Wrapper, n: number) => {
+          const messages = wrapper.findAll(".array .text-message");
+          return messages.at(n);
+        },
+      };
+    };
+
+    it.each([arrayIndexWithOtherIndicesList[0]])(
+      "performs id-based ui state updates within array element %s",
+      async (index) => {
+        const { textMessageId } = addTextMessageToElements();
+        const { triggerNthButton } = addButtonToElements();
+
+        const messageForIndex = `Message for element ${index}`;
+        mockRPCResult(() => [
+          {
+            id: textMessageId,
+            providedOptionName: "message",
+            values: [
+              {
+                indices: [],
+                value: {
+                  type: "INFO",
+                  title: "Title",
+                  description: messageForIndex,
+                },
+              },
+            ],
+          },
+        ]);
+
+        const wrapper = await mountNodeDialog();
+        await triggerNthButton(wrapper, index);
+
+        // Verify the message was provided to the correct array element
+        expect(dataSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: "settings.update2",
+            options: expect.arrayContaining([
+              expect.anything(),
+              expect.objectContaining({
+                id: expect.any(String),
+              }),
+              expect.any(Object),
+            ]),
+          }),
+        );
+      },
+    );
+  });
+
   describe("dependencies within array elements", () => {
     const dependencyScope =
       "#/properties/model/properties/values/items/properties/value";
