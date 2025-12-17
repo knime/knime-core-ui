@@ -9,17 +9,25 @@
 import { onMounted, ref } from "vue";
 
 import { Button } from "@knime/components";
+import { KdsCheckbox } from "@knime/kds-components";
 
 import { getScriptingService } from "../../init";
+import { setShowDisclaimerAgainPreference } from "../../store/ai-bar";
 import InfinityLoadingBar from "../InfinityLoadingBar.vue";
 
 const disclaimerText = ref<string>();
+const doNotShowAgain = ref<boolean>(false);
 
 onMounted(async () => {
   disclaimerText.value = await getScriptingService().getAiDisclaimer();
 });
 
 const emit = defineEmits(["accept-disclaimer"]);
+
+const handleAccept = () => {
+  setShowDisclaimerAgainPreference(doNotShowAgain.value);
+  emit("accept-disclaimer");
+};
 </script>
 
 <template>
@@ -32,12 +40,17 @@ const emit = defineEmits(["accept-disclaimer"]);
         </p>
       </div>
       <div class="disclaimer-button-container">
+        <KdsCheckbox
+          v-model="doNotShowAgain"
+          class="checkbox"
+          label="Do not show again"
+        />
         <Button
           compact
           primary
           class="notification-button"
           data-testid="ai-disclaimer-accept-button"
-          @click="emit('accept-disclaimer')"
+          @click="handleAccept"
         >
           Accept and continue
         </Button>
@@ -67,7 +80,10 @@ const emit = defineEmits(["accept-disclaimer"]);
 
   & .disclaimer-button-container {
     display: flex;
-    justify-content: right;
+    flex-direction: column;
+    align-self: flex-end;
+    align-items: center;
+    gap: var(--space-8);
 
     & > button {
       margin-top: 0;

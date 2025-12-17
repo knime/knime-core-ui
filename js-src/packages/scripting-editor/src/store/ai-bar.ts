@@ -2,6 +2,7 @@ import { type Ref, reactive, ref, shallowRef, watch } from "vue";
 
 import type { InputOutputModel } from "../components/InputOutputItem.vue";
 import { type UseCodeEditorReturn, useMainCodeEditorStore } from "../editor";
+import { getInitialData } from "../init";
 import type { UsageData } from "../scripting-service";
 
 export interface Message {
@@ -35,7 +36,40 @@ export const clearPromptResponseStore = (): void => {
 // Whether the disclaimer needs to be shown to the user.
 // This is part of the store so it is only shown the first time the user
 // opens the AI bar while the script editor is open.
-export const showDisclaimer = ref<boolean>(true);
+
+const loadItem = <T>(key: string, defaultValue: T | null = null): T | null => {
+  const item = window?.localStorage?.getItem(key);
+  if (item === null) {
+    return defaultValue;
+  }
+  try {
+    return JSON.parse(item) as T;
+  } catch {
+    consola.warn(`Could not parse "${key}" from local storage.`);
+    return defaultValue;
+  }
+};
+
+const saveItem = (key: string, value: unknown) => {
+  window?.localStorage?.setItem(key, JSON.stringify(value));
+};
+
+const getDisclaimerKey = () => {
+  const hubId = getInitialData().kAiConfig.hubId ?? "";
+  const sanitizedHubId = encodeURIComponent(hubId.trim().toLowerCase());
+  return `ai-disclaimer-do-not-show-again-${sanitizedHubId}`;
+};
+
+export const setShowDisclaimerAgainPreference = (
+  doNotShowAgain: boolean,
+): void => {
+  saveItem(getDisclaimerKey(), doNotShowAgain);
+};
+
+const getShowDisclaimerPreference = (): boolean =>
+  !loadItem<boolean>(getDisclaimerKey(), false);
+
+export const showDisclaimer = ref<boolean>(getShowDisclaimerPreference());
 
 export const activeEditorStore = shallowRef<UseCodeEditorReturn>();
 
