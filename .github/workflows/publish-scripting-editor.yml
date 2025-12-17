@@ -46,4 +46,4 @@ jobs:
         env:
           HUSKY: 0
       - name: Publish to npm
-        run: npm publish
+        run: pnpm publish --no-git-checks # no-git-checks to avoid pnpm complaining about the publish branch
