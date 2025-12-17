@@ -49,10 +49,13 @@
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 
@@ -61,15 +64,32 @@ import org.knime.node.parameters.widget.choices.SuggestionsProvider;
  */
 public class HiddenFeatureStringWithSuggestionsParameters implements NodeParameters {
 
+    @Widget(title = "Enter suggestions here",
+        description = "These suggestions will be available in the string setting below.")
+    @ValueReference(SuggestionsRef.class)
+    String[] m_suggestions = new String[]{"option1", "option2", "option3"};
+
+    interface SuggestionsRef extends ParameterReference<String[]> {
+
+    }
+
     @Widget(title = "String with suggestions", description = "Type in a new value or select one of the suggestions.")
     @SuggestionsProvider(MySuggestions.class)
     String m_stringSetting = "default";
 
     static final class MySuggestions implements StringChoicesProvider {
 
+        private Supplier<String[]> m_suggestionsProvider;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            StringChoicesProvider.super.init(initializer);
+            m_suggestionsProvider = initializer.computeFromValueSupplier(SuggestionsRef.class);
+        }
+
         @Override
         public List<String> choices(final NodeParametersInput context) {
-            return List.of("option1", "option2", "option3");
+            return List.of(m_suggestionsProvider.get());
         }
 
     }
