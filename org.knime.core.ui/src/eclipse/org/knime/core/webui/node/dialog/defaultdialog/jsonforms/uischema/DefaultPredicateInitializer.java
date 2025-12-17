@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
+import java.util.List;
+
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
@@ -137,6 +139,12 @@ class DefaultPredicateInitializer implements LegacyPredicateInitializer {
 
     @Override
     public <T> ArrayReference getArray(final Class<? extends ParameterReference<T[]>> reference) {
+        return new ConditionToPredicateTranslator.ArrayFieldReference(
+            condition -> createPredicate(reference, condition));
+    }
+
+    @Override
+    public <T> ArrayReference getList(final Class<? extends ParameterReference<List<T>>> reference) {
         return new ConditionToPredicateTranslator.ArrayFieldReference(
             condition -> createPredicate(reference, condition));
     }

@@ -48,6 +48,8 @@
  */
 package org.knime.node.parameters.updates;
 
+import java.util.List;
+
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
@@ -156,6 +158,12 @@ public interface EffectPredicateProvider {
          * @return an object that can be further transformed to a predicate using one of its methods
          */
         <T> ArrayReference getArray(Class<? extends ParameterReference<T[]>> reference);
+
+        /**
+         * @param reference bound to exactly one array widget field via {@link ValueReference}
+         * @return an object that can be further transformed to a predicate using one of its methods
+         */
+        <T> ArrayReference getList(Class<? extends ParameterReference<List<T>>> reference);
 
         /**
          * @param reference bound to exactly one {@link StringOrEnum} field via {@link ValueReference}
@@ -275,6 +283,13 @@ public interface EffectPredicateProvider {
             EffectPredicate hasMultipleItems();
 
             /**
+             * @return predicate that is fulfilled, when the referenced array is empty.
+             */
+            default EffectPredicate isEmpty() {
+                return containsElementSatisfying(PredicateInitializer::always).negate();
+            }
+
+            /**
              *
              * Note that {@link EffectPredicateProvider} is a functional interface, so an implementation could look like
              * this:
@@ -289,6 +304,7 @@ public interface EffectPredicateProvider {
              *         referenced array.
              */
             EffectPredicate containsElementSatisfying(EffectPredicateProvider elementPredicate);
+
         }
 
         /**
