@@ -27,10 +27,24 @@ export class SettingsService {
    * designated initialization method.
    *
    * @internal
-   * @param initialSettings Initial settings from `ScriptingNodeSettingsService`, or undefined if `settingsInitialData` is provided
-   * @param settingsInitialData Initial settings data from `ScriptingDefaultNodeSettingsService`, or undefined if `initialSettings` is provided
+   * @param initialSettings Initial settings from `ScriptingNodeSettingsService`. May be undefined
+   *   when using `ScriptingDefaultNodeSettingsService` (JSONForms-based dialogs) or when no initial
+   *   settings are available.
+   * @param settingsInitialData Initial settings data from `ScriptingDefaultNodeSettingsService`
+   *   (includes schema, UI schema, and flow variable settings for JSONForms-based dialogs). May be
+   *   undefined when using legacy `ScriptingNodeSettingsService` or when no initial data is available.
    * @param dialogService The service for dialog operations
    * @param jsonDataService The service for JSON data operations
+   *
+   * @remarks
+   * Both `initialSettings` and `settingsInitialData` are optional to support different dialog modes:
+   * - Legacy scripting nodes provide only `initialSettings`
+   * - JSONForms-based scripting nodes provide only `settingsInitialData`
+   * - During initialization, both may be undefined if no data is available yet
+   * - Some implementations may provide both for compatibility during migration
+   *
+   * The service gracefully handles all cases, returning `undefined` from `getSettings()` or
+   * `getSettingsInitialData()` when the respective parameter was not provided.
    */
   constructor(
     private readonly initialSettings: GenericNodeSettings | undefined,
