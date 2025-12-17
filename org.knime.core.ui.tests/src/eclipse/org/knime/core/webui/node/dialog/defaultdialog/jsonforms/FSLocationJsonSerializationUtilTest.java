@@ -76,7 +76,7 @@ public class FSLocationJsonSerializationUtilTest {
     @Test
     void testSerializeLocal() {
         class TestSettings {
-            FileSelection fileChooser = new FileSelection();
+            FileSelection fileChooser = new FileSelection(new FSLocation(FSCategory.LOCAL, ""));
         }
         final var result = MAPPER.valueToTree(new TestSettings());
         assertThatJson(result).inPath("fileChooser.path.path").isString().isEqualTo("");//
