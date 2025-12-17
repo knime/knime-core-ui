@@ -1,7 +1,7 @@
 {
   "name": "@knime/scripting-editor",
   "type": "module",
-  "version": "0.0.116",
+  "version": "0.0.117",
   "description": "Shared Scripting Editor components for KNIME",
   "repository": {
     "type": "git",
