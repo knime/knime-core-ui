@@ -217,9 +217,9 @@ const { registerUpdates, resolveUpdateResults } = useUpdates({
   updateData: updateDataMultiplePaths,
   sendAlert,
   pathIsControlledByFlowVariable,
-  setValueAtPath: (path: string, data: any) => {
+  setValueAtPath: async (path: string, data: any) => {
     if (jsonforms.value) {
-      jsonforms.value?.updateData?.(path, data);
+      await jsonforms.value?.updateData?.(path, data);
     } else {
       set(getCurrentData(), path, data);
       publishSettings();

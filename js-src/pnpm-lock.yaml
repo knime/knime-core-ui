@@ -51,8 +51,8 @@ importers:
         specifier: 1.43.3
         version: 1.43.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/jsonforms':
-        specifier: 1.16.5
-        version: 1.16.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
+        specifier: 1.16.6
+        version: 1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/kds-components':
         specifier: 'catalog:'
         version: 0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
@@ -1252,8 +1252,8 @@ packages:
       prettier: 3.x
       stylelint: 16.x
 
-  '@knime/jsonforms@1.16.5':
-    resolution: {integrity: sha512-7afFsFvKkEwdZvEanhAgh38crHXH7KWQlVHgqw0NvyZ1uHcCDwC/fvgkoIQ/MD9+RZHOaQjom+mmsAVRLAQZ4w==}
+  '@knime/jsonforms@1.16.6':
+    resolution: {integrity: sha512-O0Vw/p64XP0r+PflmIJjBKVzdLNwGAud33bWHoXogW5bs/fqG8DI0cUHAqygtdRtXgwIetBq6InYzaakbAdckQ==}
     engines: {node: '>=22 <25'}
     peerDependencies:
       consola: 3.x
@@ -7197,7 +7197,7 @@ snapshots:
       - typescript
       - vitest
 
-  '@knime/jsonforms@1.16.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
+  '@knime/jsonforms@1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.18(typescript@5.4.5))
       '@jsonforms/core': 3.4.0
