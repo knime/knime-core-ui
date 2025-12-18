@@ -98,7 +98,7 @@ final class ScriptingDummyNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         var container = exec.createDataContainer(createSpec());
         container.addRowToTable(new DefaultRow("settings", //
-            StringCellFactory.create(m_settings.m_script), //
+            StringCellFactory.create(m_settings.m_expression), //
             BooleanCellFactory.create(m_settings.m_supportMultipleStatements), //
             StringCellFactory.create(m_settings.m_separator) //
         ));

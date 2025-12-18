@@ -85,6 +85,7 @@ public class ScriptingDummyNodeDialog extends AbstractDefaultScriptingNodeDialog
             }) //
             .addDataSupplier("outputObjects", Collections::emptyList) //
             .addDataSupplier("language", () -> "java") //
-            .addDataSupplier("fileName", () -> "script.java");
+            .addDataSupplier("fileName", () -> "script.java") //
+            .addDataSupplier("mainScriptConfigKey", () -> "expression");
     }
 }

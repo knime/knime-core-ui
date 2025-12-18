@@ -81,22 +81,17 @@ public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
         new CustomValidationContext(), new DynamicParametersTriggerInvocationHandlerContext());
 
     /**
-     * Create a default scripting editor dialog with the given model settings. The settings class must have a field
-     * "m_script" of type String. This setting will be shown in the scripting editor. Use the {@link Persist} annotation
-     * if the script setting should be persisted with another config key. Other settings should use widgets and they are
-     * displayed to the right of the scripting editor.
+     * Create a default scripting editor dialog with the given model settings. The settings class must have a script
+     * field of type String. The field name must match the {@code mainScriptConfigKey} specified in the initial data
+     * returned by {@link #getInitialData(NodeContext)}. This setting will be shown in the scripting editor. Refrain
+     * from using the {@link Persist} annotation. Other settings should use widgets and they are displayed to the right
+     * of the scripting editor.
      *
      * @param modelSettings the model settings class
      */
     protected AbstractDefaultScriptingNodeDialog(final Class<? extends NodeParameters> modelSettings) {
         m_scriptingService = new DefaultScriptingNodeScriptingService();
         m_modelSettings = modelSettings;
-
-        try {
-            modelSettings.getDeclaredField("m_script");
-        } catch (NoSuchFieldException | SecurityException ex) {
-            throw new IllegalArgumentException("The provided model settings class must have a field 'm_script'.", ex);
-        }
     }
 
     @Override
@@ -125,6 +120,8 @@ public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
      * <ul>
      * <li>"language": the scripting language for Monaco (e.g. "sql", "python", "r", ...)</li>
      * <li>"fileName": the file name for the script with an appropriate file ending</li>
+     * <li>"mainScriptConfigKey": the field name of the script setting in the model settings class (e.g. "script",
+     * "expression", "sqlQuery")</li>
      * <li>"inputObjects": the input objects model</li>
      * <li>"outputObjects": the output objects model</li>
      * <li>"flowVariables": the flow variables model</li>

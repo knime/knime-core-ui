@@ -52,7 +52,6 @@ import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
@@ -62,8 +61,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  */
 class ScriptingDummyNodeSettings implements NodeParameters {
 
-    @Persist(configKey = "expression")
-    String m_script = "A dummy script";
+    String m_expression = "A dummy script";
 
     @Section(title = "Multiple Statements",
         description = "Settings for handling multiple statements in the scripting node.")
