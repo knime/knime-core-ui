@@ -86,6 +86,18 @@ const settingsInitialData = {
 const initialData = {
   language: "python",
   fileName: "script.py",
+  staticCompletionItems: [
+    {
+      functionName: "knime_input_table",
+      arguments: "port_index",
+      description: "Returns the input table from the specified port"
+    },
+    {
+      functionName: "knime_output_table",
+      arguments: "df, port_index",
+      description: "Writes a DataFrame to the specified output port"
+    }
+  ],
   ...DEFAULT_INITIAL_DATA,
 } satisfies AppInitialData;
 const scriptingService = createScriptingServiceMock({

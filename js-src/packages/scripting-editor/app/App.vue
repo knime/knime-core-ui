@@ -12,6 +12,7 @@ import {
 } from "../lib/main";
 
 import { getAppInitialData } from "./app-initial-data";
+import { registerStaticCompletionProvider } from "./static-completion-provider";
 
 const scriptingService = getScriptingService();
 const settingsService = getSettingsService();
@@ -63,6 +64,14 @@ const { setInitialFlowVariablesMap } = useFlowVariableSystem({
 
 onMounted(() => {
   setInitialFlowVariablesMap(settingsInitialData.flowVariableSettings);
+
+  // Register static completion items if provided
+  if (initialData.staticCompletionItems?.length) {
+    registerStaticCompletionProvider(
+      initialData.language,
+      initialData.staticCompletionItems,
+    );
+  }
 });
 </script>
 
