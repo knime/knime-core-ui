@@ -60,16 +60,14 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.persistence.Persist;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 /**
- * {@link NodeSettingsService} implementation for scripting nodes using {@link NodeParameters} for model settings.
- * Requires a String field named {@code m_script} in the model settings (use {@link Persist} to customize the storage
- * key).
+ * {@link NodeSettingsService} implementation for scripting nodes using {@link NodeParameters} for model settings. The
+ * script field name must be specified via the {@code mainScriptConfigKey} in the initial data builder.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
@@ -88,11 +86,13 @@ public final class DefaultScriptingNodeSettingsService implements NodeSettingsSe
     /**
      * Create a new ScriptingNodeSettingsService.
      * <p>
-     * Note that the model settings class must contain a setting called {@code m_script} of type String. This setting
-     * will be shown in the scripting editor of the node dialog.
+     * Note that the model settings class must contain a script field of type String. The field name must match the
+     * {@code mainScriptConfigKey} specified in the initial data builder. This setting will be shown in the scripting
+     * editor of the node dialog.
      *
-     * @param initialDataBuilder builder for the initial data provided to the node dialog
-     * @param modelSettings the model settings class including a "script" field
+     * @param initialDataBuilder builder for the initial data provided to the node dialog (must include
+     *            {@code mainScriptConfigKey})
+     * @param modelSettings the model settings class including a script field
      * @param serviceRegistry service registry to synchronize state with RPC services
      */
     public DefaultScriptingNodeSettingsService( //

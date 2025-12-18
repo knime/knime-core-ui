@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import { onKeyStroke } from "@vueuse/core";
 
 import { useMainCodeEditor } from "../editor";
-import { getSettingsService } from "../init";
+import { getInitialData, getSettingsService } from "../init";
 import { useReadonlyStore } from "../store/readOnly";
 
 import { COLUMN_INSERTION_EVENT } from "./InputOutputItem.vue";
@@ -48,14 +48,11 @@ onMounted(() => {
   let readonly = false;
   let overwrittenByFlowVariable = "";
   if (settingsInitialData !== undefined) {
-    if (
-      typeof settingsInitialData.data.model !== "undefined" &&
-      "script" in settingsInitialData.data.model
-    ) {
-      script = settingsInitialData.data.model.script as string;
-    }
+    const scriptConfigKey = getInitialData().mainScriptConfigKey ?? "script";
+    script =
+      (settingsInitialData.data.model?.[scriptConfigKey] as string) ?? "";
     overwrittenByFlowVariable =
-      settingsInitialData.flowVariableSettings?.["model.script"]
+      settingsInitialData.flowVariableSettings?.[`model.${scriptConfigKey}`]
         ?.controllingFlowVariableName ?? "";
     readonly = Boolean(overwrittenByFlowVariable);
   }

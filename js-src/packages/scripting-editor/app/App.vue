@@ -33,22 +33,24 @@ if (settingsService.getSettingsInitialData() === undefined) {
 }
 const settingsInitialData = settingsService.getSettingsInitialData()!;
 const toSettings = (commonSettings: { script: string }) => {
+  const configKey = initialData.mainScriptConfigKey ?? "script";
+
+  // If core component is not mounted yet, return settings with only the updated script
+  // (this should not happen)
   if (!coreComponent.value) {
-    return { data: { model: { script: commonSettings.script } } };
+    return { data: { model: { [configKey]: commonSettings.script } } };
   }
 
   const coreDialogSettings =
     coreComponent.value.getDataAndFlowVariableSettings();
-  if (
-    typeof coreDialogSettings.data.model !== "undefined" &&
-    "script" in coreDialogSettings.data.model
-  ) {
-    coreDialogSettings.data.model.script = commonSettings.script;
-  } else {
+  if (typeof coreDialogSettings.data.model === "undefined") {
     throw new Error(
-      "Could not find 'model.script' in core dialog settings to update script.",
+      "Could not find model settings in core dialog settings to update script.",
     );
   }
+
+  // Update the script in the model settings
+  coreDialogSettings.data.model[configKey] = commonSettings.script;
   return coreDialogSettings;
 };
 
