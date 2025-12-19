@@ -1,8 +1,24 @@
 import * as monaco from "monaco-editor";
 
+/**
+ * A static completion item for Monaco editor autocomplete.
+ *
+ * Items are displayed as either functions or constants based on whether arguments are provided:
+ * - **Function**: Include `arguments` (comma-separated) and optionally `returnType`
+ *   - Example: `name: "get_data"`, `arguments: "port, index"`, `returnType: "DataFrame"`
+ *   - Displays as: `get_data(port, index) -> DataFrame`
+ * - **Constant/Variable**: Omit `arguments`, optionally include `returnType`
+ *   - Example: `name: "knime_context"`, `returnType: "Context"`
+ *   - Displays as: `knime_context: Context`
+ *
+ * @property name - The name to display and insert (required)
+ * @property arguments - Comma-separated parameter names for functions (optional)
+ * @property description - Help text shown in completion details, supports HTML (required)
+ * @property returnType - Return type annotation displayed in the completion list (optional)
+ */
 export type StaticCompletionItem = {
-  functionName: string;
-  arguments: string;
+  name: string;
+  arguments?: string;
   description: string;
   returnType?: string;
 };
@@ -45,7 +61,7 @@ const buildSignature = (args: string, returnType?: string): string => {
 const isValidCompletionItem = (
   item: StaticCompletionItem | null | undefined,
 ): item is StaticCompletionItem => {
-  return Boolean(item && item.functionName);
+  return Boolean(item && item.name);
 };
 
 /**
@@ -59,25 +75,48 @@ const createCompletionSuggestions = (
   range: monaco.IRange,
 ): monaco.languages.CompletionItem[] => {
   return items.filter(isValidCompletionItem).map((item) => {
-    const snippetArgs = convertArgsToSnippet(item.arguments || "");
-    const signature = buildSignature(item.arguments, item.returnType);
+    const isFunction = item.arguments !== undefined;
 
-    return {
-      label: {
-        label: item.functionName,
-        detail: signature,
-      },
-      kind: monaco.languages.CompletionItemKind.Function,
-      documentation: {
-        value: item.description || "",
-        isTrusted: true,
-        supportHtml: true,
-      },
-      insertText: `${item.functionName}(${snippetArgs})`,
-      insertTextRules:
-        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      range,
-    };
+    if (isFunction) {
+      // Function completion
+      const snippetArgs = convertArgsToSnippet(item.arguments || "");
+      const signature = buildSignature(item.arguments || "", item.returnType);
+
+      return {
+        label: {
+          label: item.name,
+          detail: signature,
+        },
+        kind: monaco.languages.CompletionItemKind.Function,
+        documentation: {
+          value: item.description || "",
+          isTrusted: true,
+          supportHtml: true,
+        },
+        insertText: `${item.name}(${snippetArgs})`,
+        insertTextRules:
+          monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        range,
+      };
+    } else {
+      // Constant/variable completion
+      const typeHint = item.returnType ? `: ${item.returnType}` : "";
+
+      return {
+        label: {
+          label: item.name,
+          detail: typeHint,
+        },
+        kind: monaco.languages.CompletionItemKind.Constant,
+        documentation: {
+          value: item.description || "",
+          isTrusted: true,
+          supportHtml: true,
+        },
+        insertText: item.name,
+        range,
+      };
+    }
   });
 };
 
