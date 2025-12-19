@@ -50,6 +50,10 @@ const mockInitialData = {
     inputPorts: [],
     flowVariables: [],
     language: "Python",
+    kAiConfig: {
+      hubId: "TestHub",
+      isKaiEnabled: true,
+    },
   },
   settings: {
     script: "print('hello world')",
@@ -188,6 +192,10 @@ describe("init", () => {
           inputPorts: [],
           flowVariables: [],
           language: "R",
+          kAiConfig: {
+            hubId: "AnotherHub",
+            isKaiEnabled: true,
+          },
         },
         settings: customSettings,
       };
