@@ -70,8 +70,28 @@ import org.knime.node.parameters.persistence.Persist;
  * The default scripting editor dialog with a centered scripting editor and additional widgets on the right side.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @since 5.10
  */
 public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
+
+    /**
+     * A static completion item for the autocompletion dialog in the editor
+     *
+     * Items are displayed as either functions or constants based on whether arguments are provided:
+     * - **Function**: Include `arguments` (comma-separated) and optionally `returnType`
+     *   - Example: `name: "get_data"`, `arguments: "port, index"`, `returnType: "DataFrame"`
+     *   - Displays as: `get_data(port, index) -> DataFrame`
+     * - **Constant/Variable**: Omit `arguments`, optionally include `returnType`
+     *   - Example: `name: "knime_context"`, `returnType: "Context"`
+     *   - Displays as: `knime_context: Context`
+     *
+     * @param name - The name to display and insert (required)
+     * @param arguments - Comma-separated parameter names for functions (optional)
+     * @param description - Help text shown in completion details, supports HTML (required)
+     * @param returnType - Return type annotation displayed in the completion list (optional)
+     */
+    public record StaticCompletionItem(String name, String arguments, String description, String returnType) {
+    }
 
     private final Class<? extends NodeParameters> m_modelSettings;
 

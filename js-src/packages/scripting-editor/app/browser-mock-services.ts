@@ -88,15 +88,21 @@ const initialData = {
   fileName: "script.py",
   staticCompletionItems: [
     {
-      functionName: "knime_input_table",
+      name: "knime_input_table",
       arguments: "port_index",
-      description: "Returns the input table from the specified port"
+      description: "Returns the input table from the specified port",
+      returnType: "DataFrame",
     },
     {
-      functionName: "knime_output_table",
+      name: "knime_output_table",
       arguments: "df, port_index",
-      description: "Writes a DataFrame to the specified output port"
-    }
+      description: "Writes a DataFrame to the specified output port",
+    },
+    {
+      name: "knime_context",
+      description: "The KNIME execution context object",
+      returnType: "KnimeContext",
+    },
   ],
   ...DEFAULT_INITIAL_DATA,
 } satisfies AppInitialData;
