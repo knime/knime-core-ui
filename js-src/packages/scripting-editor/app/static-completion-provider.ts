@@ -65,15 +65,13 @@ const isValidCompletionItem = (
 };
 
 /**
- * Creates Monaco completion items from static completion item data.
+ * Creates Monaco completion items from static completion item data (without range).
  * @param items Array of static completion items
- * @param range The text range where the completion will be inserted
- * @returns Array of Monaco completion items
+ * @returns Array of Monaco completion items without range property
  */
-const createCompletionSuggestions = (
+const createCompletionSuggestionsWithoutRange = (
   items: StaticCompletionItem[],
-  range: monaco.IRange,
-): monaco.languages.CompletionItem[] => {
+): Array<Omit<monaco.languages.CompletionItem, "range">> => {
   return items.filter(isValidCompletionItem).map((item) => {
     const isFunction = item.arguments !== undefined;
 
@@ -96,7 +94,6 @@ const createCompletionSuggestions = (
         insertText: `${item.name}(${snippetArgs})`,
         insertTextRules:
           monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        range,
       };
     } else {
       // Constant/variable completion
@@ -114,7 +111,6 @@ const createCompletionSuggestions = (
           supportHtml: true,
         },
         insertText: item.name,
-        range,
       };
     }
   });
@@ -132,6 +128,8 @@ export const registerStaticCompletionProvider = (
   language: string,
   items: StaticCompletionItem[],
 ): monaco.IDisposable => {
+  const cachedSuggestions = createCompletionSuggestionsWithoutRange(items);
+
   return monaco.languages.registerCompletionItemProvider(language, {
     provideCompletionItems: (model, position) => {
       const word = model.getWordUntilPosition(position);
@@ -142,7 +140,11 @@ export const registerStaticCompletionProvider = (
         endColumn: word.endColumn,
       };
 
-      const suggestions = createCompletionSuggestions(items, range);
+      // Add range to pre-computed suggestions
+      const suggestions = cachedSuggestions.map((item) => ({
+        ...item,
+        range,
+      }));
 
       return { suggestions };
     },
