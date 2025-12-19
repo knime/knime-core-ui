@@ -16,6 +16,7 @@ import {
   SettingsService,
   type SettingsServiceType,
 } from "./settings-service";
+import { initializeShowDisclaimer } from "./store/ai-bar";
 
 // --- INSTANCES ---
 
@@ -70,6 +71,9 @@ export const init = async () => {
   dialogService.addOnDisplayModeChangeCallback(({ mode }) => {
     displayMode.value = mode;
   });
+
+  // Initialize user settings
+  initializeShowDisclaimer(); // if the disclaimer should be shown again
 };
 
 // Alternative that uses a mock
@@ -93,6 +97,7 @@ export const initMocked = (mockData: InitMockData) => {
   if (mockData.displayMode) {
     displayMode.value = mockData.displayMode;
   }
+  initializeShowDisclaimer();
 };
 
 /**

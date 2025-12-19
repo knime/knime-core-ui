@@ -66,10 +66,12 @@ export const setShowDisclaimerAgainPreference = (
   saveItem(getDisclaimerKey(), doNotShowAgain);
 };
 
-const getShowDisclaimerPreference = (): boolean =>
-  !loadItem<boolean>(getDisclaimerKey(), false);
+export const showDisclaimer = ref<boolean>(true);
 
-export const showDisclaimer = ref<boolean>(getShowDisclaimerPreference());
+/** Initializes the showDisclaimer ref based on local storage. */
+export const initializeShowDisclaimer = () => {
+  showDisclaimer.value = !loadItem<boolean>(getDisclaimerKey(), false);
+};
 
 export const activeEditorStore = shallowRef<UseCodeEditorReturn>();
 
