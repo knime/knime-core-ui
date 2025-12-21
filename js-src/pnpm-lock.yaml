@@ -52,10 +52,10 @@ importers:
         version: 1.43.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/jsonforms':
         specifier: 1.16.6
-        version: 1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
+        version: 1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/kds-components':
         specifier: 'catalog:'
-        version: 0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
+        version: 0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/knime-ui-table':
         specifier: 0.6.0
         version: 0.6.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -69,8 +69,8 @@ importers:
         specifier: 2.6.0
         version: 2.6.0
       '@vueuse/core':
-        specifier: 13.8.0
-        version: 13.8.0(vue@3.5.18(typescript@5.4.5))
+        specifier: 14.1.0
+        version: 14.1.0(vue@3.5.18(typescript@5.4.5))
       date-fns:
         specifier: 2.29.3
         version: 2.29.3
@@ -209,7 +209,7 @@ importers:
     dependencies:
       '@knime/kds-components':
         specifier: 'catalog:'
-        version: 0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))
+        version: 0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))
       '@knime/kds-styles':
         specifier: 'catalog:'
         version: 0.4.0
@@ -223,8 +223,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0(consola@3.4.2)
       '@vueuse/core':
-        specifier: 13.8.0
-        version: 13.8.0(vue@3.5.18(typescript@5.9.3))
+        specifier: 14.1.0
+        version: 14.1.0(vue@3.5.18(typescript@5.9.3))
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -1820,6 +1820,9 @@ packages:
   '@types/lodash@4.17.20':
     resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
 
+  '@types/lodash@4.17.21':
+    resolution: {integrity: sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==}
+
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
 
@@ -2437,17 +2440,30 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
+  '@vueuse/core@14.1.0':
+    resolution: {integrity: sha512-rgBinKs07hAYyPF834mDTigH7BtPqvZ3Pryuzt1SD/lg5wEcWqvwzXXYGEDb2/cP0Sj5zSvHl3WkmMELr5kfWw==}
+    peerDependencies:
+      vue: ^3.5.0
+
   '@vueuse/metadata@10.7.0':
     resolution: {integrity: sha512-GlaH7tKP2iBCZ3bHNZ6b0cl9g0CJK8lttkBNUX156gWvNYhTKEtbweWLm9rxCPIiwzYcr/5xML6T8ZUEt+DkvA==}
 
   '@vueuse/metadata@13.8.0':
     resolution: {integrity: sha512-BYMp3Gp1kBUPv7AfQnJYP96mkX7g7cKdTIgwv/Jgd+pfQhz678naoZOAcknRtPLP4cFblDDW7rF4e3KFa+PfIA==}
 
+  '@vueuse/metadata@14.1.0':
+    resolution: {integrity: sha512-7hK4g015rWn2PhKcZ99NyT+ZD9sbwm7SGvp7k+k+rKGWnLjS/oQozoIZzWfCewSUeBmnJkIb+CNr7Zc/EyRnnA==}
+
   '@vueuse/shared@10.7.0':
     resolution: {integrity: sha512-kc00uV6CiaTdc3i1CDC4a3lBxzaBE9AgYNtFN87B5OOscqeWElj/uza8qVDmk7/U8JbqoONLbtqiLJ5LGRuqlw==}
 
   '@vueuse/shared@13.8.0':
     resolution: {integrity: sha512-x4nfM0ykW+RmNJ4/1IzZsuLuWWrNTxlTWUiehTGI54wnOxIgI9EDdu/O5S77ac6hvQ3hk2KpOVFHaM0M796Kbw==}
+    peerDependencies:
+      vue: ^3.5.0
+
+  '@vueuse/shared@14.1.0':
+    resolution: {integrity: sha512-EcKxtYvn6gx1F8z9J5/rsg3+lTQnvOruQd8fUecW99DCK04BkWD7z5KQ/wTAx+DazyoEE9dJt/zV8OIEQbM6kw==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -7197,14 +7213,14 @@ snapshots:
       - typescript
       - vitest
 
-  '@knime/jsonforms@1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
+  '@knime/jsonforms@1.16.6(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.18(typescript@5.4.5))
       '@jsonforms/core': 3.4.0
       '@jsonforms/vue': 3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5))
       '@jsonforms/vue-vanilla': 3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/components': 1.43.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
-      '@knime/kds-components': 0.3.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
+      '@knime/kds-components': 0.3.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/rich-text-editor': 1.8.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/utils': 1.9.0(consola@3.2.3)
@@ -7226,36 +7242,36 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/kds-components@0.3.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
+  '@knime/kds-components@0.3.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@knime/kds-styles': 0.3.1
       '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/utils': 1.8.0(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.4.5))
+      '@vueuse/core': 14.1.0(vue@3.5.18(typescript@5.4.5))
       consola: 3.4.2
       vue: 3.5.18(typescript@5.4.5)
     transitivePeerDependencies:
       - '@fontsource/roboto'
       - '@fontsource/roboto-mono'
 
-  '@knime/kds-components@0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
+  '@knime/kds-components@0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@knime/kds-styles': 0.4.0
       '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/utils': 1.8.0(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.4.5))
+      '@vueuse/core': 14.1.0(vue@3.5.18(typescript@5.4.5))
       consola: 3.4.2
       vue: 3.5.18(typescript@5.4.5)
     transitivePeerDependencies:
       - '@fontsource/roboto'
       - '@fontsource/roboto-mono'
 
-  '@knime/kds-components@0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))':
+  '@knime/kds-components@0.4.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@14.1.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))':
     dependencies:
       '@knime/kds-styles': 0.4.0
       '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/utils': 1.8.0(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.9.3))
+      '@vueuse/core': 14.1.0(vue@3.5.18(typescript@5.9.3))
       consola: 3.4.2
       vue: 3.5.18(typescript@5.9.3)
     transitivePeerDependencies:
@@ -8003,6 +8019,8 @@ snapshots:
       '@types/lodash': 4.17.20
 
   '@types/lodash@4.17.20': {}
+
+  '@types/lodash@4.17.21': {}
 
   '@types/markdown-it@14.1.2':
     dependencies:
@@ -8844,9 +8862,25 @@ snapshots:
       '@vueuse/shared': 13.8.0(vue@3.5.18(typescript@5.9.3))
       vue: 3.5.18(typescript@5.9.3)
 
+  '@vueuse/core@14.1.0(vue@3.5.18(typescript@5.4.5))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.21
+      '@vueuse/metadata': 14.1.0
+      '@vueuse/shared': 14.1.0(vue@3.5.18(typescript@5.4.5))
+      vue: 3.5.18(typescript@5.4.5)
+
+  '@vueuse/core@14.1.0(vue@3.5.18(typescript@5.9.3))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.21
+      '@vueuse/metadata': 14.1.0
+      '@vueuse/shared': 14.1.0(vue@3.5.18(typescript@5.9.3))
+      vue: 3.5.18(typescript@5.9.3)
+
   '@vueuse/metadata@10.7.0': {}
 
   '@vueuse/metadata@13.8.0': {}
+
+  '@vueuse/metadata@14.1.0': {}
 
   '@vueuse/shared@10.7.0(vue@3.5.18(typescript@5.4.5))':
     dependencies:
@@ -8867,6 +8901,14 @@ snapshots:
       vue: 3.5.18(typescript@5.4.5)
 
   '@vueuse/shared@13.8.0(vue@3.5.18(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.18(typescript@5.9.3)
+
+  '@vueuse/shared@14.1.0(vue@3.5.18(typescript@5.4.5))':
+    dependencies:
+      vue: 3.5.18(typescript@5.4.5)
+
+  '@vueuse/shared@14.1.0(vue@3.5.18(typescript@5.9.3))':
     dependencies:
       vue: 3.5.18(typescript@5.9.3)
 
@@ -13065,7 +13107,7 @@ snapshots:
   v-calendar@https://bitbucket.org/KNIME/v-calendar/get/048477f.tar.gz(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.4.5)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
@@ -13076,7 +13118,7 @@ snapshots:
   v-calendar@https://codeload.github.com/knime/v-calendar/tar.gz/048477f(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.4.5)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
@@ -13087,7 +13129,7 @@ snapshots:
   v-calendar@https://codeload.github.com/knime/v-calendar/tar.gz/048477f(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.9.3)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
