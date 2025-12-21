@@ -35,7 +35,7 @@
     "@knime/kds-components": "catalog:",
     "@knime/kds-styles": "catalog:",
     "@knime/styles": "1.15.0",
-    "@knime/ui-extension-renderer": "2.4.0",
+    "@knime/ui-extension-renderer": "2.4.4",
     "@knime/utils": "1.8.0",
     "@vueuse/core": "13.8.0",
     "@xterm/addon-fit": "^0.10.0",
