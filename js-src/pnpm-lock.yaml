@@ -39,14 +39,14 @@ importers:
         specifier: 5.2.8
         version: 5.2.8
       '@jsonforms/core':
-        specifier: 3.4.0
-        version: 3.4.0
+        specifier: 3.7.0
+        version: 3.7.0
       '@jsonforms/vue':
-        specifier: 3.4.0
-        version: 3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5))
+        specifier: 3.7.0
+        version: 3.7.0(@jsonforms/core@3.7.0)(vue@3.5.18(typescript@5.4.5))
       '@jsonforms/vue-vanilla':
-        specifier: 3.4.0
-        version: 3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
+        specifier: 3.7.0
+        version: 3.7.0(@jsonforms/core@3.7.0)(@jsonforms/vue@3.7.0(@jsonforms/core@3.7.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/components':
         specifier: 1.43.3
         version: 1.43.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -1182,6 +1182,9 @@ packages:
   '@jsonforms/core@3.4.0':
     resolution: {integrity: sha512-jeU98XLru6G2WVGmJqG19W2rmSLX4im/gOWbptTzQJYj8tS38cqDoYcIRuBmAQYASj2ogJDHQnDgIXARSL8vJA==}
 
+  '@jsonforms/core@3.7.0':
+    resolution: {integrity: sha512-CE9viWtwi9QWLqlWLeOul1/R1GRAyOA9y6OoUpsCc0FhyR+g5p29F3k0fUExHWxL0Sf4KHcXYkfhtqfRBPS8ww==}
+
   '@jsonforms/vue-vanilla@3.4.0':
     resolution: {integrity: sha512-dP/LFOmFWZ7WS0X9N5rT7MsVfIT7BaqEIPaM2+vvD9jBvxdCHvEgdV7V7XruhpZ8pxQ6IsxzQILD2JyYhpgGTA==}
     peerDependencies:
@@ -1189,11 +1192,24 @@ packages:
       '@jsonforms/vue': 3.4.0
       vue: ^3.2.26
 
+  '@jsonforms/vue-vanilla@3.7.0':
+    resolution: {integrity: sha512-+wCnot4j0dXHx4cZg1bC7GunVhNCn0bYYCzsy+zJGJwQmdjQ/pdaDcF6CaS7crL/rO1lrEfW+03oJNBi50YDyw==}
+    peerDependencies:
+      '@jsonforms/core': 3.7.0
+      '@jsonforms/vue': 3.7.0
+      vue: ^3.5.0
+
   '@jsonforms/vue@3.4.0':
     resolution: {integrity: sha512-pSfxvlXLSZafkbVbHRTlBdh9/9L/bAJx5pj8TiJkPREWAOOE0dc8Cp+xPTKYNGv87F0apzUEJmY1fHtsG42Uig==}
     peerDependencies:
       '@jsonforms/core': 3.4.0
       vue: ^3.2.26
+
+  '@jsonforms/vue@3.7.0':
+    resolution: {integrity: sha512-S5NXYeu6lTh2yfNmPz17TRo32dSYqAhOe8Co2mp0lmeq1ODJNBQs8SesXqBRdVMEmMK20ZW/1i7i/38J0TGjdw==}
+    peerDependencies:
+      '@jsonforms/core': 3.7.0
+      vue: ^3.5.0
 
   '@keyv/bigmap@1.1.0':
     resolution: {integrity: sha512-MX7XIUNwVRK+hjZcAbNJ0Z8DREo+Weu9vinBOjGU1thEi9F6vPhICzBbk4CCf3eEefKRz7n6TfZXwUFZTSgj8Q==}
@@ -1819,6 +1835,9 @@ packages:
 
   '@types/lodash@4.17.20':
     resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
+
+  '@types/lodash@4.17.21':
+    resolution: {integrity: sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==}
 
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
@@ -6953,6 +6972,13 @@ snapshots:
       ajv-formats: 2.1.1(ajv@8.17.1)
       lodash: 4.17.21
 
+  '@jsonforms/core@3.7.0':
+    dependencies:
+      '@types/json-schema': 7.0.15
+      ajv: 8.17.1
+      ajv-formats: 2.1.1(ajv@8.17.1)
+      lodash: 4.17.21
+
   '@jsonforms/vue-vanilla@3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@jsonforms/core': 3.4.0
@@ -6960,9 +6986,22 @@ snapshots:
       lodash: 4.17.21
       vue: 3.5.18(typescript@5.4.5)
 
+  '@jsonforms/vue-vanilla@3.7.0(@jsonforms/core@3.7.0)(@jsonforms/vue@3.7.0(@jsonforms/core@3.7.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
+    dependencies:
+      '@jsonforms/core': 3.7.0
+      '@jsonforms/vue': 3.7.0(@jsonforms/core@3.7.0)(vue@3.5.18(typescript@5.4.5))
+      lodash: 4.17.21
+      vue: 3.5.18(typescript@5.4.5)
+
   '@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@jsonforms/core': 3.4.0
+      lodash: 4.17.21
+      vue: 3.5.18(typescript@5.4.5)
+
+  '@jsonforms/vue@3.7.0(@jsonforms/core@3.7.0)(vue@3.5.18(typescript@5.4.5))':
+    dependencies:
+      '@jsonforms/core': 3.7.0
       lodash: 4.17.21
       vue: 3.5.18(typescript@5.4.5)
 
@@ -8003,6 +8042,8 @@ snapshots:
       '@types/lodash': 4.17.20
 
   '@types/lodash@4.17.20': {}
+
+  '@types/lodash@4.17.21': {}
 
   '@types/markdown-it@14.1.2':
     dependencies:
@@ -13065,7 +13106,7 @@ snapshots:
   v-calendar@https://bitbucket.org/KNIME/v-calendar/get/048477f.tar.gz(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.4.5)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
@@ -13076,7 +13117,7 @@ snapshots:
   v-calendar@https://codeload.github.com/knime/v-calendar/tar.gz/048477f(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.4.5)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
@@ -13087,7 +13128,7 @@ snapshots:
   v-calendar@https://codeload.github.com/knime/v-calendar/tar.gz/048477f(@popperjs/core@2.11.8)(vue@3.5.18(typescript@5.9.3)):
     dependencies:
       '@popperjs/core': 2.11.8
-      '@types/lodash': 4.17.20
+      '@types/lodash': 4.17.21
       '@types/resize-observer-browser': 0.1.11
       date-fns: 2.29.3
       date-fns-tz: 2.0.0(date-fns@2.29.3)
