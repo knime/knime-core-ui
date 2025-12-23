@@ -51,11 +51,13 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.ArrayReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.BooleanReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.EnumReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.LegacyFileWriterReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.LegacyMultiFileSelectionReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.MultiFileSelectionReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringOrEnumReference;
@@ -187,8 +189,7 @@ public class ConditionToPredicateTranslator {
     public static final class LegacyMultiFileSelectionFieldReference extends ConditionToPredicateTranslator
         implements LegacyMultiFileSelectionReference {
 
-        public LegacyMultiFileSelectionFieldReference(
-            final Function<Condition, EffectPredicate> conditionToPredicate) {
+        public LegacyMultiFileSelectionFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
@@ -198,6 +199,23 @@ public class ConditionToPredicateTranslator {
                 condition -> this.<MultiFileSelectionModeCondition> createPredicate(() -> condition));
         }
 
+    }
+
+    public static final class LegacyFileWriterFieldReference extends ConditionToPredicateTranslator
+        implements LegacyFileWriterReference {
+
+        public LegacyFileWriterFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
+            super(conditionToPredicate);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public EnumReference<OverwritePolicy> getOverwritePolicy() {
+            return new EnumFieldReference<>(
+                condition -> this.<LegacyFileWriterOverwritePolicyCondition> createPredicate(() -> condition));
+        }
     }
 
 }

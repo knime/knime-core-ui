@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsEnumChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.LegacyFileWriterOverwritePolicyCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.MultiFileSelectionModeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
@@ -175,6 +176,16 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
         node.putArray(TAG_REQUIRED).add(MultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME);
         properties.set(MultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME,
             multiFileSelectionModeCondition.condition().accept(this));
+        return node;
+    }
+
+    @Override
+    public ObjectNode visit(final LegacyFileWriterOverwritePolicyCondition legacyFileWriterOverwritePolicyCondition) {
+        final var node = getMapper().createObjectNode();
+        final var properties = node.putObject(TAG_PROPERTIES);
+        node.putArray(TAG_REQUIRED).add(LegacyFileWriterOverwritePolicyCondition.OVERWRITE_POLICY_PROPERTY_NAME);
+        properties.set(LegacyFileWriterOverwritePolicyCondition.OVERWRITE_POLICY_PROPERTY_NAME,
+            legacyFileWriterOverwritePolicyCondition.condition().accept(this));
         return node;
     }
 

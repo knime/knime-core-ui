@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
 import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
@@ -167,6 +168,14 @@ class DefaultPredicateInitializer implements LegacyPredicateInitializer {
     public LegacyMultiFileSelectionReference
         getLegacyMultiFileSelection(final Class<? extends ParameterReference<LegacyMultiFileSelection>> reference) {
         return new ConditionToPredicateTranslator.LegacyMultiFileSelectionFieldReference(
+            condition -> createPredicate(reference, condition));
+    }
+
+    @Override
+    public <T extends LegacyFileWriter>
+        LegacyFileWriterReference
+        getLegacyFileWriter(final Class<? extends ParameterReference<T>> reference) {
+        return new ConditionToPredicateTranslator.LegacyFileWriterFieldReference(
             condition -> createPredicate(reference, condition));
     }
 
