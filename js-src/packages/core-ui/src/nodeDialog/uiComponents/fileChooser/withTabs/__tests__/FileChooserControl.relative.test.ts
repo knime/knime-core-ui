@@ -64,8 +64,7 @@ describe("FileChooserControl.vue - Relative Path Features", () => {
         getPersistSchema: () => ({}),
         [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,
         getData,
-        // TODO UIEXT-3073: Remove "as any" once updated to vitest 3.2.4
-        addStateProviderListener: vi.fn() as any,
+        addStateProviderListener: vi.fn(),
         ...provide,
       },
       stubs: {
