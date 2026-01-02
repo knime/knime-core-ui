@@ -33,7 +33,6 @@ export interface EmptyFilterConfig {
 }
 
 export type ColumnSizes = Record<string | symbol, number>;
-
 export interface TableViewDisplayProps {
   settings: TableViewViewSettings;
   rows: {
