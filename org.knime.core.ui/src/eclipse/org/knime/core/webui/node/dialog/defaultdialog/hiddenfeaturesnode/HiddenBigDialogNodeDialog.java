@@ -81,7 +81,7 @@ class HiddenBigDialogNodeDialog implements NodeDialog {
 
     @Override
     public NodeSettingsService getNodeSettingsService() {
-        return new DefaultNodeSettingsService(Map.of(SettingsType.MODEL, HiddenBigDialogNodeSettings.class),
+        return new DefaultNodeSettingsService(Map.of(SettingsType.MODEL, HiddenBigDialogNodeParameters.class),
             new NodeDialogServiceRegistry(new FileSystemConnector(), new CustomValidationContext(),
                 new DynamicParametersTriggerInvocationHandlerContext()));
     }

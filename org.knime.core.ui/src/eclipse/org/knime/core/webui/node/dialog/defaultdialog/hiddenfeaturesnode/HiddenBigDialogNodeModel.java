@@ -53,14 +53,14 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
-class HiddenBigDialogNodeModel extends WebUINodeModel<HiddenBigDialogNodeSettings> {
+class HiddenBigDialogNodeModel extends WebUINodeModel<HiddenBigDialogNodeParameters> {
 
     HiddenBigDialogNodeModel(final WebUINodeConfiguration config) {
-        super(config, HiddenBigDialogNodeSettings.class);
+        super(config, HiddenBigDialogNodeParameters.class);
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final HiddenBigDialogNodeSettings modelSettings)
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final HiddenBigDialogNodeParameters modelSettings)
         throws InvalidSettingsException {
         return new PortObjectSpec[0];
     }

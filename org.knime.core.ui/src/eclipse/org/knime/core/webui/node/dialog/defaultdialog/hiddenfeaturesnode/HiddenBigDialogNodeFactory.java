@@ -79,7 +79,7 @@ public class HiddenBigDialogNodeFactory extends NodeFactory<HiddenBigDialogNodeM
                 This hidden node is used to test big dialog features in the WebUI.
                 It will not be kept backwards compatible.
                 """)//
-        .modelSettingsClass(HiddenBigDialogNodeSettings.class)//
+        .modelSettingsClass(HiddenBigDialogNodeParameters.class)//
         .nodeType(NodeType.Other)//
         .build();
 

@@ -48,8 +48,30 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
+import org.knime.core.data.DataType;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
-class HiddenBigDialogNodeSettings implements NodeParameters {
+@LoadDefaultsForAbsentFields
+class HiddenBigDialogNodeParameters implements NodeParameters {
+
+    @Widget(title = "Columns", description = "The columns to create.")
+    ColumnParameters[] m_columns = new ColumnParameters[0];
+
+    static final class ColumnParameters implements NodeParameters {
+
+        @Widget(title = "Column name", description = "The name of the column.")
+        @TextInputWidget(patternValidation = ColumnNameValidation.class)
+        String m_name;
+
+        @Widget(title = "Column type", description = "The data type of the column.")
+        DataType m_type;
+
+        // Not a @Widget since it is rendered custom in the dialog
+        String[] m_values;
+    }
 
 }
