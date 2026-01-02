@@ -23,6 +23,10 @@
             hidden="true"
             factory-class="org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeFactory">
       </node>
+      <node
+            hidden="true"
+            factory-class="org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenBigDialogNodeFactory">
+      </node>
    </extension>
    <extension
          point="org.knime.core.DataValueRenderer">
