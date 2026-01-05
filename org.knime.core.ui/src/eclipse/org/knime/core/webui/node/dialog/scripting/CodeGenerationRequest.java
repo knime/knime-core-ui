@@ -50,6 +50,8 @@ package org.knime.core.webui.node.dialog.scripting;
 
 import org.knime.core.webui.node.dialog.scripting.InputOutputModelNameAndTypeUtils.NameAndType;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
 /**
  * A request for the K-AI code generation.
  *
@@ -61,26 +63,70 @@ import org.knime.core.webui.node.dialog.scripting.InputOutputModelNameAndTypeUti
 public record CodeGenerationRequest(String endpointPath, RequestBody body) {
 
     /**
-     * The body of a code generation request.
-     *
-     * @param code The existing code in the scripting node.
-     * @param user_query The user's query for code generation.
-     * @param inputs The input data available in the node.
-     * @param outputs The expected outputs of the node.
-     * @param version The version of the plugin making the request (can be <code>null</code>).
+     * Interface for bodies of a code generation request
      */
-    public record RequestBody(String code, String user_query, CodeGenerationRequest.Inputs inputs,
-        CodeGenerationRequest.Outputs outputs, String version) {
+    public interface RequestBody {
+
+    }
+
+    /**
+     * Body of a prompt based Code Generation Request, where all info about inputs and outputs needs to be part of the
+     * prompt
+     */
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class PromptRequestBody implements RequestBody {
+        private String prompt;
+
+        private String source;
+
+        public PromptRequestBody(final String prompt, final String source) {
+            this.prompt = prompt;
+            this.source = source;
+        }
+    }
+
+    /**
+     * Body of a code generation request that goes to a dedicated language end point of the AI service
+     */
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class CodeRequestBody implements RequestBody {
+        private String code;
+
+        private String user_query;
+
+        private CodeGenerationRequest.Inputs inputs;
+
+        private CodeGenerationRequest.Outputs outputs;
+
+        private String version;
 
         /**
-         * Constructor without version.
+         * Create body of a code generation request.
+         *
+         * @param code The existing code in the scripting node.
+         * @param user_query The user's query for code generation.
+         * @param inputs The input data available in the node.
+         * @param outputs The expected outputs of the node.
+         * @param version The version of the plugin making the request (can be <code>null</code>).
+         */
+        public CodeRequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
+            final CodeGenerationRequest.Outputs outputs, final String version) {
+            this.code = code;
+            this.user_query = user_query;
+            this.inputs = inputs;
+            this.outputs = outputs;
+            this.version = version;
+        }
+
+        /**
+         * CodeConstructor without version.
          *
          * @param code The existing code in the scripting node.
          * @param user_query The user's query for code generation.
          * @param inputs The input data available in the node.
          * @param outputs The expected outputs of the node.
          */
-        public RequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
+        public CodeRequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
             final CodeGenerationRequest.Outputs outputs) {
             this(code, user_query, inputs, outputs, null);
         }
