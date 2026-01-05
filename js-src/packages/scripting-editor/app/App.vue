@@ -54,6 +54,10 @@ const toSettings = (commonSettings: { script: string }) => {
   coreDialogSettings.data.model[configKey] = commonSettings.script;
   return coreDialogSettings;
 };
+const hasJsonFormsSettingsElements =
+  "elements" in settingsInitialData.ui_schema &&
+  Array.isArray(settingsInitialData.ui_schema.elements) &&
+  settingsInitialData.ui_schema.elements.length > 0;
 
 // Flow variable system
 
@@ -88,7 +92,7 @@ onMounted(() => {
       }"
       :show-control-bar="false"
     >
-      <template #right-pane>
+      <template v-if="hasJsonFormsSettingsElements" #right-pane>
         <NodeDialogCore
           ref="coreComponent"
           :initial-data="settingsInitialData"
