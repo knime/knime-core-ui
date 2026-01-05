@@ -24,10 +24,6 @@ import {
   type PaneSizes,
 } from "./utils/paneSizes";
 
-const commonMenuItems: MenuItem[] = [
-  // TODO: add actual common menu items
-];
-
 // Props
 interface Props {
   title?: string | null;
@@ -161,9 +157,13 @@ const showControlBarDynamic = computed(
     </SettingsPage>
 
     <HeaderBar
-      v-if="!isSmallEmbeddedMode && !showSettingsPage"
-      :title="title!"
-      :menu-items="[...commonMenuItems, ...menuItems]"
+      v-if="
+        !isSmallEmbeddedMode &&
+        !showSettingsPage &&
+        (menuItems.length > 0 || title != null)
+      "
+      :title="title"
+      :menu-items="menuItems"
       @menu-item-click="onMenuItemClicked"
     />
 
