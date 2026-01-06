@@ -1,25 +1,68 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { ref, watch } from "vue";
+
+import { useKdsDarkMode, useKdsLegacyMode } from "@knime/kds-components";
 
 import { displayMode } from "../src/display-mode";
 
-onMounted(async () => {});
+const { legacyMode } = useKdsLegacyMode(true);
+const { currentMode } = useKdsDarkMode();
 
-const targetMode = computed(() =>
-  displayMode.value === "small" ? "large" : "small",
-);
+type KdsMode = "legacy" | "light" | "dark" | "system";
+const kdsMode = ref<KdsMode>("legacy");
 
-const toggleMode = () => {
-  displayMode.value = targetMode.value;
-};
+watch(kdsMode, (mode) => {
+  switch (mode) {
+    case "legacy":
+      legacyMode.value = true;
+      currentMode.value = "light";
+      break;
+    case "light":
+      legacyMode.value = false;
+      currentMode.value = "light";
+      break;
+    case "dark":
+      legacyMode.value = false;
+      currentMode.value = "dark";
+      break;
+    case "system":
+      legacyMode.value = false;
+      currentMode.value = "system";
+      break;
+  }
+});
 </script>
 
 <template>
   <div class="debug-toolbar">
     <span class="debug-label">DEBUG:</span>
-    <button @click="toggleMode">
-      {{ targetMode }}
-    </button>
+    Display Mode:
+    <label>
+      <input v-model="displayMode" type="radio" value="small" />
+      Small
+    </label>
+    <label>
+      <input v-model="displayMode" type="radio" value="large" />
+      Large
+    </label>
+    <span>|</span>
+    KDS Mode:
+    <label>
+      <input v-model="kdsMode" type="radio" value="legacy" />
+      Legacy
+    </label>
+    <label>
+      <input v-model="kdsMode" type="radio" value="light" />
+      Light
+    </label>
+    <label>
+      <input v-model="kdsMode" type="radio" value="dark" />
+      Dark
+    </label>
+    <label>
+      <input v-model="kdsMode" type="radio" value="system" />
+      System
+    </label>
   </div>
 </template>
 
@@ -41,5 +84,11 @@ const toggleMode = () => {
 
 .debug-label {
   font-weight: bold;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>
