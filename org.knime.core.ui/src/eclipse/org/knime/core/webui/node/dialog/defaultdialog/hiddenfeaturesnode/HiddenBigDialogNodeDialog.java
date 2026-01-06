@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -57,11 +56,6 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsService;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -81,9 +75,7 @@ class HiddenBigDialogNodeDialog implements NodeDialog {
 
     @Override
     public NodeSettingsService getNodeSettingsService() {
-        return new DefaultNodeSettingsService(Map.of(SettingsType.MODEL, HiddenBigDialogNodeParameters.class),
-            new NodeDialogServiceRegistry(new FileSystemConnector(), new CustomValidationContext(),
-                new DynamicParametersTriggerInvocationHandlerContext()));
+        return new HiddenBigDialogNodeSettingsService();
     }
 
     @Override

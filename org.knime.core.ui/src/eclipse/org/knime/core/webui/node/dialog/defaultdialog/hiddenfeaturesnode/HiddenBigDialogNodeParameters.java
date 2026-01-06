@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -68,10 +69,10 @@ class HiddenBigDialogNodeParameters implements NodeParameters {
         String m_name;
 
         @Widget(title = "Column type", description = "The data type of the column.")
-        DataType m_type;
+        DataType m_type = StringCell.TYPE;
 
         // Not a @Widget since it is rendered custom in the dialog
-        String[] m_values;
+        String[] m_values = new String[0];
     }
 
 }

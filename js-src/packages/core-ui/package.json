@@ -56,7 +56,7 @@
     "@knime/components": "1.43.3",
     "@knime/jsonforms": "1.16.6",
     "@knime/kds-components": "catalog:",
-    "@knime/knime-ui-table": "0.6.0",
+    "@knime/knime-ui-table": "file:../../../../knime-ui-table",
     "@knime/rich-text-editor": "1.8.0",
     "@knime/styles": "1.15.0",
     "@knime/ui-extension-service": "2.6.0",

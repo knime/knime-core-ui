@@ -2,10 +2,14 @@ packages:
   - packages/*
 
 catalog:
+  '@knime/kds-components': 0.4.0
+  '@knime/kds-styles': 0.4.0
   vue: 3.5.18
-  "@knime/kds-components": 0.4.0
-  "@knime/kds-styles": 0.4.0
 
 minimumReleaseAge: 1440
+
 minimumReleaseAgeExclude:
-  - "@knime/*"
+  - '@knime/*'
+
+overrides:
+  knime-ui-table: link:../../../../Library/pnpm/global/5/node_modules/@knime/knime-ui-table
