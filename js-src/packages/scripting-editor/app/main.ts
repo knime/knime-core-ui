@@ -1,10 +1,14 @@
 import { createApp } from "vue";
 import { Consola, LogLevels } from "consola";
 
+import { useKdsLegacyMode } from "@knime/kds-components";
+
 import { LoadingApp } from "../lib/loading";
 import { init, initMocked } from "../src/init";
 
 import App from "./App.vue";
+
+useKdsLegacyMode(true);
 
 // Show loading app while initializing
 const loadingApp = createApp(LoadingApp);
