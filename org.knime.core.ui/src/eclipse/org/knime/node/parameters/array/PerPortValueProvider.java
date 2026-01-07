@@ -120,9 +120,10 @@ public abstract class PerPortValueProvider<V> implements StateProvider<V[]> {
      * <code>return new MyValue();</code>. This value is used to fill newly created entries in the array when the number
      * of ports increases.
      *
+     * @param index the array index for which the new instance is created
      * @return the new instance
      */
-    protected abstract V newInstance();
+    protected abstract V newInstance(int index);
 
     @Override
     public void init(final StateProviderInitializer initializer) {
@@ -145,7 +146,7 @@ public abstract class PerPortValueProvider<V> implements StateProvider<V[]> {
         System.arraycopy(currentSettings, 0, newSettings, 0, numCurrentSettings);
 
         for (var i = numCurrentSettings; i < numberOfPorts; i++) {
-            newSettings[i] = newInstance();
+            newSettings[i] = newInstance(i);
         }
 
         return newSettings;
