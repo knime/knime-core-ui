@@ -193,12 +193,34 @@ const setErrorMessage = (errorMessage: string | undefined) => {
   displayedError.value = errorMessage ?? null;
 };
 
-const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
-  if (props.isWriter && props.selectionMode === "FILE") {
+// this is fine since we only render the field when isWriter and selectionMode is FILE
+const inputFieldModelValue = computed({
+  get: () => {
+    const selectedItemValue = selectedItem.value;
+    if (
+      selectedItemValue &&
+      selectableItems.value.includes(selectedItemValue.selectionType)
+    ) {
+      return selectedItemValue.name;
+    }
+    return "";
+  },
+  set: (value) => {
+    if (value === "") {
+      selectedItem.value = null;
+      return;
+    }
     selectedItem.value = {
-      name: filePathRelativeToFolder,
-      selectionType: "FILE",
+      name: value,
+      selectionType:
+        props.selectionMode === "WORKFLOW" ? "FILE" : props.selectionMode,
     };
+  },
+});
+
+const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
+  if (props.isWriter) {
+    inputFieldModelValue.value = filePathRelativeToFolder;
   }
 };
 
@@ -280,27 +302,6 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
   }
 };
 
-// this is fine since we only render the field when isWriter and selectionMode is FILE
-const inputFieldModelValue = computed({
-  get: () => {
-    const selectedItemValue = selectedItem.value;
-    if (
-      selectedItemValue &&
-      selectableItems.value.includes(selectedItemValue.selectionType)
-    ) {
-      return selectedItemValue.name;
-    }
-    return "";
-  },
-  set: (value) => {
-    selectedItem.value = {
-      name: value,
-      selectionType:
-        props.selectionMode === "WORKFLOW" ? "FILE" : props.selectionMode,
-    };
-  },
-});
-
 const inputField = useTemplateRef<HTMLElement>("input-field");
 const relativeToLabel = useTemplateRef<HTMLElement>("relative-to-label");
 
@@ -381,7 +382,7 @@ watch(
     </div>
     <div v-if="isWriter" class="name-input-wrapper">
       <span>Name:</span>
-      <InputField ref="input-field" v-model="inputFieldModelValue" />
+      <InputField ref="input-field" v-model="inputFieldModelValue" compact />
     </div>
     <FileExplorer
       class="explorer"

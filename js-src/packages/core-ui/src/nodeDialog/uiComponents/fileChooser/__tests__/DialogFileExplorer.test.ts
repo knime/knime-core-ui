@@ -434,6 +434,34 @@ describe("DialogFileExplorer.vue", () => {
       expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
     });
 
+    it("clears the path of the input field when it is empty", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+      const inputField = wrapper.findComponent(InputField);
+      expect(inputField.exists()).toBeTruthy();
+      expect(inputField.props().modelValue).toBe(
+        filePathRelativeToFolderFromBackend,
+      );
+      expect(applyDisabled.value).toBeFalsy();
+      inputField.vm.$emit("update:model-value", "");
+      await flushPromises();
+      expect(applyDisabled.value).toBeTruthy();
+    });
+
+    it.each(["FOLDER", "FILE_OR_FOLDER", "WORKFLOW"] as const)(
+      "also sets initial file name in case of %s selection",
+      async (selectionMode) => {
+        props.selectionMode = selectionMode;
+        const wrapper = shallowMountFileChooser();
+        await flushPromises();
+        const inputField = wrapper.findComponent(InputField);
+        expect(inputField.props().modelValue).toBe(
+          filePathRelativeToFolderFromBackend,
+        );
+        expect(applyDisabled.value).toBeFalsy();
+      },
+    );
+
     it("sets the value of the selected file as input", async () => {
       const wrapper = shallowMountFileChooser();
       await flushPromises();
