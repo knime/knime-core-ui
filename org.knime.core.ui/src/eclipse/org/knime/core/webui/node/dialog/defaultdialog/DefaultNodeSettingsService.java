@@ -54,11 +54,13 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMa
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
@@ -93,15 +95,28 @@ public final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final NodeDialogServiceRegistry m_serviceRegistry;
 
+    private final Consumer<NodeID> m_customAdditionalDeactivation;
+
     /**
      * @param settingsClasses map that associates a {@link NodeParameters} class-with a {@link SettingsType}
      * @param serviceRegistry the service registry containing file system connector and validation context
      */
     public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
         final NodeDialogServiceRegistry serviceRegistry) {
+        this(settingsClasses, serviceRegistry, null);
+    }
+
+    /**
+     * @param settingsClasses map that associates a {@link NodeParameters} class-with a {@link SettingsType}
+     * @param serviceRegistry the service registry containing file system connector and validation context
+     * @param customAdditionalDeactivation additional deactivation logic to be executed on deactivate
+     */
+    DefaultNodeSettingsService(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
+        final NodeDialogServiceRegistry serviceRegistry, final Consumer<NodeID> customAdditionalDeactivation) {
         m_settingsClasses = settingsClasses;
         m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
         m_serviceRegistry = serviceRegistry;
+        m_customAdditionalDeactivation = customAdditionalDeactivation;
     }
 
     @Override
@@ -177,6 +192,9 @@ public final class DefaultNodeSettingsService implements NodeSettingsService {
         final var nodeId = NodeContext.getContext().getNodeContainer().getID();
         PasswordHolder.removeAllPasswordsOfDialog(nodeId);
         FallbackDialogNodeParameters.clearNodeSettingsCache(nodeId);
+        if (m_customAdditionalDeactivation != null) {
+            m_customAdditionalDeactivation.accept(nodeId);
+        }
     }
 
 }

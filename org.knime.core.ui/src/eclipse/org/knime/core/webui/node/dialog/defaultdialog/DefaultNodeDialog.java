@@ -52,7 +52,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.data.RpcDataService.RpcDataServiceBuilder;
@@ -125,10 +127,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      */
     public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends NodeParameters> settingsClass,
         final OnApplyNodeModifier onApplyModifier) {
-        m_settingsTypes = Set.of(settingsType, SettingsType.JOB_MANAGER);
-        m_settingsClasses = Map.of(settingsType, settingsClass);
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry);
-        m_onApplyModifier = onApplyModifier;
+        this(settingsType, settingsClass, onApplyModifier, null);
     }
 
     /**
@@ -162,6 +161,26 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         m_settingsTypes = Set.of(settingsType1, settingsType2, SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry);
+        m_onApplyModifier = onApplyModifier;
+    }
+
+    /**
+     * Creates a new instance. Use this constructor if you need to run additional code on deactivation of the dialog
+     * service.
+     *
+     * @param settingsType1 a settings type this dialog is able to provide
+     * @param settingsClass1 dialog definition for the first settings type
+     * @param onApplyModifier an {@link org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier} that will be
+     *            invoked when cleaning up the {@link ApplyDataService} created in
+     *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
+     * @param additionalOnDeactivate additional code to run on deactivation of the RPC data service
+     */
+    public DefaultNodeDialog(final SettingsType settingsType1, final Class<? extends NodeParameters> settingsClass1,
+        final OnApplyNodeModifier onApplyModifier, final Consumer<NodeID> additionalOnDeactivate) {
+        m_settingsTypes = Set.of(settingsType1, SettingsType.JOB_MANAGER);
+        m_settingsClasses = Map.of(settingsType1, settingsClass1);
+        m_settingsDataService =
+            new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry, additionalOnDeactivate);
         m_onApplyModifier = onApplyModifier;
     }
 
