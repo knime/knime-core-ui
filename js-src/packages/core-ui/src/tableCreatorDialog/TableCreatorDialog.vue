@@ -20,6 +20,7 @@ import useFlowVariableSystem from "../nodeDialog/composables/useFlowVariableSyst
 import { defaultRenderers, JsonFormsDialog } from "@knime/jsonforms";
 import SubHeaderTypeRendererBase from "@/tableView/components/SubHeaderTypeRendererBase.vue";
 import type { JsonSchema } from "@jsonforms/core";
+import CellInput from "./CellInput.vue";
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
@@ -149,7 +150,10 @@ const tableConfig = computed<TableConfig>(() => {
     subMenuItems: [],
     groupSubMenuItems: [],
     enableCellSelection: true,
+    enableEditingCells: true,
     enableVirtualScrolling: true,
+    showNewColumnAndRowButton: true,
+    enableColumnResizing: false,
     pageConfig: {
       currentSize: numRows,
       tableSize: numRows,
@@ -411,6 +415,17 @@ const setStateProviderListener = (...listenerArgs: any) => {
         <SubHeaderTypeRendererBase
             :icon-name="getTypeIdAndText(subHeader).id"
             :data-type-name="getTypeIdAndText(subHeader ).text"
+        />
+      </template>
+      <template #editable-cell="{ initialValue, rowInd, colInd, onKeydown, cellElement}">
+        <CellInput 
+           :initial-value="initialValue"
+           :model-value="tableData[0][rowInd]?.['col' + colInd]"
+           :reference-element="cellElement"
+           @update:model-value="(val) => {
+              dialogInitialData!.data.model!.columns[colInd].values[rowInd] = val;
+           }"
+           @keydown="onKeydown"
         />
       </template>
       </TableUI>
