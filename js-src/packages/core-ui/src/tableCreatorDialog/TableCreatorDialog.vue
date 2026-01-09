@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
 
 import { InputField, Label, NumberInput, SplitPanel } from "@knime/components";
 import {
@@ -128,7 +128,7 @@ const tableData = computed(() => {
     const row: any = {};
     cols.forEach((col, colIndex) => {
       const values = col?.values ?? [];
-      row[`col${colIndex}`] = values[rowIndex];
+      row[`col${colIndex}`] = values[rowIndex] ?? null;
     });
     rows.push(row);
   }
@@ -302,7 +302,7 @@ const onPasteSelection = async ({
 
         // Extend values array if needed
         while (column.values.length <= rowIndex) {
-          column.values.push(undefined);
+          column.values.push(null);
         }
 
         column.values[rowIndex] = value;
@@ -350,19 +350,6 @@ onMounted(async () => {
     if (dialogInitialData.value.flowVariableSettings) {
       setInitialFlowVariablesMap(dialogInitialData.value.flowVariableSettings);
     }
-
-    // Add test values to each column for testing
-    const cols = dialogInitialData.value.data?.model?.columns;
-    if (cols && Array.isArray(cols)) {
-      cols.forEach((col) => {
-        if (!col.values) {
-          col.values = [];
-        }
-        // Add 5 test values: A, B, C, D, E
-        col.values.push("A", "B", "C", "D", "E");
-      });
-      console.log("Added test values (A, B, C, D, E) to", cols.length, "columns");
-    }
   }
 
   dialogService.setApplyListener(() => 
@@ -378,6 +365,47 @@ const onChange = ({data}) => {
 }
 const setStateProviderListener = (...listenerArgs: any) => {
   console.log("State provider listener set:", listenerArgs);
+};
+
+
+const tableRef = "tableRef";
+const tableComponent = useTemplateRef<typeof TableUI>(tableRef);
+
+
+
+const addNewRow = (lastPosition: { columnInd: number, rectId: number | null } | null) => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (cols && Array.isArray(cols)) {
+    cols.forEach((col) => {
+      if (!col.values) {
+        col.values = [];
+      }
+      col.values.push(null); // Add empty string as new row value
+    });
+    console.log("Added new row to", cols.length, "columns");
+  }
+  const colInd = lastPosition?.columnInd ?? 0;
+  tableComponent.value?.updateCellSelection({
+    minX: colInd,
+    minY: tableData.value[0].length - 1,
+    maxX: colInd,
+    maxY: tableData.value[0].length - 1,
+},
+lastPosition?.rectId);
+
+};
+
+const addNewColumn = () => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (cols && Array.isArray(cols)) {
+    const newColIndex = cols.length + 1;
+    cols.push({
+      name: "Column " + newColIndex,
+      type: getTypeIdByText("String"),
+      values: [],
+    });
+    console.log("Added new column. Total columns now:", cols.length);
+  }
 };
 </script>
 
@@ -404,12 +432,15 @@ const setStateProviderListener = (...listenerArgs: any) => {
           />
 
           <TableUI
+            :ref="tableRef"
             :data="tableData"
             :data-config="dataConfig"
             :table-config="tableConfig"
             @copy-selection="onCopySelection"
             @paste-selection="onPasteSelection"
             @cell-selection-change="(cellPosition) => activeColumnIndex = cellPosition?.x ?? -1"
+            @new-row-button-click="addNewRow($event)"
+            @new-column-button-click="addNewColumn()"
           >
            <template #subHeader="{ subHeader }">
         <SubHeaderTypeRendererBase
@@ -417,7 +448,7 @@ const setStateProviderListener = (...listenerArgs: any) => {
             :data-type-name="getTypeIdAndText(subHeader ).text"
         />
       </template>
-      <template #editable-cell="{ initialValue, rowInd, colInd, onKeydown, cellElement}">
+      <template #editable-cell="{ initialValue, rowInd, colInd, onKeydown, onClickAway, cellElement}">
         <CellInput 
            :initial-value="initialValue"
            :model-value="tableData[0][rowInd]?.['col' + colInd]"
@@ -426,6 +457,7 @@ const setStateProviderListener = (...listenerArgs: any) => {
               dialogInitialData!.data.model!.columns[colInd].values[rowInd] = val;
            }"
            @keydown="onKeydown"
+           @click-away="onClickAway"
         />
       </template>
       </TableUI>
