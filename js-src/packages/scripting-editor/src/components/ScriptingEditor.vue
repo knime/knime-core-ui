@@ -35,6 +35,23 @@ interface Props {
    * In pixels.
    */
   initialPaneSizes?: PaneSizes;
+  /**
+   * Called on apply if the main editor is being used. This function must be implemented
+   * to join the settings from the main editor and other settings like from the
+   * NodeParametersPanel into a single settings object as expected by the backend.
+   *
+   * A simple implementation for the `DefaultScriptingNodeSettingsService` looks like this:
+   * ```ts
+   * const toSettings = (commonSettings) =>
+   *   joinSettings(
+   *     commonSettings,
+   *     nodeParametersPanel.value?.getDataAndFlowVariableSettings(),
+   *   );
+   * ```
+   *
+   * @param settings the current settings from the main editor
+   * @returns the joined settings as expected by the backend
+   */
   toSettings?: (settings: { script: string }) => unknown;
   additionalBottomPaneTabContent?: SlottedTab[];
   /*
