@@ -6,6 +6,7 @@ import {
   type SubItemType,
 } from "../src/components/InputOutputItem.vue";
 import InputOutputPane from "../src/components/InputOutputPane.vue";
+import NodeParametersPanel from "../src/components/NodeParametersPanel.vue";
 import OutputConsole, {
   type ConsoleHandler,
   type ConsoleText,
@@ -45,6 +46,7 @@ import {
 } from "../src/initial-data-service";
 import { type ScriptingServiceType } from "../src/scripting-service";
 import { type GenericNodeSettings } from "../src/settings-service";
+import { joinSettings } from "../src/settings-service";
 import { setActiveEditorStoreForAi } from "../src/store/ai-bar";
 import { useReadonlyStore } from "../src/store/readOnly";
 
@@ -62,6 +64,8 @@ export {
   initMocked,
   InputOutputPane,
   insertionEventHelper,
+  joinSettings,
+  NodeParametersPanel,
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
