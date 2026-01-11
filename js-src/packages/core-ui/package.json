@@ -74,7 +74,7 @@
     "@knime/eslint-config": "8.3.0",
     "@knime/kds-styles": "catalog:",
     "@knime/licenses": "1.4.0",
-    "@knime/ui-extension-renderer": "2.3.39",
+    "@knime/ui-extension-renderer": "2.4.4",
     "@knime/utils": "1.8.0",
     "@knime/vue-headless-virtual-scroller": "0.1.3",
     "@tsconfig/node24": "24.0.3",
