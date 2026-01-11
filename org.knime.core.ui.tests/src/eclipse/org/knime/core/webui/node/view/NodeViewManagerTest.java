@@ -359,7 +359,7 @@ public class NodeViewManagerTest {
     }
 
     private static void untilAsserted(final ThrowingRunnable assertion) {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).atMost(5, TimeUnit.SECONDS).untilAsserted(assertion);
+        Awaitility.await().pollInterval(100, TimeUnit.MILLISECONDS).atMost(5, TimeUnit.SECONDS).untilAsserted(assertion);
     }
 
     /**
