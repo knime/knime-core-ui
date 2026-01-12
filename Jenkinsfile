@@ -14,7 +14,7 @@ properties([
 ])
 
 try {
-    
+
     buildConfigs = [
         Tycho: {
             knimetools.defaultTychoBuild(updateSiteProject: 'org.knime.update.core.ui')
@@ -22,21 +22,19 @@ try {
         UnitTests: {
             workflowTests.runIntegratedWorkflowTests(
                 configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS,
-                profile: "test"
+                profile: "test",
+                nodeType: 'workflow-tests && large',
             )
         }
     ]
+
     
     node('maven && java21 && large') {
-
         parallel buildConfigs
-
-        // junit '**/test-results/junit.xml'
 
         stage('Sonarqube analysis') {
             workflowTests.runSonar(withOutNode: true)
         }
-
         owasp.sendNodeJSSBOMs(readMavenPom(file: 'pom.xml').properties['revision'])
     }
 } catch (ex) {
