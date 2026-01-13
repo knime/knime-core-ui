@@ -250,7 +250,7 @@ public record InputOutputModel(String name, //
      * @return A builder for an {@link InputOutputModel} that represents flow variables
      */
     public static Builder flowVariables() {
-        return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow variables");
+        return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow Variables");
     }
 
     /**
