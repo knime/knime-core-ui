@@ -118,4 +118,15 @@ public final class LegacyCredentials implements Persistable {
         return m_credentials;
     }
 
+    Credentials toCredentialsOrNull() {
+        if (m_flowVarName != null) {
+            return null;
+        }
+        return m_credentials;
+    }
+
+    LegacyCredentials createCopy() {
+        return new LegacyCredentials(m_credentials.createCopy(), m_flowVarName);
+    }
+
 }
