@@ -194,10 +194,10 @@ public final class SnapshotTestConfiguration {
              */
             default OptionalTests
                 testJsonFormsWithInstances(final Map<SettingsType, FallibleSupplier<NodeParameters>> instances) {
-                final var label =
-                    instances.size() == 1 ? "JSONForms for %s".formatted(instances.keySet().iterator().next())
-                        : "JSONForms with: %s".formatted(instances.values().stream()
-                            .map(v -> v.getClass().getSimpleName()).collect(Collectors.joining(", ")));
+                final var label = instances.size() == 1
+                    ? "JSONForms for %s w/ instance".formatted(instances.keySet().iterator().next())
+                    : "JSONForms with instances: %s".formatted(instances.values().stream()
+                        .map(v -> v.getClass().getSimpleName()).collect(Collectors.joining(", ")));
                 return testJsonFormsWithInstances(label, instances);
             }
 
