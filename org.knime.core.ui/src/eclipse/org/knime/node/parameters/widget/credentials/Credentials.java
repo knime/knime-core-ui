@@ -124,4 +124,13 @@ public final class Credentials {
     public int hashCode() {
         return Objects.hash(m_username, m_password, m_secondFactor);
     }
+
+    /**
+     * Creates a copy
+     *
+     * @return a copy of the credentials
+     */
+    public Credentials createCopy() {
+        return new Credentials(m_username, m_password, m_secondFactor);
+    }
 }
