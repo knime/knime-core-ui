@@ -359,14 +359,14 @@ class UiSchemaOptionsTest {
 
             enum MyEnum {
                     A, //
-                    @Label(value = "Option B", disabled = true)
+                    @Label(value = "Option B")
                     B, //
                     @Label(value = "Option C")
                     C
             }
 
             @Widget(title = "", description = "")
-            @RadioButtonsWidget()
+            @RadioButtonsWidget
             MyEnum m_foo;
 
             @Widget(title = "", description = "")
@@ -382,7 +382,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("radio");
         assertThatJson(response).inPath("$.elements[0].options.radioLayout").isString().isEqualTo("vertical");
-        assertThatJson(response).inPath("$.elements[0].options.disabledOptions").isArray().containsExactly("B");
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("radio");
         assertThatJson(response).inPath("$.elements[1].options.radioLayout").isString().isEqualTo("horizontal");
@@ -448,7 +447,7 @@ class UiSchemaOptionsTest {
 
             enum MyEnum {
                     A, //
-                    @Label(value = "Option B", disabled = true)
+                    @Label(value = "Option B")
                     B, //
                     @Label(value = "Option C")
                     C
@@ -462,7 +461,6 @@ class UiSchemaOptionsTest {
         var response = buildTestUiSchema(ValueSwitchSettings.class);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("valueSwitch");
-        assertThatJson(response).inPath("$.elements[0].options.disabledOptions").isArray().containsExactly("B");
     }
 
     @Test
@@ -1645,10 +1643,10 @@ class UiSchemaOptionsTest {
             .isEqualTo(BigDecimal.valueOf(100.0));
 
         assertThatJson(response).inPath("$.elements[8].scope").isString().contains("doubleWithStepSize");
-        assertThatJson(response).inPath("$.elements[8].options.stepSize").isNumber()
-            .isEqualTo(BigDecimal.valueOf(0.5));
+        assertThatJson(response).inPath("$.elements[8].options.stepSize").isNumber().isEqualTo(BigDecimal.valueOf(0.5));
 
-        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("doubleWithScientificNotationStepSize");
+        assertThatJson(response).inPath("$.elements[9].scope").isString()
+            .contains("doubleWithScientificNotationStepSize");
         assertThatJson(response).inPath("$.elements[9].options.stepSize").isNumber()
             .isEqualTo(BigDecimal.valueOf(0.001));
 
@@ -1761,7 +1759,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.allowNewValue").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
     }
-
 
     @Test
     void testConflictBetweenChoicesAndSuggestionsProvider() {

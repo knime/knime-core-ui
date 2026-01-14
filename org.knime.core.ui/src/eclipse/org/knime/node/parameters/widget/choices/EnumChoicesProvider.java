@@ -89,8 +89,8 @@ public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends Choic
     }
 
     /**
-     * Overwrite this method instead of {@link #choices(NodeParametersInput)} to provide non-constant labels that
-     * have to be computed on runtime.
+     * Overwrite this method instead of {@link #choices(NodeParametersInput)} to provide non-constant labels that have
+     * to be computed on runtime.
      */
     @Override
     default List<EnumChoice<E>> computeState(final NodeParametersInput context) {
