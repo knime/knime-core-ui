@@ -73,11 +73,4 @@ public @interface Label {
      */
     String description() default "";
 
-    /**
-     * Currently this is only supported if used together with the {@link RadioButtonsWidget} or
-     * {@link ValueSwitchWidget}.
-     *
-     * @return whether the option should be disabled or not.
-     */
-    boolean disabled() default false;
 }

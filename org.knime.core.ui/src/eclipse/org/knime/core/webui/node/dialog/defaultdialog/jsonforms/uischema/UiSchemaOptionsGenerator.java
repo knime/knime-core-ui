@@ -87,13 +87,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
@@ -146,7 +144,6 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
-import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -371,20 +368,6 @@ final class UiSchemaOptionsGenerator {
             options.put("radioLayout", radioButtons.horizontal() ? "horizontal" : "vertical");
         }
 
-        if (isValueSwitch || isRadioButtons) {
-            /**
-             * That fieldClass is an enum is ensured by the {@link WidgetImplementationUtil}
-             */
-            final var fieldClass = m_fieldClass;
-            if (fieldClass.isEnum()) {
-                final var disabledOptions = getDisabledEnumConstants();
-                if (!disabledOptions.isEmpty()) {
-                    final var disabledOptionsNode = options.putArray("disabledOptions");
-                    disabledOptions.forEach(disabledOptionsNode::add);
-                }
-            }
-        }
-
         final var hasChoicesProvider = annotatedWidgets.contains(ChoicesProvider.class);
 
         final var isFilter =
@@ -545,31 +528,6 @@ final class UiSchemaOptionsGenerator {
             final var titleAndDescription = EnumUtil.createConstantEntry(enumConstant);
             specialChoices.addObject().put("id", enumConstant.name()).put("text", titleAndDescription.title());
         }
-    }
-
-    private <E extends Enum<E>> List<String> getDisabledEnumConstants() {
-        @SuppressWarnings("unchecked")
-        var enumClass = (Class<E>)m_fieldClass;
-        return Stream.of(enumClass.getEnumConstants())//
-            .map(constant -> constNameIfDisabled(enumClass, constant)).filter(Optional::isPresent).map(Optional::get)
-            .toList();
-    }
-
-    private static <E extends Enum<E>> Optional<String> constNameIfDisabled(final Class<E> enumClass,
-        final E constant) {
-        Field field;
-        final var constantName = constant.name();
-        try {
-            field = enumClass.getField(constantName);
-            final var label = field.getAnnotation(Label.class);
-            if (label != null && label.disabled()) {
-                return Optional.of(constantName);
-            }
-        } catch (NoSuchFieldException | SecurityException ex) {
-            NodeLogger.getLogger(UiSchemaOptionsGenerator.class)
-                .error(String.format("Exception when accessing field %s.", constantName), ex);
-        }
-        return Optional.empty();
     }
 
     private static <M extends Enum<M>> void generateStates(final ArrayNode states,

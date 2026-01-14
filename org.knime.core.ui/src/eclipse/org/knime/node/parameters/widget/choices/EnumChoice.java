@@ -50,19 +50,35 @@ package org.knime.node.parameters.widget.choices;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * This represents one of the possible values within a {@link EnumChoicesProvider}.
  *
  * @param id the enum constant which is saved on selection
  * @param text the displayed text
+ * @param disabled whether this choice is disabled in the UI (usually driven by an associated
+ *            {@link org.knime.node.parameters.updates.StateProvider}) disablement is currently only supported in
+ *            combination with {@link ValueSwitchWidget} and {@link RadioButtonsWidget}.
  * @param <E> the enum type
  *
  * @author Paul Bärnreuther
  */
-public record EnumChoice<E extends Enum<E>>(E id, String text) {
+public record EnumChoice<E extends Enum<E>>(E id, String text, @JsonInclude(Include.NON_DEFAULT) boolean disabled) {
 
     /**
-     * The default construction for enum choices.
+     * The construction for enabled (<code>disabled = false</code>) enum choices.
+     *
+     * @param idValue as per {@link EnumChoice#id()}
+     * @param textValue as per {@link EnumChoice#text()}
+     */
+    public EnumChoice(final E idValue, final String textValue) {
+        this(idValue, textValue, false);
+    }
+
+    /**
+     * The default construction for enum choices, assuming the enum choice is enabled.
      *
      * @param <E> the enum type
      * @param enumConst the enum constant
@@ -70,7 +86,21 @@ public record EnumChoice<E extends Enum<E>>(E id, String text) {
      *         annotation if present and is computed from the enum name else.
      */
     public static <E extends Enum<E>> EnumChoice<E> fromEnumConst(final E enumConst) {
+        return fromEnumConst(enumConst, false);
+    }
+
+    /**
+     * The default construction for enum choices, as.
+     *
+     * @param <E> the enum type
+     * @param enumConst the enum constant
+     * @param disabled whether this choice is disabled in the UI
+     * @return the enum choice as it is extracted per default, i.e. the text is taken from a {@link Label @Label}
+     *         annotation if present and is computed from the enum name else.
+     * @since 5.10
+     */
+    public static <E extends Enum<E>> EnumChoice<E> fromEnumConst(final E enumConst, final boolean disabled) {
         final var titleAndDescription = EnumUtil.createConstantEntry(enumConst);
-        return new EnumChoice<>(enumConst, titleAndDescription.title());
+        return new EnumChoice<>(enumConst, titleAndDescription.title(), disabled);
     }
 }
