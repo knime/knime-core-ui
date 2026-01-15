@@ -19,6 +19,11 @@ import {
 } from "../src/components/utils/insertionEventHelper";
 import { type PaneSizes } from "../src/components/utils/paneSizes";
 import useShouldFocusBePainted from "../src/components/utils/shouldFocusBePainted";
+import {
+  type StaticCompletionItem,
+  registerStaticCompletionProvider,
+  useStaticCompletionProvider,
+} from "../src/components/utils/useStaticCompletionProvider";
 import { consoleHandler, setConsoleHandler } from "../src/consoleHandler";
 import { displayMode } from "../src/display-mode";
 import type {
@@ -69,11 +74,13 @@ export {
   joinSettings,
   OutputConsole,
   OutputTablePreview,
+  registerStaticCompletionProvider,
   ScriptingEditor,
   setActiveEditorStoreForAi,
   setConsoleHandler,
   useReadonlyStore,
   useShouldFocusBePainted,
+  useStaticCompletionProvider,
 };
 export type {
   ConsoleHandler,
@@ -90,6 +97,7 @@ export type {
   ScriptingServiceType,
   SettingsInitialData,
   SettingsMenuItem,
+  StaticCompletionItem,
   SubItem,
   SubItemType,
   UseCodeEditorParams,
