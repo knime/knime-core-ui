@@ -48,20 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.scripting;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeSettingsService;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
+import org.knime.core.webui.data.RpcDataService.RpcDataServiceBuilder;
 import org.knime.core.webui.page.Page;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.persistence.Persist;
@@ -72,33 +61,37 @@ import org.knime.node.parameters.persistence.Persist;
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  * @since 5.10
  */
-public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
+public abstract class AbstractDefaultScriptingNodeDialog extends AbstractScriptingNodeDialog {
 
     /**
      * A static completion item for the autocompletion dialog in the editor
-     *
+     * <p>
      * Items are displayed as either functions or constants based on whether arguments are provided:
-     * - **Function**: Include `arguments` (comma-separated) and optionally `returnType`
-     *   - Example: `name: "get_data"`, `arguments: "port, index"`, `returnType: "DataFrame"`
-     *   - Displays as: `get_data(port, index) -> DataFrame`
-     * - **Constant/Variable**: Omit `arguments`, optionally include `returnType`
-     *   - Example: `name: "knime_context"`, `returnType: "Context"`
-     *   - Displays as: `knime_context: Context`
+     * <ul>
+     * <li><b>Function</b>: Include <code>arguments</code> (comma-separated) and optionally <code>returnType</code>
+     * <ul>
+     * <li>Example: <code>name: "get_data"</code>, <code>arguments: "port, index"</code>,
+     * <code>returnType: "DataFrame"</code></li>
+     * <li>Displays as: <code>get_data(port, index) -&gt; DataFrame</code></li>
+     * </ul>
+     * </li>
+     * <li><b>Constant/Variable</b>: Omit <code>arguments</code>, optionally include <code>returnType</code>
+     * <ul>
+     * <li>Example: <code>name: "knime_context"</code>, <code>returnType: "Context"</code></li>
+     * <li>Displays as: <code>knime_context: Context</code></li>
+     * </ul>
+     * </li>
+     * </ul>
      *
-     * @param name - The name to display and insert (required)
-     * @param arguments - Comma-separated parameter names for functions (optional)
-     * @param description - Help text shown in completion details, supports HTML (required)
-     * @param returnType - Return type annotation displayed in the completion list (optional)
+     * @param name The name to display and insert (required)
+     * @param arguments Comma-separated parameter names for functions (optional)
+     * @param description Help text shown in completion details, supports HTML (required)
+     * @param returnType Return type annotation displayed in the completion list (optional)
      */
     public record StaticCompletionItem(String name, String arguments, String description, String returnType) {
     }
 
-    private final Class<? extends NodeParameters> m_modelSettings;
-
     private final DefaultScriptingNodeScriptingService m_scriptingService;
-
-    private final NodeDialogServiceRegistry m_serviceRegistry = new NodeDialogServiceRegistry(new FileSystemConnector(),
-        new CustomValidationContext(), new DynamicParametersTriggerInvocationHandlerContext());
 
     /**
      * Create a default scripting editor dialog with the given model settings. The settings class must have a script
@@ -110,9 +103,22 @@ public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
      * @param modelSettings the model settings class
      */
     protected AbstractDefaultScriptingNodeDialog(final Class<? extends NodeParameters> modelSettings) {
+        super(modelSettings);
         m_scriptingService = new DefaultScriptingNodeScriptingService();
-        m_modelSettings = modelSettings;
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Additional to the common initial data the initial data for the default scripting dialog supports:
+     * <ul>
+     * <li>"language" (required): the scripting language for Monaco (e.g. "sql", "python", "r", ...)</li>
+     * <li>"fileName" (required): the file name for the script with an appropriate file ending</li>
+     * <li>"staticCompletionItems" (optional): completion items of the type {@link StaticCompletionItem}</li>
+     * </ul>
+     */
+    @Override
+    protected abstract GenericInitialDataBuilder getInitialData(NodeContext context);
 
     @Override
     public Page getPage() {
@@ -125,48 +131,9 @@ public abstract class AbstractDefaultScriptingNodeDialog implements NodeDialog {
     }
 
     @Override
-    public Set<SettingsType> getSettingsTypes() {
-        return Set.of(SettingsType.MODEL);
-    }
-
-    @Override
-    public NodeSettingsService getNodeSettingsService() {
-        return new DefaultScriptingNodeSettingsService(getInitialData(NodeContext.getContext()), m_modelSettings,
-            m_serviceRegistry);
-    }
-
-    /**
-     * Get the initial data builder for the scripting editor. Must contain:
-     * <ul>
-     * <li>"language": the scripting language for Monaco (e.g. "sql", "python", "r", ...)</li>
-     * <li>"fileName": the file name for the script with an appropriate file ending</li>
-     * <li>"mainScriptConfigKey": the field name of the script setting in the model settings class (e.g. "script",
-     * "expression", "sqlQuery")</li>
-     * <li>"inputObjects": the input objects model</li>
-     * <li>"outputObjects": the output objects model</li>
-     * <li>"flowVariables": the flow variables model</li>
-     * </ul>
-     *
-     * @param context the node context
-     * @return the initial data builder
-     */
-    protected abstract GenericInitialDataBuilder getInitialData(NodeContext context);
-
-    @Override
-    public Optional<RpcDataService> createRpcDataService() {
-        var serviceBuilder = RpcDataService.builder();
-        DefaultNodeDialog.addDefaultNodeDialogRpcServices(serviceBuilder, Map.of(SettingsType.MODEL, m_modelSettings),
-            m_serviceRegistry);
-
-        return Optional.of(serviceBuilder //
+    protected RpcDataServiceBuilder getDataServiceBuilder(final NodeContext context) {
+        return RpcDataService.builder() //
             .addService("ScriptingService", m_scriptingService.getJsonRpcService()) //
-            .onDeactivate(m_scriptingService::onDeactivate) //
-            .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
-            .build());
-    }
-
-    @Override
-    public boolean canBeEnlarged() {
-        return true;
+            .onDeactivate(m_scriptingService::onDeactivate);
     }
 }
