@@ -91,6 +91,10 @@ onMounted(() => {
         right: 100,
       }"
       :show-control-bar="false"
+      :additional-bottom-pane-tab-content="[
+        { label: 'foo', slotName: 'bottomPaneTabSlot:foo', associatedControlsSlotName: 'bottomPaneTabControlsSlot:foo' },
+        { label: 'bar', slotName: 'bottomPaneTabSlot:bar' },
+      ]"
     >
       <template v-if="hasJsonFormsSettingsElements" #right-pane>
         <NodeDialogCore
@@ -103,6 +107,15 @@ onMounted(() => {
           "
           @alert="scriptingService.sendAlert.bind(scriptingService)"
         />
+      </template>
+      <template #bottomPaneTabSlot:foo>
+        <div style="padding: 1rem;">This is foo content.</div>
+      </template>
+      <template #bottomPaneTabControlsSlot:foo>
+        <button @click="alert('Foo button clicked!')">Foo Button</button>
+      </template>
+      <template #bottomPaneTabSlot:bar>
+        <div style="padding: 1rem;">This is bar content.</div>
       </template>
     </ScriptingEditor>
   </main>

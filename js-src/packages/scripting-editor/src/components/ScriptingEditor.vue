@@ -187,6 +187,7 @@ const showControlBarDynamic = computed(
         </slot>
       </template>
 
+      <!-- TODO hide if no bottom tabs are available -->
       <SplitPanel
         v-model:expanded="bottomPaneExpanded"
         v-model:secondary-size="bottomPaneSize"
