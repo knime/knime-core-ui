@@ -50,7 +50,7 @@ onMounted(() => {
       :initial-pane-sizes="{
         bottom: 0,
         left: 0,
-        right: 100,
+        right: 360,
       }"
       :show-control-bar="false"
     >
