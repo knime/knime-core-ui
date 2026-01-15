@@ -62,6 +62,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
@@ -251,6 +252,18 @@ public record InputOutputModel(String name, //
      */
     public static Builder flowVariables() {
         return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow Variables");
+    }
+
+    /**
+     * Creates a builder for an {@link InputOutputModel} that represents an object port
+     *
+     * @param portType The port type of the object port to get the color from
+     * @return A builder for an {@link InputOutputModel} that represents an object port
+     */
+    public static RequiresNameBuilder portObject(final PortType portType) {
+        // Ignore alpha and format with a "#" prefix and 6 hex digits
+        var portIconColor = String.format("#%06X", portType.getColor() & 0x00FFFFFF);
+        return builder(OBJECT_PORT_TYPE_NAME, portIconColor);
     }
 
     /**
