@@ -1,6 +1,8 @@
-import { type GenericInitialData, getInitialData } from "../lib/main";
-
-import type { StaticCompletionItem } from "./static-completion-provider";
+import {
+  type GenericInitialData,
+  type StaticCompletionItem,
+  getInitialData,
+} from "../lib/main";
 
 export type AppInitialData = GenericInitialData & {
   language: string;

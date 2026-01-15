@@ -1,3 +1,4 @@
+import { onMounted, onUnmounted } from "vue";
 import * as monaco from "monaco-editor";
 
 /**
@@ -148,5 +149,46 @@ export const registerStaticCompletionProvider = (
 
       return { suggestions };
     },
+  });
+};
+
+/**
+ * Vue composable that registers a static completion item provider with Monaco editor.
+ * Automatically disposes the provider when the component unmounts.
+ *
+ * @param language The programming language identifier for the provider
+ * @param items Array of static completion items to provide
+ *
+ * @example
+ * ```typescript
+ * import { useStaticCompletionProvider } from '@knime/scripting-editor';
+ *
+ * // In a Vue component
+ * useStaticCompletionProvider('python', [
+ *   {
+ *     name: 'get_data',
+ *     arguments: 'port, index',
+ *     returnType: 'DataFrame',
+ *     description: 'Retrieves data from the specified port'
+ *   },
+ *   {
+ *     name: 'knime_context',
+ *     returnType: 'Context',
+ *     description: 'The current KNIME execution context'
+ *   }
+ * ]);
+ * ```
+ */
+export const useStaticCompletionProvider = (
+  language: string,
+  items: StaticCompletionItem[],
+): void => {
+  let disposable: monaco.IDisposable | undefined;
+
+  onMounted(() => {
+    disposable = registerStaticCompletionProvider(language, items);
+  });
+  onUnmounted(() => {
+    disposable?.dispose();
   });
 };
