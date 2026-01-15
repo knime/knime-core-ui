@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 import {
   ScriptingEditor,
   getSettingsService,
   joinSettings,
+  useStaticCompletionProvider,
 } from "../lib/main";
 import { NodeParametersPanel } from "../lib/parameters";
 
 import { getAppInitialData } from "./app-initial-data";
-import { registerStaticCompletionProvider } from "./static-completion-provider";
 
 const initialData = getAppInitialData();
 
@@ -30,15 +30,13 @@ const hasAdditionalNodeParameters =
   Array.isArray(settingsInitialData.ui_schema.elements) &&
   settingsInitialData.ui_schema.elements.length > 0;
 
-onMounted(() => {
-  // Register static completion items if provided
-  if (initialData.staticCompletionItems?.length) {
-    registerStaticCompletionProvider(
-      initialData.language,
-      initialData.staticCompletionItems,
-    );
-  }
-});
+// Register static completion items if provided
+if (initialData.staticCompletionItems?.length) {
+  useStaticCompletionProvider(
+    initialData.language,
+    initialData.staticCompletionItems,
+  );
+}
 </script>
 
 <template>
