@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSe
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.ConnectedFSOptionsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
@@ -96,6 +97,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxVali
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLengthValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopSingleFileSelectionModeProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 import org.knime.node.parameters.Widget;
@@ -440,6 +442,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 FileWriterWidget.class, //
                 FileWriterWidget::fileExtensionProvider, //
                 NoopStringProvider.class //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_SELECTION_MODE, //
+                FileSelectionWidget.class, //
+                FileSelectionWidget::selectionModeProvider, //
+                NoopSingleFileSelectionModeProvider.class //
             ));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //
