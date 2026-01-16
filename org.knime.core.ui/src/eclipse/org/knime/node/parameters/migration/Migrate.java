@@ -58,7 +58,7 @@ import org.knime.core.util.valueformat.NumberFormatter.Persistor;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Defines how a field is migrated from a pervious version of settings.
+ * Defines how a field is migrated from a previous version of settings.
  *
  * <p>
  * A migration - in contrast to a {@link Persistor} - is needed when the structure of the settings has changed, i.e.

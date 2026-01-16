@@ -3,8 +3,12 @@ import { computed } from "vue";
 
 import { InputField } from "@knime/components";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+import { useProvidedState } from "@knime/jsonforms";
 
-import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
+import {
+  type FileChooserUiSchema,
+  type FileSelectionMode,
+} from "../../../types/FileChooserUiSchema";
 import DialogFileExplorer from "../DialogFileExplorer.vue";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
@@ -22,8 +26,10 @@ const { sideDrawerValue, updateSideDrawerValue, onApply } =
   });
 const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
   useFileChooserBrowseOptions(uischema);
-const selectionMode = computed(
-  () => uischema.value.options?.selectionMode ?? "FILE",
+const selectionMode = useProvidedState(
+  uischema,
+  "selectionMode",
+  "FILE" as FileSelectionMode,
 );
 const placeholder = computed(() => uischema.value.options?.placeholder);
 </script>

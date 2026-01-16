@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.FileChooserRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopSingleFileSelectionModeProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
@@ -162,6 +163,10 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
         m_fileWriterAnnotation.map(FileWriterWidget::fileExtensionProvider)
             .filter(Predicate.not(NoopStringProvider.class::equals))
             .ifPresent(fileExtensionProvider -> stateProviders.put(UiSchema.TAG_FILE_EXTENSION, fileExtensionProvider));
+        m_fileSelectionAnnotation.map(FileSelectionWidget::selectionModeProvider)
+            .filter(Predicate.not(NoopSingleFileSelectionModeProvider.class::equals))
+            .ifPresent(singleFileSelectionModeProvider -> stateProviders.put(UiSchema.TAG_SELECTION_MODE,
+                singleFileSelectionModeProvider));
         return stateProviders;
     }
 }
