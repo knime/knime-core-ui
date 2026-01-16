@@ -42,50 +42,19 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jan 08, 2026 (Jochen Reißinger, TNG Technology Consulting GmbH): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopSingleFileSelectionModeProvider;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 
 /**
- * Annotation for single file/folder selection widgets. Can be applied to {@link FileSelection} or {@link String}
- * fields.
- * <p>
- * If a file browser should be shown, this annotation is required in the {@link String} case. It is not required in the
- * {@link FileSelection} case and the default behavior is to use mode {@link SingleFileSelectionMode#FILE}.
+ * Marker class used as ignored default only.
  *
- * @author Paul Baernreuther
+ * @author Jochen Reißinger
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface FileSelectionWidget {
-
-    /**
-     * The selection mode for this widget.
-     *
-     * @return the selection mode
-     */
-    SingleFileSelectionMode value() default SingleFileSelectionMode.FILE;
-
-    /**
-     * Use this property instead of {@link #value()} to provide the selection mode dynamically depending on inputs or
-     * other parameters.
-     *
-     * @return a class of a state provider returning a file selection mode
-     */
-    Class<? extends StateProvider<SingleFileSelectionMode>> selectionModeProvider() default NoopSingleFileSelectionModeProvider.class;
-
-    /**
-     * Placeholder text to show when no value is set.
-     *
-     * @return the placeholder text
-     */
-    String placeholder() default "";
+public final class NoopSingleFileSelectionModeProvider extends NoopProvider<SingleFileSelectionMode> {
 
 }
