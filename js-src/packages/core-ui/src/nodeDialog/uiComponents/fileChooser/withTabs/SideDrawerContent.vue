@@ -2,6 +2,7 @@
 import { type Component, computed, ref, toRef } from "vue";
 
 import { TabBar } from "@knime/components";
+import { useProvidedState } from "@knime/jsonforms";
 import ComputerDesktopIcon from "@knime/styles/img/icons/computer-desktop.svg";
 import FolderIcon from "@knime/styles/img/icons/folder.svg";
 import LinkIcon from "@knime/styles/img/icons/link.svg";
@@ -9,6 +10,7 @@ import LocalSpaceIcon from "@knime/styles/img/icons/local-space.svg";
 import PluginInputIcon from "@knime/styles/img/icons/plugin-input.svg";
 import WorkflowIcon from "@knime/styles/img/icons/workflow.svg";
 
+import type { FileSelectionMode } from "@/nodeDialog/types/FileChooserUiSchema";
 import DialogFileExplorer from "../DialogFileExplorer.vue";
 import { getBackendType } from "../composables/useFileChooserBackend";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
@@ -37,8 +39,10 @@ const { onFsCategoryUpdate, onPathUpdate, onTimeoutUpdate } =
     uischema,
   );
 
-const selectionMode = computed(
-  () => uischema.value.options?.selectionMode ?? "FILE",
+const selectionMode = useProvidedState(
+  uischema,
+  "selectionMode",
+  "FILE" as FileSelectionMode,
 );
 const {
   filteredExtensions,
