@@ -1,10 +1,12 @@
 import type { FlowSettings } from "@knime/core-ui/src/nodeDialog/api/types";
 import type { NodeDialogCoreInitialData } from "@knime/core-ui/src/nodeDialog/types/InitialData";
+import type { SettingsData } from "@knime/core-ui/src/nodeDialog/types/SettingsData";
 import type {
   DialogService,
   JsonDataService,
 } from "@knime/ui-extension-service";
 
+import { getInitialData } from "./init";
 import type { PublicAPI } from "./types/public-api";
 
 export type GenericNodeSettings = {
@@ -78,3 +80,39 @@ export class SettingsService {
 
 /** Type representing the public API of SettingsService */
 export type SettingsServiceType = PublicAPI<SettingsService>;
+
+/**
+ * Joins the script settings from the main scripting editor with the settings
+ * from the NodeParametersPanel into a single settings object.
+ *
+ * @param scriptSettings the script settings object containing the main script text
+ * @param nodeParametersPanelSettings the settings from the NodeParametersPanel
+ * @returns the combined settings object as expected by the
+ *        `DefaultScriptingNodeSettingsService` backend
+ */
+export const joinSettings = (
+  scriptSettings: { script: string },
+  nodeParametersPanelSettings?:
+    | undefined
+    | {
+        data: SettingsData;
+        flowVariableSettings: Record<string, FlowSettings>;
+      },
+) => {
+  const configKey = getInitialData().mainScriptConfigKey ?? "script";
+
+  // If there are no node parameters panel settings, return only the script
+  if (!nodeParametersPanelSettings) {
+    return { data: { model: { [configKey]: scriptSettings.script } } };
+  }
+
+  if (typeof nodeParametersPanelSettings.data.model === "undefined") {
+    throw new Error(
+      "Could not find model settings in core dialog settings to update script.",
+    );
+  }
+
+  // Update the script in the model settings
+  nodeParametersPanelSettings.data.model[configKey] = scriptSettings.script;
+  return nodeParametersPanelSettings;
+};

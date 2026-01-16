@@ -97,6 +97,7 @@
   "exports": {
     ".": "./dist/main.js",
     "./loading": "./dist/loading.js",
+    "./parameters": "./dist/parameters.js",
     "./scripting-service-browser-mock": "./dist/scripting-service-browser-mock.js",
     "./settings-service-browser-mock": "./dist/settings-service-browser-mock.js",
     "./initial-data-service-browser-mock": "./dist/initial-data-service-browser-mock.js"

@@ -19,6 +19,11 @@ import {
 } from "../src/components/utils/insertionEventHelper";
 import { type PaneSizes } from "../src/components/utils/paneSizes";
 import useShouldFocusBePainted from "../src/components/utils/shouldFocusBePainted";
+import {
+  type StaticCompletionItem,
+  registerStaticCompletionProvider,
+  useStaticCompletionProvider,
+} from "../src/components/utils/useStaticCompletionProvider";
 import { consoleHandler, setConsoleHandler } from "../src/consoleHandler";
 import { displayMode } from "../src/display-mode";
 import type {
@@ -44,7 +49,11 @@ import {
   type PortConfigs,
 } from "../src/initial-data-service";
 import { type ScriptingServiceType } from "../src/scripting-service";
-import { type GenericNodeSettings } from "../src/settings-service";
+import {
+  type GenericNodeSettings,
+  type SettingsInitialData,
+} from "../src/settings-service";
+import { joinSettings } from "../src/settings-service";
 import { setActiveEditorStoreForAi } from "../src/store/ai-bar";
 import { useReadonlyStore } from "../src/store/readOnly";
 
@@ -62,13 +71,16 @@ export {
   initMocked,
   InputOutputPane,
   insertionEventHelper,
+  joinSettings,
   OutputConsole,
   OutputTablePreview,
+  registerStaticCompletionProvider,
   ScriptingEditor,
   setActiveEditorStoreForAi,
   setConsoleHandler,
   useReadonlyStore,
   useShouldFocusBePainted,
+  useStaticCompletionProvider,
 };
 export type {
   ConsoleHandler,
@@ -83,7 +95,9 @@ export type {
   PaneSizes,
   PortConfigs,
   ScriptingServiceType,
+  SettingsInitialData,
   SettingsMenuItem,
+  StaticCompletionItem,
   SubItem,
   SubItemType,
   UseCodeEditorParams,

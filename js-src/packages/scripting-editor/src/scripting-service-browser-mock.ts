@@ -23,6 +23,10 @@ export type ScriptingServiceMockOptions = {
     string,
     (...options: any) => Promise<any>
   >;
+  callRpcMethodMockResponses?: Record<
+    string,
+    (...options: any) => Promise<any>
+  >;
   unlicensedKaiUser?: boolean;
 };
 
@@ -78,8 +82,7 @@ export const createScriptingServiceMock = (
 
       // Fallback - Log an error and return undefined
       error(
-        `${methodName} not implemented in sendToServiceMockResponses.
-      Returning undefined.`,
+        `'${methodName}' not implemented in sendToServiceMockResponses. Returning undefined.`,
       );
       return Promise.resolve();
     },
@@ -87,6 +90,19 @@ export const createScriptingServiceMock = (
     async callRpcMethod({ method, options }) {
       log(`Called scriptingService.callRpcMethod("${method}")`, options);
       await sleep(SLEEP_TIME_ANY_CALL);
+
+      if (
+        opt.callRpcMethodMockResponses &&
+        method in opt.callRpcMethodMockResponses
+      ) {
+        return opt.callRpcMethodMockResponses[method](...(options ?? []));
+      }
+
+      // Fallback - Log an error and return undefined
+      error(
+        `'${method}' not implemented in callRpcMethodMockResponses. Returning undefined.`,
+      );
+      return Promise.resolve();
     },
 
     getOutputPreviewTableInitialData() {
