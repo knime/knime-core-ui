@@ -3,6 +3,7 @@ import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
 import { getScriptingService } from "../../init";
+import { DEFAULT_PORT_CONFIGS } from "../../initial-data-service-browser-mock";
 import CompactTabBar from "../CompactTabBar.vue";
 import { type ConsoleHandler } from "../OutputConsole.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
@@ -224,5 +225,67 @@ describe("ScriptingEditorBottomPane", () => {
 
     expect(wrapper.vm.hasTabs).toBe(true);
     expect(tabBar.vm.modelValue).not.toBeNull();
+  });
+
+  it("shows input port tabs for connected ports", async () => {
+    vi.mocked(
+      getScriptingService().isCallKnimeUiApiAvailable,
+    ).mockReturnValueOnce(Promise.resolve(true));
+    const { wrapper } = await doMount();
+
+    await flushPromises();
+
+    const inOutPane = wrapper.findComponent(ScriptingEditorBottomPane);
+    expect(inOutPane.exists()).toBeTruthy();
+
+    const tabBar = inOutPane.findComponent(CompactTabBar);
+    expect(tabBar.exists()).toBeTruthy();
+
+    const tabElements = tabBar.findAll("input[type='radio']");
+
+    for (const inputPort of DEFAULT_PORT_CONFIGS.inputPorts) {
+      if (typeof inputPort.nodeId === "undefined") {
+        // skip unconnected ports
+        continue;
+      }
+
+      const expectedElement = tabElements.find(
+        (tab) =>
+          tab.attributes("value") ===
+          `bottomPaneTabSlot:${inputPort.nodeId}-${inputPort.portIdx}`,
+      );
+
+      expect(expectedElement).toBeDefined();
+      expect(expectedElement!.isVisible()).toBeTruthy();
+    }
+  });
+
+  it("shows input ports in correct order", async () => {
+    vi.mocked(
+      getScriptingService().isCallKnimeUiApiAvailable,
+    ).mockReturnValueOnce(Promise.resolve(true));
+    const { wrapper } = await doMount();
+
+    await flushPromises();
+    const inOutPane = wrapper.findComponent(ScriptingEditorBottomPane);
+    expect(inOutPane.exists()).toBeTruthy();
+
+    const tabBar = inOutPane.findComponent(CompactTabBar);
+    expect(tabBar.exists()).toBeTruthy();
+    const tabElements = tabBar.findAll("input[type='radio']");
+    const actualOrder = tabElements.map((tab) => tab.attributes("value"));
+
+    // All ports except variable port
+    const expectedOrderWithoutVariables = DEFAULT_PORT_CONFIGS.inputPorts
+      .filter((_, idx) => idx !== 0) // Skip variable port (because it will be displayed last)
+      .filter((port) => typeof port.nodeId !== "undefined")
+      .map((port) => `bottomPaneTabSlot:${port.nodeId}-${port.portIdx}`);
+    expect(actualOrder.slice(0, -1)).toEqual(expectedOrderWithoutVariables);
+
+    // Variable port last
+    const variablesPort = DEFAULT_PORT_CONFIGS.inputPorts[0];
+    expect(actualOrder[actualOrder.length - 1]).toBe(
+      `bottomPaneTabSlot:${variablesPort.nodeId}-${DEFAULT_PORT_CONFIGS.inputPorts[0].portIdx}`,
+    );
   });
 });
