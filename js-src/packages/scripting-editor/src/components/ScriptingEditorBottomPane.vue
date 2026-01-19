@@ -83,6 +83,10 @@ const allPossibleTabvalues = computed(() => {
     }),
   );
 });
+
+// Expose whether there are currently any tabs to the parent component
+const hasTabs = computed(() => allPossibleTabvalues.value.length > 0);
+defineExpose({ hasTabs });
 </script>
 
 <template>

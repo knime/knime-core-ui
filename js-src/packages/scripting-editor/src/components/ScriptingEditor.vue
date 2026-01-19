@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useSlots } from "vue";
+import { computed, ref, useSlots, useTemplateRef, watchEffect } from "vue";
 import { useElementBounding } from "@vueuse/core";
 
 import { type MenuItem, SplitPanel } from "@knime/components";
@@ -156,6 +156,13 @@ const showControlBarDynamic = computed(
   () => props.showControlBar && !isSmallEmbeddedMode.value,
 );
 
+// Watch if the bottom pane has tabs to decide whether to show or hide it
+const bottomPane = useTemplateRef("bottomPane");
+const hasBottomPaneTabs = ref(false);
+watchEffect(() => {
+  hasBottomPaneTabs.value = bottomPane.value?.hasTabs ?? false;
+});
+
 // #endregion
 </script>
 
@@ -207,7 +214,7 @@ const showControlBarDynamic = computed(
       <SplitPanel
         v-model:expanded="bottomPaneExpanded"
         v-model:secondary-size="bottomPaneSize"
-        :hide-secondary-pane="isSmallEmbeddedMode"
+        :hide-secondary-pane="isSmallEmbeddedMode || !hasBottomPaneTabs"
         direction="down"
         use-pixel
         keep-element-on-close
@@ -273,6 +280,7 @@ const showControlBarDynamic = computed(
         </SplitPanel>
         <template #secondary>
           <ScriptingEditorBottomPane
+            ref="bottomPane"
             :slotted-tabs="additionalBottomPaneTabContent"
           >
             <template
