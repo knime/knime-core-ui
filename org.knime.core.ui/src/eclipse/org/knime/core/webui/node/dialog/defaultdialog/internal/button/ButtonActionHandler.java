@@ -122,17 +122,15 @@ public interface ButtonActionHandler<R, S, M extends Enum<M>> extends Dependency
 
     /**
      * The button has an associated state machine defined by the generic type. It is an enum where every enum field
-     * needs to have a {@link ButtonState} annotations We need the class of this generic type returned by this method
-     * in. order to
+     * needs to have a {@link ButtonState} annotation. We need the class of this generic type returned by this method
+     * in order to
      * <ol>
      * <li>serialize the state machine (i.e. the enum value and their {@link ButtonState}) with the initial data sent to
      * the front-end</li>
      * <li>map the string parameter sent by the front-end to their respective enum values</li>
      * </ol>
      *
-     * We need this method to make the class of the state
-     *
-     * @return the class of the state machine.
+     * @return the class of the state machine
      */
     Class<M> getStateMachine();
 
