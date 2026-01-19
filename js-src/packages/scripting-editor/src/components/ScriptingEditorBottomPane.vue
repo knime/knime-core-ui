@@ -3,7 +3,7 @@ import { type Ref, computed, watch } from "vue";
 import { computedAsync } from "@vueuse/core";
 
 import { getInitialData, getScriptingService } from "../init";
-import { type PortConfig, type PortConfigs } from "../initial-data-service";
+import { type PortConfig } from "../initial-data-service";
 
 import CompactTabBar from "./CompactTabBar.vue";
 import InputPortTables from "./InputPortTables.vue";
@@ -42,46 +42,59 @@ const makeGrabFocusFunction = (tabValue: string) => {
   };
 };
 
-const portConfigs: Ref<PortConfigs> = computedAsync(
-  async () => {
-    const inputPorts = getInitialData().inputPortConfigs.inputPorts.filter(
-      (port) => port.nodeId,
-    );
+type InputPortTabInfo = { port: PortConfig; tab: SlottedTab };
+const inputPortTabInfo: Ref<InputPortTabInfo[]> = computedAsync(async () => {
+  const inputPorts = getInitialData().inputPortConfigs.inputPorts;
 
-    if (
-      !(await getScriptingService().isCallKnimeUiApiAvailable(inputPorts[0]))
-    ) {
-      return {
-        inputPorts: [],
-      };
+  // Check if there is at least one input port and the Call KNIME UI API is available
+  const existingPort = inputPorts.find((port) => port.nodeId);
+  if (
+    !existingPort ||
+    !(await getScriptingService().isCallKnimeUiApiAvailable(existingPort))
+  ) {
+    return [];
+  }
+
+  const info: InputPortTabInfo[] = [];
+
+  // NB: Start from index 1 to skip the variable port at index 0
+  for (let i = 1; i < inputPorts.length; i++) {
+    const port = inputPorts[i];
+    // Skip ports without nodeId
+    if (port.nodeId) {
+      info.push({
+        port,
+        tab: {
+          slotName: makeNodePortIdFromPort(port),
+          label: `${i}: ${port.portName}`,
+        },
+      });
     }
+  }
 
-    return {
-      inputPorts,
-    };
-  },
-  {
-    inputPorts: [],
-  },
-);
+  // Add the variable port at the end if it has a nodeId
+  const variablePort = inputPorts[0];
+  if (variablePort.nodeId) {
+    info.push({
+      port: variablePort,
+      tab: {
+        slotName: makeNodePortIdFromPort(variablePort),
+        label: `${variablePort.portName}`,
+      },
+    });
+  }
 
-const portConfigTabBarOpts: Ref<SlottedTab[]> = computed(() => {
-  return portConfigs.value.inputPorts
-    .slice()
-    .reverse()
-    .map((port, index) => ({
-      slotName: makeNodePortIdFromPort(port),
-      label: `${index}: ${port.portName}`,
-    }));
-});
+  return info;
+}, []);
 
 const allPossibleTabvalues = computed(() => {
-  return [...portConfigTabBarOpts.value, ...props.slottedTabs].map(
-    (slottedTab: SlottedTab) => ({
-      value: slottedTab.slotName,
-      label: slottedTab.label,
-    }),
-  );
+  return [
+    ...inputPortTabInfo.value.map((info) => info.tab),
+    ...props.slottedTabs,
+  ].map((slottedTab: SlottedTab) => ({
+    value: slottedTab.slotName,
+    label: slottedTab.label,
+  }));
 });
 
 // Select the first tab if tabs become available and no tab is active yet
@@ -114,12 +127,12 @@ defineExpose({ hasTabs });
         </template>
       </span>
     </span>
-    <template v-for="port in portConfigs.inputPorts" :key="port.portName">
+    <template v-for="info in inputPortTabInfo" :key="info.tab.slotName">
       <InputPortTables
-        v-show="activeTab === makeNodePortIdFromPort(port)"
-        :input-node-id="port.nodeId!"
-        :port-idx="port.portIdx"
-        :port-view-configs="port.portViewConfigs"
+        v-show="activeTab === info.tab.slotName"
+        :input-node-id="info.port.nodeId!"
+        :port-idx="info.port.portIdx"
+        :port-view-configs="info.port.portViewConfigs"
       />
     </template>
     <template v-for="slot in props.slottedTabs" :key="slot.value">
