@@ -10,7 +10,7 @@ export type PortConfig = {
   nodeId?: string;
   portIdx: number;
   portViewConfigs: PortViewConfig[];
-  portName: string;
+  portName?: string;
 };
 
 export type PortConfigs = {

@@ -6,6 +6,7 @@ import { useElementBounding } from "@vueuse/core";
 import { SplitPanel } from "@knime/components";
 
 import { getScriptingService } from "../../init";
+import { DEFAULT_PORT_CONFIGS } from "../../initial-data-service-browser-mock";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import HeaderBar from "../HeaderBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
@@ -15,29 +16,6 @@ import ScriptingEditorBottomPane, {
   type BottomPaneTabSlotName,
 } from "../ScriptingEditorBottomPane.vue";
 import SettingsPage from "../SettingsPage.vue";
-
-const PORT_CONFIG = {
-  inputPorts: [
-    {
-      nodeId: "root",
-      portName: "firstPort",
-      portIdx: 1,
-      portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
-      ],
-    },
-    {
-      nodeId: "notRoot",
-      portName: "firstPort",
-      portIdx: 1,
-      portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
-      ],
-    },
-  ],
-};
 
 const mocks = vi.hoisted(() => {
   return {
@@ -274,7 +252,12 @@ describe("ScriptingEditor", () => {
     ): BottomPaneTabSlotName => `bottomPaneTabSlot:${nodeId}-${portIdx}`;
     const tabElements = wrapper.findAll(".tab-bar input");
 
-    for (const inputPort of PORT_CONFIG.inputPorts) {
+    for (const inputPort of DEFAULT_PORT_CONFIGS.inputPorts) {
+      if (typeof inputPort.nodeId === "undefined") {
+        // skip unconnected ports
+        continue;
+      }
+
       const expectedElement = tabElements.find(
         (tab) =>
           tab.attributes("value") ===
@@ -284,5 +267,12 @@ describe("ScriptingEditor", () => {
       expect(expectedElement).toBeDefined();
       expect(expectedElement!.isVisible()).toBeTruthy();
     }
+
+    // Check that unconnected port does not have a tab
+    expect(tabElements.length).toBe(
+      DEFAULT_PORT_CONFIGS.inputPorts.filter(
+        (port) => typeof port.nodeId !== "undefined",
+      ).length,
+    );
   });
 });
