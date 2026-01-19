@@ -93,6 +93,7 @@ import org.knime.node.parameters.widget.message.TextMessage.Message;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -384,6 +385,11 @@ public final class FallbackDialogUtils {
         currentSettings.addEntry(value);
     }
 
+    private static String asText(final JsonNode leaf) {
+        // avoids "null" string literals in NodeSettings values
+        return leaf == null || NullNode.instance.equals(leaf) ? null : leaf.asText();
+    }
+
     /**
      * Turns a given JSON object into a {@link NodeSettings}-object. Since the JSON object lacks the complete type
      * information required for the settings, another {@link NodeSettings}-object (called 'schema') of the same
@@ -412,10 +418,10 @@ public final class FallbackDialogUtils {
                 case xlong -> new ConfigLongEntry(key, leaf.longValue());
                 case xshort -> new ConfigShortEntry(key, (short)leaf.intValue());
                 case xbyte -> new ConfigByteEntry(key, (byte)leaf.intValue());
-                case xstring -> new ConfigStringEntry(key, leaf == null ? null : leaf.asText());
-                case xchar -> new ConfigCharEntry(key, leaf.asText());
-                case xpassword -> new ConfigPasswordEntry(key, leaf.asText());
-                case xtransientstring -> new ConfigTransientStringEntry(key, leaf.asText());
+                case xstring -> new ConfigStringEntry(key, asText(leaf));
+                case xchar -> new ConfigCharEntry(key, asText(leaf));
+                case xpassword -> new ConfigPasswordEntry(key, asText(leaf));
+                case xtransientstring -> new ConfigTransientStringEntry(key, asText(leaf));
                 case config -> throw new UnsupportedOperationException(String.format(
                     "Unsupported settings type \"%s\" for for path: %s", ConfigEntries.config, Arrays.toString(path)));
             };
