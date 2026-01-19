@@ -75,24 +75,34 @@ export const DEFAULT_FLOW_VARIABLE_INPUTS: InputOutputModel = {
   ],
 };
 
-const DEFAULT_PORT_CONFIGS: PortConfigs = {
+export const DEFAULT_PORT_CONFIGS: PortConfigs = {
   inputPorts: [
     {
-      nodeId: "root",
-      portName: "firstPort",
+      nodeId: "root:1",
+      portName: "Variable Inport",
       portIdx: 1,
-      portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
-      ],
+      portViewConfigs: [{ portViewIdx: 0, label: "Flow variables" }],
     },
     {
-      nodeId: "notRoot",
-      portName: "firstPort",
+      nodeId: "root:2",
+      portName: "Object from a node",
+      portIdx: 1,
+      portViewConfigs: [{ portViewIdx: 0, label: "Object" }],
+    },
+    {
+      // unconnected port
+      nodeId: undefined,
+      portIdx: 0,
+      portViewConfigs: [],
+      portName: undefined,
+    },
+    {
+      nodeId: "root:3",
+      portName: "Table from another node",
       portIdx: 1,
       portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
+        { portViewIdx: 0, label: "Table" },
+        { portViewIdx: 1, label: "Statistics" },
       ],
     },
   ],
