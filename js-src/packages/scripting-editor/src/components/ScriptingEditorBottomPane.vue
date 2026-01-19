@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Ref, computed } from "vue";
+import { type Ref, computed, watch } from "vue";
 import { computedAsync } from "@vueuse/core";
 
 import { getInitialData, getScriptingService } from "../init";
@@ -82,6 +82,13 @@ const allPossibleTabvalues = computed(() => {
       label: slottedTab.label,
     }),
   );
+});
+
+// Select the first tab if tabs become available and no tab is active yet
+watch(allPossibleTabvalues, (newVal) => {
+  if (newVal.length > 0 && !activeTab.value) {
+    activeTab.value = newVal[0].value;
+  }
 });
 
 // Expose whether there are currently any tabs to the parent component

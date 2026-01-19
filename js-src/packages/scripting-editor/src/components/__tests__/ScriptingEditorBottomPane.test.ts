@@ -3,6 +3,7 @@ import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
 import { getScriptingService } from "../../init";
+import CompactTabBar from "../CompactTabBar.vue";
 import { type ConsoleHandler } from "../OutputConsole.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
 
@@ -200,5 +201,28 @@ describe("ScriptingEditorBottomPane", () => {
     ).mockReturnValueOnce(Promise.resolve(true));
     const { wrapper } = await doMount();
     expect(wrapper.vm.hasTabs).toBe(true);
+  });
+
+  it("selects the first tab when tabs become available", async () => {
+    let resolvePromise: ((value: boolean) => void) | undefined;
+    vi.mocked(
+      getScriptingService().isCallKnimeUiApiAvailable,
+    ).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolvePromise = resolve;
+      }),
+    );
+
+    const { wrapper } = await doMount();
+    const tabBar = wrapper.findComponent(CompactTabBar);
+
+    expect(wrapper.vm.hasTabs).toBe(false);
+    expect(tabBar.vm.modelValue).toBeNull();
+
+    resolvePromise!(true);
+    await flushPromises();
+
+    expect(wrapper.vm.hasTabs).toBe(true);
+    expect(tabBar.vm.modelValue).not.toBeNull();
   });
 });
