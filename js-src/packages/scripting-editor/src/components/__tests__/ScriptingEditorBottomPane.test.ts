@@ -174,4 +174,31 @@ describe("ScriptingEditorBottomPane", () => {
     const slotContent = wrapper.find("#test-id");
     expect(slotContent.isVisible()).toBeTruthy();
   });
+
+  it("exposes hasTabs=false if no tabs are available", async () => {
+    const { wrapper } = await doMount();
+    expect(wrapper.vm.hasTabs).toBe(false);
+  });
+
+  it("exposes hasTabs=true if there are slotted tabs", async () => {
+    const { wrapper } = await doMount({
+      props: {
+        slottedTabs: [
+          {
+            slotName: "bottomPaneTabSlot:someSlottedThing",
+            label: "SomeSlottedThing",
+          },
+        ],
+      },
+    });
+    expect(wrapper.vm.hasTabs).toBe(true);
+  });
+
+  it("exposes hasTabs=true if there are port config tabs", async () => {
+    vi.mocked(
+      getScriptingService().isCallKnimeUiApiAvailable,
+    ).mockReturnValueOnce(Promise.resolve(true));
+    const { wrapper } = await doMount();
+    expect(wrapper.vm.hasTabs).toBe(true);
+  });
 });
