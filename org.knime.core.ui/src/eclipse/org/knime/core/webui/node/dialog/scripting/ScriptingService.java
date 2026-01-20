@@ -69,6 +69,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.util.ThreadUtils;
 import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler;
 import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.CodeRequestResponse;
 import org.knime.core.webui.node.dialog.scripting.kai.KaiUsage;
@@ -234,7 +235,8 @@ public abstract class ScriptingService {
     private ExecutorService getExecutorService() {
         // lazily initialize executor service for this session
         if (m_executorService == null || m_executorService.isShutdown()) {
-            m_executorService = Executors.newSingleThreadExecutor();
+            // ensure that the executorService carries over the NodeContext
+            m_executorService = ThreadUtils.executorServiceWithContext(Executors.newSingleThreadExecutor());
         }
         return m_executorService;
     }
