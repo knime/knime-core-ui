@@ -71,6 +71,10 @@ public interface CodeKaiHandler {
     String getHubId();
 
     /**
+     * Invoked by frontend to check K-AI usage of user.
+     *
+     * Requires NodeContext to be set.
+     *
      * @param projectId the ID of the workflow-project required for authentication.
      * @return the AI usage for the currently authenticated user.
      * @since 5.8
@@ -96,7 +100,9 @@ public interface CodeKaiHandler {
     String getDisclaimer();
 
     /**
-     * Send a POST request to the provided end point path at the selected KNIME Hub
+     * Send a POST request to the provided end point path at the selected KNIME Hub.
+     *
+     * Requires NodeContext to be set.
      *
      * @param projectId the projectId of the current project
      * @param endpointPath The end point at the selected KNIME Hub to call
