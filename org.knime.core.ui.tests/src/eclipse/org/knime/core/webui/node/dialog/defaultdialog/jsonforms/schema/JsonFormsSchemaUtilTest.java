@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
@@ -129,9 +130,24 @@ class JsonFormsSchemaUtilTest {
         int test;
     }
 
+
     @Test
     void testDescription() throws JsonProcessingException {
         testSettings(DescriptionSetting.class);
+    }
+
+    private static class ReadOnlySettings implements WidgetGroup {
+        private static String SNAPSHOT =
+                "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"readOnly\":true}}";
+
+        @Widget(title = "", description = "")
+        @WidgetInternal(readOnly = true)
+        int test;
+    }
+
+    @Test
+    void testReadOnly() throws JsonProcessingException {
+        testSettings(ReadOnlySettings.class);
     }
 
     static final class ChangeDescription implements Modification.Modifier {

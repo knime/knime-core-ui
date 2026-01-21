@@ -33,7 +33,7 @@ describe("dirty after initial update", () => {
     };
   };
 
-  const mockInitialData = ({ data, initialUpdates = [] }) => {
+  const mockInitialData = ({ data, initialUpdates = [], readOnly = false }) => {
     vi.clearAllMocks();
     vi.spyOn(JsonDataService.prototype, "initialData").mockResolvedValue({
       data,
@@ -45,6 +45,11 @@ describe("dirty after initial update", () => {
             properties: {
               value: {
                 type: "string",
+                ...(readOnly
+                  ? {
+                      readOnly: true,
+                    }
+                  : {}),
               },
             },
           },
@@ -104,6 +109,34 @@ describe("dirty after initial update", () => {
     expect(wrapper.vm.getCurrentData().model.value).toBe("updated");
     expect(getCurrentValues()).toStrictEqual(["updated"]);
     expect(isClean()).toBe(false);
+  });
+
+  it("stays clean when update changes value of a readOnly property", async () => {
+    mockInitialData({
+      data: {
+        model: {
+          value: "initial",
+        },
+      },
+      readOnly: true,
+      initialUpdates: [
+        {
+          scope: "#/properties/model/properties/value",
+          values: [
+            {
+              indices: [],
+              value: "updated",
+            },
+          ],
+        },
+      ],
+    });
+
+    const wrapper = mount(NodeDialog, getOptions());
+    await dynamicImportsSettled(wrapper);
+    await flushPromises();
+
+    expect(isClean()).toBe(true);
   });
 
   it("becomes dirty when an initial update adds a new property", async () => {

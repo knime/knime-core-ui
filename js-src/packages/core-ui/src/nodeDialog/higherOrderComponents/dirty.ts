@@ -1,4 +1,5 @@
 import { computed, h } from "vue";
+import type { JsonSchema } from "@jsonforms/core";
 
 import {
   type ExtractData,
@@ -16,19 +17,32 @@ import { useDirtySetting } from "../composables/components/useDirtySetting";
 import type { allControls } from "../renderers";
 import type { MultiFileSelection } from "../uiComponents/fileChooser/types";
 
+const isReadOnly = (schema: JsonSchema): boolean => {
+  if ("readOnly" in schema) {
+    return Boolean(schema.readOnly);
+  }
+  return false;
+};
+
 export const dirty = <D>(
   component: VueControl<D>,
   valueComparator?: NoInfer<() => SettingComparator<D | undefined>>,
 ): VueControl<D> =>
   defineControl((props, ctx) => {
-    if (props.control.uischema.scope) {
+    const isReadOnlySchema = isReadOnly(props.control.schema);
+    if (props.control.uischema.scope && !isReadOnlySchema) {
       useDirtySetting({
         dataPath: computed(() => props.control.path),
         value: computed(() => props.control.data),
         valueComparator: valueComparator?.(),
       });
     }
-    return () => h(component, props, ctx.slots);
+    return () =>
+      h(
+        component,
+        { ...props, disabled: props.disabled || isReadOnlySchema },
+        ctx.slots,
+      );
   });
 
 type ValueComparators<T extends Record<string, VueControlRenderer>> = Partial<{
