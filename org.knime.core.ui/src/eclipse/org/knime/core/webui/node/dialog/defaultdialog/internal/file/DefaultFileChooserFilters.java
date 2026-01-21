@@ -154,7 +154,7 @@ public class DefaultFileChooserFilters implements FileChooserFilters {
     @Effect(predicate = FileNameFilterEnabled.class, type = EffectType.SHOW)
     String m_filesNameExpression = "*";
 
-    enum NameFilterType {
+    public enum NameFilterType {
             @Label(value = "Wildcard", description = "Enable using '*' and '?' as wildcards.")
             WILDCARD, //
             @Label(value = "Regular Expression", description = "Enable using a Java regular expression.")
@@ -271,6 +271,48 @@ public class DefaultFileChooserFilters implements FileChooserFilters {
         filterOptions.setIncludeHiddenFolders(m_includeHiddenFolders);
         filterOptions.setIncludeHiddenFiles(m_includeHiddenFiles);
         return filterOptions;
+    }
+
+    /**
+     * Set all values at once. To be used by internal conversion methods.
+     *
+     * @param filterFilesExtension whether to filter files by extension
+     * @param filesExtensionExpression the file extension expression
+     * @param filesExtensionCaseSensitive whether file extension filtering is case sensitive
+     * @param filterFilesName whether to filter files by name
+     * @param filesNameExpression the file name filter expression
+     * @param filesNameFilterType the file name filter type
+     * @param filesNameCaseSensitive whether file name filtering is case sensitive
+     * @param includeHiddenFiles whether to include hidden files
+     * @param includeSpecialFiles whether to include special files
+     * @param filterFoldersName whether to filter folders by name
+     * @param foldersNameExpression the folder name filter expression
+     * @param foldersNameFilterType the folder name filter type
+     * @param foldersNameCaseSensitive whether folder name filtering is case sensitive
+     * @param includeHiddenFolders whether to include hidden folders
+     * @param followSymlinks whether to follow symbolic links
+     */
+    public void setValues(final boolean filterFilesExtension, final String filesExtensionExpression,
+        final boolean filesExtensionCaseSensitive, final boolean filterFilesName, final String filesNameExpression,
+        final NameFilterType filesNameFilterType, final boolean filesNameCaseSensitive,
+        final boolean includeHiddenFiles, final boolean includeSpecialFiles, final boolean filterFoldersName,
+        final String foldersNameExpression, final NameFilterType foldersNameFilterType,
+        final boolean foldersNameCaseSensitive, final boolean includeHiddenFolders, final boolean followSymlinks) {
+        this.m_filterFilesExtension = filterFilesExtension;
+        this.m_filesExtensionExpression = filesExtensionExpression;
+        this.m_filesExtensionCaseSensitive = filesExtensionCaseSensitive;
+        this.m_filterFilesName = filterFilesName;
+        this.m_filesNameExpression = filesNameExpression;
+        this.m_filesNameFilterType = filesNameFilterType;
+        this.m_filesNameCaseSensitive = filesNameCaseSensitive;
+        this.m_includeHiddenFiles = includeHiddenFiles;
+        this.m_includeSpecialFiles = includeSpecialFiles;
+        this.m_filterFoldersName = filterFoldersName;
+        this.m_foldersNameExpression = foldersNameExpression;
+        this.m_foldersNameFilterType = foldersNameFilterType;
+        this.m_foldersNameCaseSensitive = foldersNameCaseSensitive;
+        this.m_includeHiddenFolders = includeHiddenFolders;
+        this.m_followSymlinks = followSymlinks;
     }
 
     @Override
