@@ -129,7 +129,8 @@ final class NodeSettingsSnapshot extends Snapshot {
             final var diff = DefaultNodeSettingsDiff.of(testDocument, controlDocument);
             if (!diff.isEmpty()) {
                 // write debug file if snapshot doesn't match
-                Files.writeString(debugFile, controlXmlString, StandardCharsets.UTF_8);
+                final var testXmlString = DefaultNodeSettingsDiff.toXmlString(settings);
+                Files.writeString(debugFile, testXmlString, StandardCharsets.UTF_8);
                 throw diff.toException(
                     "Generated node settings do not match snapshot file contents at %s%nDebug file written to %s%n"
                         .formatted(snapshotFile, debugFile));
