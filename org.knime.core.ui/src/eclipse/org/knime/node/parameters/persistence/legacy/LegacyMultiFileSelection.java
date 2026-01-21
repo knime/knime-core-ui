@@ -55,6 +55,7 @@ import java.util.Objects;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSLocationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
@@ -410,15 +411,54 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
             return filterOptions;
         }
 
+        /**
+         * Converts this filter settings to the modern {@link DefaultFileChooserFilters}.
+         *
+         * @return the default file chooser filters
+         */
+        public DefaultFileChooserFilters toDefaultFileChooserFilters() {
+            DefaultFileChooserFilters defaultFilters = new DefaultFileChooserFilters();
+
+            defaultFilters.setValues(this.m_filterFilesExtension, //
+                this.m_filesExtensionExpression, //
+                this.m_filesExtensionCaseSensitive, //
+                this.m_filterFilesName, //
+                this.m_filesNameExpression, //
+                toDefaultFileChooserNameFilterType(this.m_filesNameFilterType), //
+                this.m_filesNameCaseSensitive, //
+                this.m_includeHiddenFiles, //
+                this.m_includeSpecialFiles, //
+                this.m_filterFoldersName, //
+                this.m_foldersNameExpression, //
+                toDefaultFileChooserNameFilterType(this.m_foldersNameFilterType), //
+                this.m_foldersNameCaseSensitive, //
+                this.m_includeHiddenFolders, //
+                this.m_followSymlinks //
+            );
+
+            return defaultFilters;
+        }
+
+        private static DefaultFileChooserFilters.NameFilterType
+            toDefaultFileChooserNameFilterType(final NameFilterType type) {
+            return switch (type) {
+                case WILDCARD -> DefaultFileChooserFilters.NameFilterType.WILDCARD;
+                case REGEX -> DefaultFileChooserFilters.NameFilterType.REGEX;
+            };
+        }
+
         @Override
         public boolean followSymlinks() {
             return m_followSymlinks;
         }
     }
 
+    /**
+     * The filters to apply when selecting multiple files within a folder.
+     */
     @PersistWithin("filter_mode")
     @Persist(configKey = "filter_options")
-    MultiFileChooserFilters m_filters = new MultiFileChooserFilters();
+    public MultiFileChooserFilters m_filters = new MultiFileChooserFilters();
 
     /**
      * We use a dummy with a custom persistor that saves internals of the classic-UI File System Chooser. These settings
