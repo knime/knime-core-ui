@@ -83,4 +83,12 @@ public @interface WidgetInternal {
      */
     String hideControlInNodeDescription() default "";
 
+    /**
+     * Set whenever the widget should be read-only, i.e. no user input should be possible and value changes to the
+     * control should not make the dialog dirty.
+     *
+     * @return true if the widget should be read-only
+     */
+    boolean readOnly() default false;
+
 }

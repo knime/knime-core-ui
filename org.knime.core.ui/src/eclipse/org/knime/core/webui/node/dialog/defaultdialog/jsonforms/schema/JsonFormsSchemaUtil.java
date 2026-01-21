@@ -76,6 +76,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -213,6 +214,9 @@ public final class JsonFormsSchemaUtil {
 
         builder.forFields()
             .withIgnoreCheck(f -> f.isPrivate() || PROHIBITED_TYPES.contains(f.getType().getErasedType()));
+
+        builder.forFields().withReadOnlyCheck(field -> retrieveAnnotation(field, WidgetInternal.class, widgetTree)
+            .map(WidgetInternal::readOnly).orElse(false));
 
         builder.forFields().withCustomDefinitionProvider(new EnumDefinitionProvider());
         builder.forFields().withDefaultResolver(new DefaultResolver(context));
