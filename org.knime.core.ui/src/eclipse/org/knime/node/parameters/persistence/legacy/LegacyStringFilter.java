@@ -114,7 +114,7 @@ public final class LegacyStringFilter implements NodeParameters {
          *            the default description
          */
         protected LegacyStringFilterModification(final boolean showKeepAll, final String columnSelectionDescription) {
-            this(showKeepAll, null, columnSelectionDescription, null, null, null, null);
+            this(showKeepAll, null, columnSelectionDescription, null, null, null, null, null);
         }
 
         /**
@@ -135,15 +135,39 @@ public final class LegacyStringFilter implements NodeParameters {
             final String description, final String inclListTitle, final String exclListTitle,
             final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
             final Class<? extends ExclListProvider<?>> exclListProviderClass) {
+            this(showKeepAll, title, description, inclListTitle, exclListTitle, choicesProviderClass, null,
+                exclListProviderClass);
+        }
+
+        /**
+         * Constructor setting the provider classes for the include and exclude list.
+         *
+         * @param showKeepAll whether to show the "Keep all columns" checkbox
+         * @param title the title for the column selection twin list widget, or null to keep the default title
+         * @param description the description for the column selection twin list widget, or null to keep the default
+         *            description
+         * @param inclListTitle the inclList title, or null to keep the default
+         * @param exclListTitle the exclList title, or null to keep the default
+         * @param choicesProviderClass the choices provider class for the include list, or {@code null} to keep the
+         *            default if it is non-{@code null}, the {@code exclListProviderClass} must be non-{@code null} as
+         *            well
+         * @param inclListProviderClass provider class for the include list, only needed if showKeepAll is true and the
+         *            choicesProviderClass is not {@code null}
+         * @param exclListProviderClass provider class for the exclude list
+         */
+        protected LegacyStringFilterModification(final boolean showKeepAll, final String title,
+            final String description, final String inclListTitle, final String exclListTitle,
+            final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
+            final Class<? extends InclListProvider<?>> inclListProviderClass,
+            final Class<? extends ExclListProvider<?>> exclListProviderClass) {
             m_showKeepAll = showKeepAll;
             m_twinListModification = new TwinListModification(title, description, inclListTitle, exclListTitle,
-                choicesProviderClass, exclListProviderClass,
+                choicesProviderClass, inclListProviderClass, exclListProviderClass,
                 /**
                  * No custom predicate provider, as the "Keep all columns" checkbox is static when using the
                  * {@link LegacyStringFilter}.
                  */
                 null);
-
         }
 
         @Override
@@ -185,6 +209,52 @@ public final class LegacyStringFilter implements NodeParameters {
      */
     @PersistWithin.PersistEmbedded
     public TwinList m_twinList = new TwinList();
+
+    /**
+     * Base class for include list providers.
+     *
+     * @param <T> type of choices provided, must match inclusion list choices provider
+     */
+    public abstract static class InclListProvider<T> implements StateProvider<String[]> {
+
+        private Supplier<Boolean> m_keepAllColumnsSelectedSupplier;
+
+        /**
+         * @return class for the incl list choices, {@code T} must match the type provided by the inclusion list choices
+         *         provider
+         */
+        public abstract Class<? extends ChoicesStateProvider<T>> getChoicesProviderClass();
+
+        abstract String getChoiceID(T choice);
+
+        private Supplier<List<T>> m_choicesSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_keepAllColumnsSelectedSupplier = initializer.computeFromValueSupplier(KeepAllColumnsSelectedRef.class);
+            m_choicesSupplier = initializer.computeFromProvidedState(getChoicesProviderClass());
+        }
+
+        @Override
+        public String[] computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            if (m_keepAllColumnsSelectedSupplier.get().booleanValue()) {
+                return m_choicesSupplier.get().stream().map(this::getChoiceID).toArray(String[]::new);
+            }
+            throw new StateComputationFailureException();
+        }
+    }
+
+    /**
+     * Base class for include list providers that are based on column choices.
+     */
+    public abstract static class ColumnBasedInclListProvider extends InclListProvider<TypedStringChoice> {
+
+        @Override
+        final String getChoiceID(final TypedStringChoice choice) {
+            return choice.id();
+        }
+    }
 
     /**
      * Base class for exclude list providers.
@@ -276,6 +346,8 @@ public final class LegacyStringFilter implements NodeParameters {
 
             private Class<? extends ChoicesStateProvider<?>> m_choicesProviderClass;
 
+            private Class<? extends InclListProvider<?>> m_inclListProviderClass;
+
             private Class<? extends ExclListProvider<?>> m_exclListProviderClass;
 
             private Class<? extends EffectPredicateProvider> m_keepAllPredicateProvider;
@@ -291,11 +363,13 @@ public final class LegacyStringFilter implements NodeParameters {
              * @param choicesProviderClass the choices provider class for the include list, or {@code null} to keep the
              *            default if it is non-{@code null}, the {@code exclListProviderClass} must be non-{@code null}
              *            as well
+             * @param inclListProviderClass provider class for the include list
              * @param exclListProviderClass provider class for the exclude list
              * @param keepAllPredicateProvider predicate provider for disabling the twin list when "Keep all columns"
              */
             protected TwinListModification(final String title, final String description, final String inclListTitle,
                 final String exclListTitle, final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
+                final Class<? extends InclListProvider<?>> inclListProviderClass,
                 final Class<? extends ExclListProvider<?>> exclListProviderClass,
                 final Class<? extends EffectPredicateProvider> keepAllPredicateProvider) {
                 m_title = title;
@@ -303,6 +377,7 @@ public final class LegacyStringFilter implements NodeParameters {
                 m_inclListTitle = inclListTitle;
                 m_exclListTitle = exclListTitle;
                 m_choicesProviderClass = choicesProviderClass;
+                m_inclListProviderClass = inclListProviderClass;
                 m_exclListProviderClass = exclListProviderClass;
                 m_keepAllPredicateProvider = keepAllPredicateProvider;
             }
@@ -341,6 +416,10 @@ public final class LegacyStringFilter implements NodeParameters {
                     group.find(ExclListRef.class).modifyAnnotation(ValueProvider.class)
                         .withProperty("value", m_exclListProviderClass).modify();
                 }
+                if (m_inclListProviderClass != null) {
+                    group.find(InclListRef.class).modifyAnnotation(ValueProvider.class)
+                        .withValue(m_inclListProviderClass).modify();
+                }
             }
         }
 
@@ -369,6 +448,13 @@ public final class LegacyStringFilter implements NodeParameters {
             }
         }
 
+        static final class DefaultInclListProvider extends ColumnBasedInclListProvider {
+            @Override
+            public Class<? extends ChoicesStateProvider<TypedStringChoice>> getChoicesProviderClass() {
+                return DoubleColumnsProvider.class;
+            }
+        }
+
         /**
          * Include list
          */
@@ -377,6 +463,7 @@ public final class LegacyStringFilter implements NodeParameters {
             description = "Move the numeric columns of interest to the \"Include\" list.")
         @ChoicesProvider(DoubleColumnsProvider.class) // could at some point be generalized to other types if needed
         @ValueReference(InclListRef.class)
+        @ValueProvider(DefaultInclListProvider.class)
         @Effect(predicate = KeepAllColumnsSelectedIsTrue.class, type = Effect.EffectType.DISABLE)
         @Modification.WidgetReference(InclListRef.class)
         @TwinlistWidget
