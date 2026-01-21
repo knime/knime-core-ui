@@ -304,9 +304,6 @@ public final class SettingsApplier {
                 "The %s could not be applied since both underlying manual and overwritten flow variable settings are invalid: %s",
                 settingsDescription, ex.getMessage()), ex);
         }
-        DataServiceContext.get()
-            .addWarningMessage("The settings overridden by flow variables have been saved as underlying manual settings"
-                + " to prevent an invalid settings exception if flow variables are unset.");
     }
 
     private static Object getSettingsDescription(final SettingsType settingsType) {
