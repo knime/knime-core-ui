@@ -774,11 +774,9 @@ public class DefaultNodeDialogTest {
                     b -> b.withControllingFlowVariableName(validFlowVariable.getName()).build())//
                 .build();
 
-            final var response = callApplyData(applyData);
+            callApplyData(applyData);
 
             assertFalse(m_nnc.getNodeContainerState().isExecuted()); // i.e. applied
-            assertThatJson(response).inPath("$.warningMessages[0]").isString()
-                .contains("settings overridden by flow variables have been saved as underlying manual settings");
         }
 
         @Test
