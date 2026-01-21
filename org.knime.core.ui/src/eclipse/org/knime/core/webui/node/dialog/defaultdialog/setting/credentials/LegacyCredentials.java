@@ -118,11 +118,25 @@ public final class LegacyCredentials implements Persistable {
         return m_credentials;
     }
 
-    Credentials toCredentialsOrNull() {
+    /**
+     * Returns the credentials if no flow variable name is set, otherwise null.
+     *
+     * @return the credentials or null
+     */
+    public Credentials toCredentialsOrNull() {
         if (m_flowVarName != null) {
             return null;
         }
         return m_credentials;
+    }
+
+    /**
+     * Returns the flow variable name.
+     *
+     * @return the flow variable name (can be null)
+     */
+    public String getFlowVarName() {
+        return m_flowVarName;
     }
 
     LegacyCredentials createCopy() {
