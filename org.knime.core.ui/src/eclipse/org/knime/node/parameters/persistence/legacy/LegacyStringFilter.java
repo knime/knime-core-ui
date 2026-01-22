@@ -161,8 +161,8 @@ public final class LegacyStringFilter implements NodeParameters {
             final Class<? extends InclListProvider<?>> inclListProviderClass,
             final Class<? extends ExclListProvider<?>> exclListProviderClass) {
             m_showKeepAll = showKeepAll;
-            m_twinListModification = new TwinListModification(title, description, inclListTitle, exclListTitle,
-                choicesProviderClass, inclListProviderClass, exclListProviderClass,
+            m_twinListModification = new TwinListModification(showKeepAll, title, description, inclListTitle,
+                exclListTitle, choicesProviderClass, inclListProviderClass, exclListProviderClass,
                 /**
                  * No custom predicate provider, as the "Keep all columns" checkbox is static when using the
                  * {@link LegacyStringFilter}.
@@ -336,6 +336,8 @@ public final class LegacyStringFilter implements NodeParameters {
          */
         public static class TwinListModification implements Modification.Modifier {
 
+            private boolean m_showKeepAll;
+
             private String m_title;
 
             private String m_description;
@@ -382,6 +384,17 @@ public final class LegacyStringFilter implements NodeParameters {
                 m_keepAllPredicateProvider = keepAllPredicateProvider;
             }
 
+            private TwinListModification(final boolean showKeepAll, final String title, final String description,
+                final String inclListTitle, final String exclListTitle,
+                final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
+                final Class<? extends InclListProvider<?>> inclListProviderClass,
+                final Class<? extends ExclListProvider<?>> exclListProviderClass,
+                final Class<? extends EffectPredicateProvider> keepAllPredicateProvider) {
+                this(title, description, inclListTitle, exclListTitle, choicesProviderClass, inclListProviderClass,
+                    exclListProviderClass, keepAllPredicateProvider);
+                m_showKeepAll = showKeepAll;
+            }
+
             @Override
             public void modify(final WidgetGroupModifier group) {
                 if (m_keepAllPredicateProvider != null) {
@@ -417,8 +430,11 @@ public final class LegacyStringFilter implements NodeParameters {
                         .withProperty("value", m_exclListProviderClass).modify();
                 }
                 if (m_inclListProviderClass != null) {
-                    group.find(InclListRef.class).modifyAnnotation(ValueProvider.class)
+                    group.find(InclListRef.class).addAnnotation(ValueProvider.class)
                         .withValue(m_inclListProviderClass).modify();
+                } else if (m_showKeepAll) {
+                    group.find(InclListRef.class).addAnnotation(ValueProvider.class)
+                        .withValue(DefaultInclListProvider.class).modify();
                 }
             }
         }
@@ -463,7 +479,6 @@ public final class LegacyStringFilter implements NodeParameters {
             description = "Move the numeric columns of interest to the \"Include\" list.")
         @ChoicesProvider(DoubleColumnsProvider.class) // could at some point be generalized to other types if needed
         @ValueReference(InclListRef.class)
-        @ValueProvider(DefaultInclListProvider.class)
         @Effect(predicate = KeepAllColumnsSelectedIsTrue.class, type = Effect.EffectType.DISABLE)
         @Modification.WidgetReference(InclListRef.class)
         @TwinlistWidget
