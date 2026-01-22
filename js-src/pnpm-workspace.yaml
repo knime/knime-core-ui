@@ -2,10 +2,15 @@ packages:
   - packages/*
 
 catalog:
+  '@knime/kds-components': 0.5.5
+  '@knime/kds-styles': 0.5.5
   vue: 3.5.18
-  "@knime/kds-components": 0.5.5
-  "@knime/kds-styles": 0.5.5
 
 minimumReleaseAge: 1440
+
 minimumReleaseAgeExclude:
-  - "@knime/*"
+  - '@knime/*'
+
+overrides:
+  lodash-es@>=4.0.0 <=4.17.22: '>=4.17.23'
+  lodash@>=4.0.0 <=4.17.22: '>=4.17.23'
