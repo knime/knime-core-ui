@@ -3,7 +3,7 @@ import { VueWrapper, mount } from "@vue/test-utils";
 import type { UISchemaElement } from "@jsonforms/core";
 import flushPromises from "flush-promises";
 
-import { Label, ValueSwitch } from "@knime/components";
+import { Label } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import type { MultiFileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
@@ -203,22 +203,17 @@ describe("multi file selection", () => {
       "Source",
     ]);
 
-    const typeSwitch = findLabeledComponent(wrapper, "Type").findComponent(
-      ValueSwitch,
-    );
-    expect(typeSwitch.props()).toMatchObject({
-      modelValue: "FILE",
-      possibleValues: [
-        {
-          id: "FILE",
-          text: "File",
-        },
-        {
-          id: "FILES_IN_FOLDERS",
-          text: "Files in folders",
-        },
-      ],
-    });
+    const multiFC = wrapper.findComponent(MultiFileChooserControl);
+    expect(multiFC.exists()).toBe(true);
+
+    const typeSwitch = multiFC.find('[role="radiogroup"]'); // this is a KDSValueSwitch
+    expect(typeSwitch.exists()).toBe(true);
+
+    // Check that the value switch has the expected labels
+    const valueSwitchOptions = typeSwitch.findAll('button[role="radio"]');
+    expect(valueSwitchOptions).toHaveLength(2);
+    expect(valueSwitchOptions[0].text()).toBe("File");
+    expect(valueSwitchOptions[1].text()).toBe("Files in folders");
 
     const fileChooserControlBase = wrapper.findComponent({
       name: "FileChooserControlBase",
@@ -234,7 +229,12 @@ describe("multi file selection", () => {
 
     await resolveInitialBackendRequests();
 
-    typeSwitch.vm.$emit("update:model-value", "FILES_IN_FOLDERS");
+    const filesInFoldersButton = valueSwitchOptions.find(
+      (button) => button.text() === "Files in folders",
+    );
+
+    expect(filesInFoldersButton).toBeDefined();
+    await filesInFoldersButton!.trigger("click");
     await flushPromises();
     expect([...methodToData.keys()]).toStrictEqual([
       "fileFilterPreview.listItemsForPreview",
