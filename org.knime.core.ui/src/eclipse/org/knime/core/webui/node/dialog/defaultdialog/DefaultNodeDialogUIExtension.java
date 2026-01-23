@@ -48,7 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
+import java.io.InputStream;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.knime.core.webui.UIExtension;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidgetExtensionUtil;
 import org.knime.core.webui.page.Page;
 import org.knime.core.webui.page.ReusablePage;
 
@@ -62,8 +69,34 @@ public interface DefaultNodeDialogUIExtension extends UIExtension {
     /**
      * The page representing the default node dialog.
      */
-    ReusablePage PAGE = Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
-        .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
+    ReusablePage PAGE = createPage();
+
+    /**
+     * Creates page adding all resources from the DefaultNodeDialogWidget extension point
+     *
+     * @return the page with additional resources when there are custom widgets registered
+     */
+    static ReusablePage createPage() {
+        final var page = Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
+            .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
+        final var additionalWidgets = DefaultNodeDialogWidgetExtensionUtil.getDefaultNodeDialogWidgets();
+        if (!additionalWidgets.isEmpty()) {
+            final Map<String, Supplier<InputStream>> idToRendererResourcesMap = additionalWidgets.stream()
+                .collect(Collectors.toMap(w -> w.getClass().getName() + ".js", w -> w::getRenderer));
+            page.addResources(key -> idToRendererResourcesMap.get(key).get(), "customWidget", true);
+        }
+        return page;
+    }
+
+    /**
+     * The resource name used for the frontend of a custom widget.
+     *
+     * @param widgetClass the widget class
+     * @return the resource name
+     */
+    static String getResourceNameForWidget(final Class<? extends DefaultNodeDialogWidget> widgetClass) {
+        return widgetClass.getName() + ".js";
+    }
 
     @Override
     default Page getPage() {

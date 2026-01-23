@@ -32,5 +32,11 @@
             factoryClass="org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TestFilterOperators">
       </FilterOperators>
    </extension>
+   <extension
+         point="org.knime.core.ui.defaultNodeDialogWidget">
+      <DefaultNodeDialogWidget
+            class="org.knime.core.webui.node.dialog.defaultdialog.internal.extension.TestDefaultNodeDialogWidget">
+      </DefaultNodeDialogWidget>
+   </extension>
 
 </fragment>

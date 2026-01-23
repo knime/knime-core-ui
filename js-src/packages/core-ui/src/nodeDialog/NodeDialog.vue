@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, onUnmounted, ref } from "vue";
 import { cloneDeep } from "lodash-es";
 
 import { type UIExtensionService } from "@knime/ui-extension-service";
@@ -10,6 +10,7 @@ import useProvidedFlowVariablesMap from "./composables/components/useProvidedFlo
 import useServices from "./composables/nodeDialog/useServices";
 import type { NodeDialogInitialData } from "./types/InitialData";
 import type { SettingsData } from "./types/SettingsData";
+import { useDynamicImport } from "./useDynamicImport";
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
@@ -58,6 +59,7 @@ const callApplyData = async (dataTransformer) => {
     await jsonDataService!.applyData(data);
   }
 };
+
 onMounted(async () => {
   const initialSettings =
     (await jsonDataService.initialData()) as NodeDialogInitialData;
@@ -86,6 +88,12 @@ defineExpose({
   flowVariablesMap,
   coreComponent,
   jsonDataService,
+});
+
+const { clearCache } = useDynamicImport();
+
+onUnmounted(() => {
+  clearCache();
 });
 </script>
 

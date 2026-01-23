@@ -29,7 +29,7 @@ import { buttonRenderer } from "./buttonRenderer";
 import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
 import { controlWithSubParametersRenderer } from "./controlWithSubParametersRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
-import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
+import { customWidgetRenderer } from "./customWidgetRenderer";
 import { dynamicInputRenderer } from "./dynamicInputRenderer";
 import { editResetButtonRenderer } from "./editResetButtonRenderer";
 import { elementCheckboxRenderer } from "./elementCheckboxRenderer";
@@ -48,7 +48,7 @@ const coreUIControls: Record<string, VueControlRenderer> = {
   stringFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
   multiFileChooserRenderer,
-  dbTableChooserRenderer,
+  customWidgetRenderer,
   fileChooserForMultiFileRenderer,
   dynamicInputRenderer,
   credentialsRenderer, // since it contains flowSettings logic (that a flow variable is set is important for the backend to resolve the value properly, since we do not load the password in the frontend in this case)

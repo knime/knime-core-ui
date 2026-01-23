@@ -63,14 +63,14 @@ import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidgetExtensionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
@@ -84,6 +84,15 @@ import org.knime.node.parameters.WidgetGroup;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIExtension {
+
+    /**
+     * Additional widgets made available from extensions within this UI Extension
+     *
+     * @return the collection of extension-provided widgets
+     */
+    public static Collection<DefaultNodeDialogWidget> getAdditionalWidgets() {
+        return DefaultNodeDialogWidgetExtensionUtil.getDefaultNodeDialogWidgets();
+    }
 
     private final DefaultNodeSettingsService m_settingsDataService;
 
@@ -189,35 +198,29 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         return m_settingsTypes;
     }
 
-    private Optional<DBTableChooserDataService> createDBTableChooserService() {
-        var dbTableAdapterProviders = m_settingsClasses.values().stream() //
-            .filter(c -> c.isAnnotationPresent(DBTableAdapterProvider.class)) //
-            .map(c -> c.getAnnotation(DBTableAdapterProvider.class)) //
-            .toList();
-        if (dbTableAdapterProviders.size() > 1) {
-            throw new IllegalStateException("Only one DBTableAdapter is allowed per node dialogue.");
-        } else if (dbTableAdapterProviders.isEmpty()) {
-            return Optional.empty();
-        }
-        final var adapterProvider = dbTableAdapterProviders.get(0);
-        final var dbTableAdapter = adapterProvider.value();
-        final var allowViews = adapterProvider.allowViews();
-        return Optional.of(new DBTableChooserDataService(dbTableAdapter, allowViews));
-    }
-
     @Override
     public Optional<RpcDataService> createRpcDataService() {
         var serviceBuilder = RpcDataService.builder();
         addDefaultNodeDialogRpcServices(serviceBuilder, m_settingsClasses, m_serviceRegistry);
-
-        createDBTableChooserService() //
-            .ifPresent(s -> serviceBuilder.addService("dbTableChooser", s));
+        getAdditionalWidgets().forEach(
+            w -> w.getRpcDataService().ifPresent(s -> serviceBuilder.addService(toRpcServiceName(w.getClass()), s)));
 
         return Optional.of( //
             serviceBuilder //
                 .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
                 .build() //
         );
+    }
+
+    /**
+     * Unique RPC service name for the given widget class. Dots are removed since dots are indicators for separation
+     * between RPC service namespace and method name in a RPC call.
+     *
+     * @param widgetClass the widget class
+     * @return the RPC service name
+     */
+    public static String toRpcServiceName(final Class<? extends DefaultNodeDialogWidget> widgetClass) {
+        return widgetClass.getName().replace(".", "");
     }
 
     /**

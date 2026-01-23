@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
@@ -70,7 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetT
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.IntermediateState.LeafState.TreeNodeState;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.AfterAllOf;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.BeforeAllOf;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.Widget;
@@ -153,8 +153,8 @@ final class WidgetTreeToLayoutTree {
      * This method is also responsible for attaching the layout annotation to the state if it is present.
      */
     private static IntermediateState processTreeNode(final TreeNode<WidgetGroup> treeNode) {
-        final var state = (treeNode instanceof Tree<WidgetGroup> tree && !isLeafWidgetGroup(tree.getRawClass()))
-            ? processGroup(tree) : new LeafState.TreeNodeState(treeNode);
+        final var state = (treeNode instanceof Tree<WidgetGroup> tree && !isLeafWidgetGroup(tree)) ? processGroup(tree)
+            : new LeafState.TreeNodeState(treeNode);
         final var layoutAnnotation = treeNode.getAnnotation(Layout.class);
         return layoutAnnotation.map(Layout::value).<IntermediateState> map(state::atLayout).orElse(state);
     }
@@ -163,9 +163,11 @@ final class WidgetTreeToLayoutTree {
      * I.e. the frontend has a dedicated renderer for these widget groups and they should not be traversed during ui
      * schema generation
      */
-    private static boolean isLeafWidgetGroup(final Class<?> rawClass) {
+    private static boolean isLeafWidgetGroup(final TreeNode<WidgetGroup> node) {
+        final var rawClass = node.getRawClass();
         return MultiFileSelection.class.equals(rawClass) || LegacyMultiFileSelection.class.equals(rawClass)
-            || DBTableSelection.class.equals(rawClass) || rawClass.isInterface();
+            || rawClass.isInterface()
+            || DefaultNodeDialog.getAdditionalWidgets().stream().anyMatch(w -> w.isApplicable(node));
     }
 
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =

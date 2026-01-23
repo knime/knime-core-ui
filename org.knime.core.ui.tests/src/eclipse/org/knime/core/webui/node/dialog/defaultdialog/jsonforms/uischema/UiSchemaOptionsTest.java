@@ -54,7 +54,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,17 +63,12 @@ import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
@@ -95,7 +89,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -171,7 +164,6 @@ class UiSchemaOptionsTest {
     @Test
     void testDefaultFormats() {
         @SuppressWarnings("unused")
-        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = false)
         class DefaultStylesSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_string;
@@ -222,8 +214,6 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             DataType m_dataType;
 
-            @Widget(title = "", description = "")
-            DBTableSelection m_dbTableSelection;
         }
 
         var context = Mockito.mock(NodeParametersInput.class);
@@ -269,8 +259,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[14].scope").isString().contains("dataType");
         assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("dropDown");
         assertThatJson(response).inPath("$.elements[14].providedOptions").isArray().containsExactly("possibleValues");
-        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("dbTableSelection");
-        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dbTableChooser");
     }
 
     @Test
@@ -1848,106 +1836,6 @@ class UiSchemaOptionsTest {
         }
 
         assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class));
-    }
-
-    @Test
-    void testThatDbTableAdapterSetsSupportsCatalogues() {
-
-        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = true)
-        class SettingsWithoutCatalogues implements NodeParameters {
-            @Widget(title = "", description = "")
-            DBTableSelection m_dbTableSelection;
-        }
-
-        var context = Mockito.mock(NodeParametersInput.class);
-        var response = buildTestUiSchema(SettingsWithoutCatalogues.class, context);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
-        assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isFalse();
-
-        @DBTableAdapterProvider(value = DummyDbAdapterWithCatalogues.class, allowViews = true)
-        class SettingsWithCatalogues implements NodeParameters {
-            @Widget(title = "", description = "")
-            DBTableSelection m_dbTableSelection;
-        }
-
-        response = buildTestUiSchema(SettingsWithCatalogues.class, context);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
-        assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isTrue();
-    }
-
-    @Test
-    void testThatDbTableValidationOptionsAreAdded() {
-        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = true)
-        class SettingWithDefaultValues implements NodeParameters {
-            @Widget(title = "", description = "")
-            DBTableSelection m_dbTableSelection;
-        }
-
-        var input = Mockito.mock(NodeParametersInput.class);
-        var response = buildTestUiSchema(SettingWithDefaultValues.class, input);
-        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isTrue();
-
-        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, validateSchema = false,
-            validateTable = false, allowViews = true)
-        class SettingWithChangedValues implements NodeParameters {
-            @Widget(title = "", description = "")
-            DBTableSelection m_dbTableSelection;
-        }
-
-        response = buildTestUiSchema(SettingWithChangedValues.class, input);
-        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isFalse();
-    }
-
-    static class DummyDbAdapterWithoutCatalogues extends DBTableAdapter {
-
-        DummyDbAdapterWithoutCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
-        }
-
-        @Override
-        public boolean supportsCatalogs() throws SQLException {
-            return false;
-        }
-
-        @Override
-        public Optional<List<String>> listCatalogs() throws SQLException {
-            return Optional.empty();
-        }
-
-        @Override
-        public List<String> listSchemas(final String catalogue) throws SQLException {
-            return List.of();
-        }
-
-        @Override
-        public List<AdapterTable> listTables(final String catalogue, final String schema) throws SQLException {
-            return List.of();
-        }
-
-        @Override
-        public List<AdapterTable> listViews(final String catalogue, final String schema) throws SQLException {
-            return List.of();
-        }
-
-        @Override
-        public Optional<String> getDbConnectionError(final NodeParametersInput input) {
-            return Optional.empty();
-        }
-    }
-
-    static class DummyDbAdapterWithCatalogues extends DummyDbAdapterWithoutCatalogues {
-
-        DummyDbAdapterWithCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
-            super(inputPortSpecSupplier);
-        }
-
-        @Override
-        public boolean supportsCatalogs() throws SQLException {
-            return true;
-        }
     }
 
     @Test

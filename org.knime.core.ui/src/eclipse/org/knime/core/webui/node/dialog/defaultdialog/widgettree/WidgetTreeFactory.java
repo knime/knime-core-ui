@@ -54,14 +54,16 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.IncrementAndApplyOnClick;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
@@ -133,7 +135,6 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueProvider.class, //
         Modification.class, //
         Modification.WidgetReference.class, //
-        DBTableAdapterProvider.class, //
         DynamicParameters.class //
     );
 
@@ -210,8 +211,17 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
      * any state.
      */
     public WidgetTreeFactory() {
-        super(POSSIBLE_TREE_ANNOTATIONS, POSSIBLE_TREE_CLASS_ANNOTATIONS, POSSIBLE_LEAF_ANNOTATIONS,
-            POSSIBLE_ARRAY_ANNOTATIONS);
+        super(combineWithCustomWidgetAnnotations(POSSIBLE_TREE_ANNOTATIONS), POSSIBLE_TREE_CLASS_ANNOTATIONS,
+            combineWithCustomWidgetAnnotations(POSSIBLE_LEAF_ANNOTATIONS),
+            combineWithCustomWidgetAnnotations(POSSIBLE_ARRAY_ANNOTATIONS));
+    }
+
+    static Collection<Class<? extends Annotation>>
+        combineWithCustomWidgetAnnotations(final Collection<Class<? extends Annotation>> baseAnnotations) {
+        final var annotationsFromCustomWidgets =
+            DefaultNodeDialog.getAdditionalWidgets().stream().map(DefaultNodeDialogWidget::getSyntax)
+                .map(DefaultNodeDialogWidget.AnnotationSyntax::annotations).flatMap(List::stream).toList();
+        return Stream.concat(baseAnnotations.stream(), annotationsFromCustomWidgets.stream()).toList();
     }
 
     @Override
