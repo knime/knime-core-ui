@@ -69,7 +69,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -138,7 +137,6 @@ public final class WidgetImplementationUtil {
             COLUMN_SELECTION, //
             DATA_TYPE, //
             DATE_INTERVAL, //
-            DB_TABLE_CHOOSER, //
             FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
@@ -206,7 +204,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(StringOrEnum.class), DefaultWidgetType.SINGLE_SELECTION), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
-        new DefaultWidget(List.of(DBTableSelection.class), DefaultWidgetType.DB_TABLE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //
         new DefaultWidget(List.of(TimeInterval.class), DefaultWidgetType.TIME_INTERVAL), //

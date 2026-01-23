@@ -81,21 +81,16 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonState;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
@@ -119,7 +114,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUt
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
@@ -260,10 +254,6 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case STRING_ARRAY:
                     options.put(TAG_FORMAT, Format.COMBO_BOX);
-                    break;
-                case DB_TABLE_CHOOSER:
-                    options.put(TAG_FORMAT, Format.DB_TABLE_CHOOSER);
-                    setDbTableChooserOptions(options);
                     break;
             }
         }
@@ -728,45 +718,4 @@ final class UiSchemaOptionsGenerator {
             && field.getAnnotation(ArrayWidgetInternal.ElementCheckboxWidget.class).isPresent();
     }
 
-    private void setDbTableChooserOptions(final ObjectNode options) {
-        var rootNode = m_node.getRoot();
-        var currentClass = rootNode.getRawClass();
-        DBTableAdapterProvider annotation = null;
-        while (currentClass != null && annotation == null) {
-            annotation = currentClass.getAnnotation(DBTableAdapterProvider.class);
-            currentClass = currentClass.getSuperclass();
-        }
-
-        if (annotation == null) {
-            var dbTableAdapterClassName = DBTableAdapterProvider.class.getSimpleName();
-            var widgetClassName = DBTableSelection.class.getSimpleName();
-            throw new UiSchemaGenerationException("""
-                    The %s widget requires a @%s annotation on the root node of the \
-                    widget tree to determine whether catalogues are supported.
-                    """.formatted(widgetClassName, dbTableAdapterClassName));
-        }
-
-        var adapterClass = annotation.value();
-
-        Supplier<PortObjectSpec[]> inputPortsSupplier = m_nodeParametersInput::getInPortSpecs;
-        var adapter = DBTableAdapter.instantiate(adapterClass, inputPortsSupplier);
-        final var dbConnectionError = adapter.getDbConnectionError(m_nodeParametersInput);
-        dbConnectionError.ifPresent(message -> options.put("dbConnectionError", message));
-        if (dbConnectionError.isEmpty()) {
-            options.put("catalogsSupported", isCatalogsSupported(adapter));
-        }
-        options.put("validateSchema", annotation.validateSchema());
-        options.put("validateTable", annotation.validateTable());
-    }
-
-    private static boolean isCatalogsSupported(final DBTableAdapter adapter) {
-        try {
-            return adapter.supportsCatalogs();
-        } catch (SQLException ex) {
-            throw new UiSchemaGenerationException("""
-                    Could not check whether the underlying DBTableAdapter supports catalogues, \
-                    because an SQL error occurred while trying to query the database.
-                    """, ex);
-        }
-    }
 }

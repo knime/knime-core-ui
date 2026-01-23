@@ -62,6 +62,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
@@ -220,6 +222,28 @@ public class WidgetTreeRenderers {
         return node.getAnnotation(annotationClass).orElseThrow(IllegalStateException::new);
     }
 
+    private static Stream<IWidgetTreeNodeTester> getAllTesters() {
+        return Stream.concat(DefaultNodeDialog.getAdditionalWidgets().stream().map(WidgetTreeRenderers::toTester),
+            Stream.of(TESTERS));
+    }
+
+    private static IWidgetTreeNodeTester toTester(final DefaultNodeDialogWidget widget) {
+        return new IWidgetTreeNodeTester() {
+
+            @Override
+            public boolean test(final TreeNode<WidgetGroup> node) {
+                return widget.isApplicable(node);
+            }
+
+            @Override
+            public WidgetRendererSpec<?> create(final TreeNode<WidgetGroup> node,
+                final NodeParametersInput nodeParametersInput) {
+                return widget.createRendererSpec(node, nodeParametersInput);
+            }
+        };
+
+    }
+
     /**
      * Get the renderer spec for the given node. If no renderer is supported for the given node, {@code null} is
      * returned.
@@ -230,7 +254,7 @@ public class WidgetTreeRenderers {
      */
     public static WidgetRendererSpec<?> getRendererSpec(final TreeNode<WidgetGroup> node,
         final NodeParametersInput nodeParametersInput) {
-        return Stream.of(TESTERS).filter(tester -> tester.test(node))//
+        return getAllTesters().filter(tester -> tester.test(node))//
             .findFirst()//
             .map(tester -> tester.create(node, nodeParametersInput))//
             .orElse(null);

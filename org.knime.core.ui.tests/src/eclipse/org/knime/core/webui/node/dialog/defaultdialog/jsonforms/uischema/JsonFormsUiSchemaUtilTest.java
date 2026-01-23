@@ -78,7 +78,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
-class JsonFormsUiSchemaUtilTest {
+public class JsonFormsUiSchemaUtilTest {
 
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings) {
         return buildUiSchema(settings, null);
@@ -90,11 +90,13 @@ class JsonFormsUiSchemaUtilTest {
             .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context);
     }
 
-    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass) {
+    @SuppressWarnings("javadoc")
+    public static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass));
     }
 
-    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
+    @SuppressWarnings("javadoc")
+    public static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
         final NodeParametersInput context) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context);
     }

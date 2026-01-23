@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { type VueControlProps, useProvidedState } from "@knime/jsonforms";
+import {
+  FieldControl,
+  type VueControlProps,
+  useProvidedState,
+} from "@knime/jsonforms";
 
 import { fileChooserForMultiFileFormat } from "@/nodeDialog/renderers/fileChooserRenderer";
 import type {
@@ -9,7 +13,6 @@ import type {
   MultiFileChooserUiSchema,
   MultiFileFilterMode,
 } from "@/nodeDialog/types/FileChooserUiSchema";
-import FieldControl from "../../FieldControl.vue";
 import { useFileSystems } from "../composables/useFileChooserBrowseOptions";
 import type { MultiFileSelection } from "../types";
 

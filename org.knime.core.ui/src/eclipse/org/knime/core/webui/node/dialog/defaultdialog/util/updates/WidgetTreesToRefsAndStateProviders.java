@@ -62,12 +62,15 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget.StateProviderSyntax;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.ConnectedFSOptionsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
@@ -442,13 +445,29 @@ final class WidgetTreesToRefsAndStateProviders {
                 NoopStringProvider.class //
             ));
 
-    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //
-        uiStateProviderFieldTypeSpecs, //
-        uiStateProviderAnnotationSpecs //
-    ).<UiStateProviderSpec> flatMap(specs -> specs.stream()).toList();
+    private static List<UiStateProviderSpec> getUiStateProviderSpecs() {
+        return Stream.of( //
+            uiStateProviderFieldTypeSpecs, //
+            uiStateProviderAnnotationSpecs, //
+            DefaultNodeDialog.getAdditionalWidgets().stream()
+                .flatMap(WidgetTreesToRefsAndStateProviders::toUiStateProviderAnnotationSpec).toList())
+            .<UiStateProviderSpec> flatMap(specs -> specs.stream()).toList();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    static Stream<UiStateProviderAnnotationSpec> toUiStateProviderAnnotationSpec(final DefaultNodeDialogWidget widget) {
+        return widget.getSyntax().stateProviders().stream()
+            .map(WidgetTreesToRefsAndStateProviders::toUiStateProviderAnnotationSpecs);
+    }
+
+    static <T extends Annotation, S extends StateProvider> UiStateProviderAnnotationSpec<T, S>
+        toUiStateProviderAnnotationSpecs(final StateProviderSyntax<T, S> syntax) {
+        return new UiStateProviderAnnotationSpec<>(syntax.providedOptionName(), syntax.annotationClass(),
+            syntax.getProviderParameter(), syntax.ignoredDefaultParameter());
+    }
 
     private void addUiStateProviderForNode(final TreeNode<WidgetGroup> node) {
-        uiStateProviderSpecs.stream()
+        getUiStateProviderSpecs().stream()
             .forEach(spec -> spec.getUiStateProviders(node).ifPresent(states -> addUiStateProviders(node, states)));
     }
 

@@ -5,7 +5,6 @@
  * to create a unified type for the callRpcMethod prop in NodeDialogCore.
  */
 
-import type { DBTableChooserRpcMethods } from "../../uiComponents/dbTableChooser/useDbTableChooserBackend";
 import type { FileChooserRpcMethods } from "../../uiComponents/fileChooser/composables/useFileChooserBackend";
 import type { FileFilterPreviewRpcMethods } from "../../uiComponents/fileChooser/composables/useFileFilterPreviewBackend";
 import type { FlowVariablesRpcMethods } from "../flowVariables";
@@ -18,5 +17,4 @@ import type { SettingsRpcMethods } from "../settings";
 export type NodeDialogCoreRpcMethods = FlowVariablesRpcMethods &
   SettingsRpcMethods &
   FileChooserRpcMethods &
-  FileFilterPreviewRpcMethods &
-  DBTableChooserRpcMethods;
+  FileFilterPreviewRpcMethods;
