@@ -163,6 +163,12 @@ const { initialFilePathForCurrentTab, handleNavigate } =
     modelValue: toRef(props, "modelValue"),
   });
 
+/**
+ * Once a fileName is determined by the DialogFileExplorer (programatically or by the user),
+ * we want to preserve it even when navigating to a different tab.
+ */
+const fileName = ref<string | null>(null);
+
 const breadcrumbRoot = computed(() => {
   if (props.modelValue.fsCategory === "relative-to-current-hubspace") {
     return spacePath.value;
@@ -205,11 +211,13 @@ const browseAction: Record<Exclude<TabType, "CONNECTED">, string> = {
         :is-writer="isWriter"
         :backend-type="backendType"
         :initial-file-path="initialFilePathForCurrentTab"
+        :initial-file-name="fileName"
         :breadcrumb-root="breadcrumbRoot"
         :selection-mode="selectionMode"
         :relative-to-options="relativeToOptions"
         @choose-item="onPathUpdate"
         @navigate="handleNavigate"
+        @update:file-name="fileName = $event"
         @update:is-relative-to="updateIsRelativeTo"
         @apply-and-close="emit('applyAndClose')"
       />

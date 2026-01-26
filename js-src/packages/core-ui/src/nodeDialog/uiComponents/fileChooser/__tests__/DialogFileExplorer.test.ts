@@ -46,6 +46,7 @@ describe("DialogFileExplorer.vue", () => {
     ],
     path: null,
     parentFolders: [],
+    isRootFolder: true,
   });
 
   let getFilePathResult: PathAndError, folderFromBackend: Folder;
@@ -474,7 +475,7 @@ describe("DialogFileExplorer.vue", () => {
       expect(inputField.props().modelValue).toBe(fileName);
     });
 
-    it("unsets the value of the selected file as input", async () => {
+    it("does not unset the value of the selected file as input", async () => {
       const wrapper = shallowMountFileChooser();
       await flushPromises();
 
@@ -486,7 +487,72 @@ describe("DialogFileExplorer.vue", () => {
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", [directoryName]);
 
-      expect(inputField.props().modelValue).toBe("");
+      expect(inputField.props().modelValue).toBe(inputText);
+    });
+
+    it("remembers file name when switching tabs", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      const inputField = wrapper.findComponent(InputField);
+      const inputText = "myCustomFile.txt";
+      await inputField.vm.$emit("update:model-value", inputText);
+      expect(inputField.props().modelValue).toBe(inputText);
+
+      // Set initialFileName prop (simulating what SideDrawerContent does)
+      // and change backendType (simulating a tab switch)
+      await wrapper.setProps({
+        initialFileName: inputText,
+        backendType: "space" as any,
+      });
+      await flushPromises();
+
+      expect(inputField.props().modelValue).toBe(inputText);
+    });
+
+    it("remembers file name when loading a new folder", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      const inputField = wrapper.findComponent(InputField);
+      const inputText = "myCustomFile.txt";
+      await inputField.vm.$emit("update:model-value", inputText);
+
+      // Navigate into a folder
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("changeDirectory", directoryName);
+      await flushPromises();
+
+      // File name should be preserved after navigating
+      expect(inputField.props().modelValue).toBe(inputText);
+    });
+
+    it("does not remember folder name when loading a new folder", async () => {
+      props.selectionMode = "FILE_OR_FOLDER";
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      // Select a folder
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("update:selectedItemIds", [directoryName]);
+
+      let inputField = wrapper.findComponent(InputField);
+      expect(inputField.props().modelValue).toBe(directoryName);
+
+      // Navigate into that folder
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("changeDirectory", directoryName);
+      await flushPromises();
+      await wrapper.vm.$nextTick();
+
+      // Folder name should be replaced with the backend's relative file path
+      inputField = wrapper.findComponent(InputField);
+      expect(inputField.props().modelValue).toBe(
+        filePathRelativeToFolderFromBackend,
+      );
     });
   });
 
