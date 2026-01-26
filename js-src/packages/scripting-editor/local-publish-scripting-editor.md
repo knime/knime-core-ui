@@ -17,9 +17,8 @@ npm adduser --registry http://localhost:4873
 
 # 3  In `knime-core-ui/js-src/packages/scripting-editor`
 # Update the version in package.json and publish from the package directory
-echo '@knime:registry=http://localhost:4873' >> ../../.npmrc
 pnpm version prerelease --preid=local.$(git rev-parse --short HEAD)
-pnpm publish --no-git-checks --registry http://localhost:4873
+pnpm publish --no-git-checks --registry http://localhost:4873 --tag=latest
 
 # 4  In every consumer app
 echo '@knime:registry=http://localhost:4873' >> .npmrc
