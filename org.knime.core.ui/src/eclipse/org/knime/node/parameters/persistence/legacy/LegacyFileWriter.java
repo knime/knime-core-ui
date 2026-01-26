@@ -181,4 +181,13 @@ public class LegacyFileWriter implements NodeParameters {
         }
     }
 
+    /**
+     * Returns the file selection.
+     *
+     * @return the file selection
+     */
+    public FileSelection getFileSelection() {
+        return m_file;
+    }
+
 }
