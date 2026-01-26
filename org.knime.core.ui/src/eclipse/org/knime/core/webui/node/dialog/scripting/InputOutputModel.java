@@ -251,7 +251,8 @@ public record InputOutputModel(String name, //
      * @return A builder for an {@link InputOutputModel} that represents flow variables
      */
     public static Builder flowVariables() {
-        return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow Variables");
+        // Note that we use sentence case for flow variables here. This is a deliberate decision. (AP-25556)
+        return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow variables");
     }
 
     /**
@@ -287,7 +288,7 @@ public record InputOutputModel(String name, //
     public interface RequiresNameBuilder {
 
         /**
-         * Set the name of the item.
+         * Set the name of the item. The name should use sentence case for consistency in the UI.
          *
          * @param name The name of the item
          * @return A builder for all optional parameters
