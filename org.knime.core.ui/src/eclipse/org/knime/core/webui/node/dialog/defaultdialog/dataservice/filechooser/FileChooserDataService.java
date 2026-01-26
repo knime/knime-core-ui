@@ -93,20 +93,20 @@ public final class FileChooserDataService {
     record ParentFolder(String path, String name) {
     }
 
-    record Folder(List<Item> items, String path, List<ParentFolder> parentFolders) {
+    record Folder(List<Item> items, String path, List<ParentFolder> parentFolders, boolean isRootFolder) {
 
         static FolderAndError asRootFolder(final List<Item> items, final String errorMessage, final String inputPath,
             final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
             return new FolderAndError(
                 new Folder(items, fileChooserBackend.isAbsoluteFileSystem() ? null : ".",
-                    getParentFolders(null, relativeToPath, fileChooserBackend)),
+                    getParentFolders(null, relativeToPath, fileChooserBackend), true),
                 Optional.ofNullable(errorMessage), inputPath);
         }
 
         static FolderAndError asNonRootFolder(final Path path, final List<Item> items, final String errorMessage,
             final Path inputPath, final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
             final var folder =
-                new Folder(items, path.toString(), getParentFolders(path, relativeToPath, fileChooserBackend));
+                new Folder(items, path.toString(), getParentFolders(path, relativeToPath, fileChooserBackend), false);
             String relativePath = getFilePathRelativeToFolder(path, inputPath);
             return new FolderAndError(folder, Optional.ofNullable(errorMessage), relativePath);
         }
