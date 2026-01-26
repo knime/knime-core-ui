@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.configmapping;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.knime.core.node.NodeSettings;
@@ -133,7 +134,10 @@ public final class NodeSettingsAtPathUtil {
      */
     static void deletePath(final NodeSettings settings, final ConfigPath path) {
         if (path.size() == 0) {
-            settings.iterator().forEachRemaining(settings::removeConfig);
+            // Collect all keys first to avoid ConcurrentModificationException
+            final var keysToRemove = new ArrayList<String>();
+            settings.iterator().forEachRemaining(keysToRemove::add);
+            keysToRemove.forEach(settings::removeConfig);
             return;
         }
         getNodeSettingsAtPath(settings, path.withoutLastKey()).ifPresent(atPath -> atPath.removeConfig(path.lastKey()));
