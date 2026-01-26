@@ -285,6 +285,7 @@ class FileChooserDataServiceTest {
                 .forEach(item -> verifyRootItemConstruction(item, fileChooserBackendMock.constructed().get(0)));
             assertThat(result.folder().items()).hasSize(1);
             assertRootFolderPath(result.folder().path());
+            assertThat(result.folder().isRootFolder()).isTrue();
             assertThat(result.errorMessage()).isEmpty();
             final var rootItem = result.folder().items().get(0);
             assertThat(rootItem.isDirectory()).isTrue();
@@ -307,6 +308,7 @@ class FileChooserDataServiceTest {
             verify(fileChooserBackend).pathToObject(eq(subDirectory));
             assertThat(result.errorMessage()).isEmpty();
             assertThat(result.folder().items()).hasSize(1);
+            assertThat(result.folder().isRootFolder()).isFalse();
             final var parentFolders = result.folder().parentFolders();
             assertThat(parentFolders).hasSizeGreaterThan(1);
             assertThat(parentFolders.get(parentFolders.size() - 2).name())

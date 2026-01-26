@@ -29,6 +29,7 @@ export interface Folder {
   items: Item[];
   path: string | null;
   parentFolders: ParentFolder[];
+  isRootFolder: boolean;
 }
 
 export type FolderAndError = {

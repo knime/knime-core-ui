@@ -116,6 +116,7 @@ const relativeTo = computed(() => {
 
 const currentPath = ref<string | null>(null);
 const currentParents = ref<ParentFolder[]>([]);
+const isRootPath = ref(true);
 
 export type SelectedItem = {
   name: string;
@@ -197,6 +198,7 @@ const setNextItems = (folder: Folder) => {
   isLoading.value = false;
   currentPath.value = folder.path;
   currentParents.value = folder.parentFolders;
+  isRootPath.value = folder.isRootFolder;
 
   allItemsInCurrentFolder.value = folder.items.map(toFileExplorerItem);
 };
@@ -427,7 +429,7 @@ watch(
     </div>
     <FileExplorer
       class="explorer"
-      :is-root-folder="currentPath === null"
+      :is-root-folder="isRootPath"
       :items="displayedItemsInCurrentFolder"
       :disable-context-menu="true"
       :disable-multi-select="true"
