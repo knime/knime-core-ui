@@ -48,9 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.ParametersSaver;
 
 /**
  * Utility class to create instances of {@link NodeParametersPersistor} and {@link NodeParametersMigration} classes.
@@ -89,6 +91,21 @@ final class InitializeWithDefaultConstructorUtil {
             .orElseThrow(() -> new IllegalStateException(
                 String.format("The provided migrator class '%s' does not provide an empty constructor.",
                     migratorClass.getCanonicalName())));
+    }
+
+    /**
+     * Creates an instance of a {@link ParametersSaver}. We use the empty constructor as per contract.
+     *
+     * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
+     *             raises an exception
+     */
+    @SuppressWarnings("rawtypes")
+    static ParametersSaver createSaver(final SaveAdditional saveAdditional) {
+        final var saverClass = saveAdditional.value();
+        return ReflectionUtil.createInstance(saverClass)
+            .orElseThrow(() -> new IllegalStateException(
+                String.format("The provided saver class '%s' does not provide an empty constructor.",
+                    saverClass.getCanonicalName())));
     }
 
 }

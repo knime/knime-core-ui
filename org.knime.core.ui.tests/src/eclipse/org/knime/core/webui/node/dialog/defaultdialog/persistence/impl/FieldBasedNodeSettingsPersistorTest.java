@@ -69,6 +69,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -83,6 +84,7 @@ import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
@@ -1600,6 +1602,172 @@ class FieldBasedNodeSettingsPersistorTest {
         var emptyNodeSettings = new NodeSettings(ROOT_KEY);
         assertThrows(InvalidSettingsException.class,
             () -> loadSettings(MigrateWithPersistWithinSettings.class, emptyNodeSettings));
+    }
+
+    // --- SaveAdditional tests ---
+
+    static final class IntSaver implements ParametersSaver<Integer> {
+
+        static final String ADDITIONAL_KEY = "additionalInt";
+
+        @Override
+        public void save(final Integer obj, final NodeSettingsWO settings) {
+            settings.addInt(ADDITIONAL_KEY, obj * 2);
+        }
+    }
+
+    private static final class SaveAdditionalOnFieldSettings
+        extends AbstractTestNodeSettings<SaveAdditionalOnFieldSettings> {
+
+        @SaveAdditional(IntSaver.class)
+        int m_foo = 42;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addInt("foo", m_foo);
+            settings.addInt(IntSaver.ADDITIONAL_KEY, m_foo * 2);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_foo);
+        }
+
+        @Override
+        protected boolean equalSettings(final SaveAdditionalOnFieldSettings settings) {
+            return m_foo == settings.m_foo;
+        }
+    }
+
+    @Test
+    void testSaveAdditionalOnField() throws InvalidSettingsException {
+        final var settings = new SaveAdditionalOnFieldSettings();
+        settings.m_foo = 13;
+        testSaveLoad(settings);
+    }
+
+    static final class NestedSettingsSaver implements ParametersSaver<SaveAdditionalOnClassSettings.NestedSettings> {
+
+        static final String ADDITIONAL_KEY = "additionalNested";
+
+        @Override
+        public void save(final SaveAdditionalOnClassSettings.NestedSettings obj, final NodeSettingsWO settings) {
+            settings.addString(ADDITIONAL_KEY, obj.m_bar + "_additional");
+        }
+    }
+
+    private static final class SaveAdditionalOnClassSettings
+        extends AbstractTestNodeSettings<SaveAdditionalOnClassSettings> {
+
+        @SaveAdditional(NestedSettingsSaver.class)
+        static final class NestedSettings implements Persistable {
+            String m_bar = "default";
+        }
+
+        NestedSettings m_nested = new NestedSettings();
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            final var nested = settings.addNodeSettings("nested");
+            nested.addString("bar", m_nested.m_bar);
+            nested.addString(NestedSettingsSaver.ADDITIONAL_KEY, m_nested.m_bar + "_additional");
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_nested.m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final SaveAdditionalOnClassSettings settings) {
+            return Objects.equals(m_nested.m_bar, settings.m_nested.m_bar);
+        }
+    }
+
+    @Test
+    void testSaveAdditionalOnClass() throws InvalidSettingsException {
+        final var settings = new SaveAdditionalOnClassSettings();
+        settings.m_nested.m_bar = "test";
+        testSaveLoad(settings);
+    }
+
+    private static final class SaveAdditionalWithPersistWithinOnFieldSettings
+        extends AbstractTestNodeSettings<SaveAdditionalWithPersistWithinOnFieldSettings> {
+
+        @SaveAdditional(IntSaver.class)
+        @PersistWithin("nested")
+        int m_foo = 42;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            final var nested = settings.addNodeSettings("nested");
+            nested.addInt("foo", m_foo);
+            nested.addInt(IntSaver.ADDITIONAL_KEY, m_foo * 2);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_foo);
+        }
+
+        @Override
+        protected boolean equalSettings(final SaveAdditionalWithPersistWithinOnFieldSettings settings) {
+            return m_foo == settings.m_foo;
+        }
+    }
+
+    @Test
+    void testSaveAdditionalWithPersistWithinOnField() throws InvalidSettingsException {
+        final var settings = new SaveAdditionalWithPersistWithinOnFieldSettings();
+        settings.m_foo = 7;
+        testSaveLoad(settings);
+    }
+
+    static final class EmbeddedNestedSettingsSaver
+        implements ParametersSaver<SaveAdditionalWithPersistWithinOnClassSettings.NestedSettings> {
+
+        static final String ADDITIONAL_KEY = "additionalEmbedded";
+
+        @Override
+        public void save(final SaveAdditionalWithPersistWithinOnClassSettings.NestedSettings obj,
+            final NodeSettingsWO settings) {
+            settings.addString(ADDITIONAL_KEY, obj.m_bar + "_embedded");
+        }
+    }
+
+    private static final class SaveAdditionalWithPersistWithinOnClassSettings
+        extends AbstractTestNodeSettings<SaveAdditionalWithPersistWithinOnClassSettings> {
+
+        @PersistWithin("..")
+        @SaveAdditional(EmbeddedNestedSettingsSaver.class)
+        static final class NestedSettings implements Persistable {
+            String m_bar = "default";
+        }
+
+        NestedSettings m_nested = new NestedSettings();
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addString("bar", m_nested.m_bar);
+            settings.addString(EmbeddedNestedSettingsSaver.ADDITIONAL_KEY, m_nested.m_bar + "_embedded");
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_nested.m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final SaveAdditionalWithPersistWithinOnClassSettings settings) {
+            return Objects.equals(m_nested.m_bar, settings.m_nested.m_bar);
+        }
+    }
+
+    @Test
+    void testSaveAdditionalWithPersistWithinOnClass() throws InvalidSettingsException {
+        final var settings = new SaveAdditionalWithPersistWithinOnClassSettings();
+        settings.m_nested.m_bar = "test";
+        testSaveLoad(settings);
     }
 
 }

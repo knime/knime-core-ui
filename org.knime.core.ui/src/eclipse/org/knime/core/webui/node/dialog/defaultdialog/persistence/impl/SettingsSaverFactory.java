@@ -227,4 +227,13 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
 
     }
 
+    @Override
+    protected ParametersSaver combineWithSaveAdditional(final ParametersSaver existing,
+        final ParametersSaver parametersSaver) {
+        return (obj, settings) -> {
+            existing.save(obj, settings);
+            parametersSaver.save(obj, settings);
+        };
+    }
+
 }
