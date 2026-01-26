@@ -55,7 +55,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 /**
  * A request for the K-AI code generation.
  *
- * @param endpointPath The endpoint path to send the request to.
+ * @param endpointPath The end point path to send the request to.
  * @param body The body of the request.
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  * @noreference This record is not intended to be referenced by clients.
@@ -72,13 +72,25 @@ public record CodeGenerationRequest(String endpointPath, RequestBody body) {
     /**
      * Body of a prompt based Code Generation Request, where all info about inputs and outputs needs to be part of the
      * prompt
+     *
+     * Members are private and snake case because this class is only used to define the JSON serialization scheme which
+     * is sent to the AI end point.
      */
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @SuppressWarnings("unused")
     public static class PromptRequestBody implements RequestBody {
         private String prompt;
 
         private String source;
 
+        /**
+         * Create body of a prompt request
+         *
+         * @param prompt The user prompt
+         * @param source The source of the prompt (e.g. the name of the node). Is stored with the prompt in the AI
+         *            history to be able to analyze K-AI usage
+         */
+        @SuppressWarnings("hiding")
         public PromptRequestBody(final String prompt, final String source) {
             this.prompt = prompt;
             this.source = source;
@@ -87,8 +99,12 @@ public record CodeGenerationRequest(String endpointPath, RequestBody body) {
 
     /**
      * Body of a code generation request that goes to a dedicated language end point of the AI service
+     *
+     * Members are private and snake case because this class is only used to define the JSON serialization scheme which
+     * is sent to the AI endpoint.
      */
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @SuppressWarnings("unused")
     public static class CodeRequestBody implements RequestBody {
         private String code;
 
@@ -109,6 +125,7 @@ public record CodeGenerationRequest(String endpointPath, RequestBody body) {
          * @param outputs The expected outputs of the node.
          * @param version The version of the plugin making the request (can be <code>null</code>).
          */
+        @SuppressWarnings("hiding")
         public CodeRequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
             final CodeGenerationRequest.Outputs outputs, final String version) {
             this.code = code;
@@ -119,13 +136,14 @@ public record CodeGenerationRequest(String endpointPath, RequestBody body) {
         }
 
         /**
-         * CodeConstructor without version.
+         * Constructor without version.
          *
          * @param code The existing code in the scripting node.
          * @param user_query The user's query for code generation.
          * @param inputs The input data available in the node.
          * @param outputs The expected outputs of the node.
          */
+        @SuppressWarnings("hiding")
         public CodeRequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
             final CodeGenerationRequest.Outputs outputs) {
             this(code, user_query, inputs, outputs, null);
