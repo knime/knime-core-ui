@@ -30,9 +30,13 @@ const props = withDefaults(defineProps<Props>(), {
 // Watch inputOutputItems and update store/ai-bar/currentInputOutputItems
 const inputOutputItemsRef = toRef(props, "inputOutputItems");
 
-watch(inputOutputItemsRef, (newItems) => {
-  currentInputOutputItems.value = newItems;
-});
+watch(
+  inputOutputItemsRef,
+  (newItems) => {
+    currentInputOutputItems.value = newItems;
+  },
+  { immediate: true },
+);
 
 const inputOutputSelectionStore = useInputOutputSelectionStore();
 
