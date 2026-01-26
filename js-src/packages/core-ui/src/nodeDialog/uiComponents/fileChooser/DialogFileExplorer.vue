@@ -35,6 +35,7 @@ import { useDialogFileExplorerButtons } from "./withTabs/useDialogFileExplorerBu
 
 export interface DialogFileExplorerProps {
   initialFilePath?: string;
+  initialFileName?: string | null;
   isWriter?: boolean;
   filteredExtensions?: string[];
   appendedExtension?: string | null;
@@ -68,6 +69,7 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   appendedExtension: null,
   breadcrumbRoot: null,
   selectionMode: "FILE",
+  initialFileName: null,
 });
 
 const emit = defineEmits<{
@@ -78,6 +80,7 @@ const emit = defineEmits<{
     filePath: string,
   ];
   "update:isRelativeTo": [isRelative: boolean];
+  "update:fileName": [fileName: string | null];
   applyAndClose: [];
   cancel: [];
   navigate: [currentPath: string | null];
@@ -120,6 +123,16 @@ export type SelectedItem = {
 } | null;
 
 const selectedItem = ref<SelectedItem>(null);
+/**
+ * This is the state that determines whether the "Choose ..." button is enabled
+ * and what is chosen when clicking on it.
+ *
+ * It mostly coincides with the selectedItem but there are the following exceptions:
+ * - when only files are to be chosen and the user highlights a folder in the browser
+ * - when it is a writer and the chosen item is controlled via text input
+ *
+ */
+const toBeChosenItem = ref<SelectedItem>(null);
 
 const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
 
@@ -196,21 +209,24 @@ const setErrorMessage = (errorMessage: string | undefined) => {
 // this is fine since we only render the field when isWriter and selectionMode is FILE
 const inputFieldModelValue = computed({
   get: () => {
-    const selectedItemValue = selectedItem.value;
+    const toBeChosenItemValue = toBeChosenItem.value;
     if (
-      selectedItemValue &&
-      selectableItems.value.includes(selectedItemValue.selectionType)
+      toBeChosenItemValue &&
+      selectableItems.value.includes(toBeChosenItemValue.selectionType)
     ) {
-      return selectedItemValue.name;
+      return toBeChosenItemValue.name;
     }
     return "";
   },
   set: (value) => {
+    if (props.selectionMode !== "FOLDER") {
+      emit("update:fileName", value === "" ? null : value);
+    }
     if (value === "") {
-      selectedItem.value = null;
+      toBeChosenItem.value = null;
       return;
     }
-    selectedItem.value = {
+    toBeChosenItem.value = {
       name: value,
       selectionType:
         props.selectionMode === "WORKFLOW" ? "FILE" : props.selectionMode,
@@ -219,7 +235,15 @@ const inputFieldModelValue = computed({
 });
 
 const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
-  if (props.isWriter) {
+  if (!props.isWriter) {
+    return;
+  }
+  const toBeChosenItemValue = toBeChosenItem.value;
+  if (!toBeChosenItemValue) {
+    inputFieldModelValue.value =
+      props.initialFileName ?? filePathRelativeToFolder;
+  }
+  if (toBeChosenItemValue?.selectionType === "FOLDER") {
     inputFieldModelValue.value = filePathRelativeToFolder;
   }
 };
@@ -302,13 +326,29 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
   }
 };
 
+/**
+ * Sync toBeChosenItem with selectedItem in case it is not a writer.
+ * When it IS a writer, only sync in case the selected item is choosable.
+ */
+watch(selectedItem, (newVal) => {
+  if (!isWriter.value) {
+    toBeChosenItem.value = newVal;
+    return;
+  }
+  const selectionType = newVal?.selectionType;
+  if (!selectionType || !selectableItems.value.includes(selectionType)) {
+    return;
+  }
+  toBeChosenItem.value = newVal;
+});
+
 const inputField = useTemplateRef<HTMLElement>("input-field");
 const relativeToLabel = useTemplateRef<HTMLElement>("relative-to-label");
 
 const { clickOutsideExceptions: clickOutsideExceptionsButtons } =
   useDialogFileExplorerButtons({
     actions: {
-      chooseSelectedItem: () => onChooseItem(selectedItem.value?.name ?? ""),
+      chooseItem: () => onChooseItem(toBeChosenItem.value?.name ?? ""),
       goIntoSelectedFolder: () => {
         if (selectedItem.value?.selectionType === "FOLDER") {
           changeDirectory(selectedItem.value.name);
@@ -318,6 +358,7 @@ const { clickOutsideExceptions: clickOutsideExceptionsButtons } =
     },
     selectionMode: toRef(props, "selectionMode"),
     selectedItem,
+    toBeChosenItem,
     isRootParent: computed(() => currentPath.value === null),
   });
 

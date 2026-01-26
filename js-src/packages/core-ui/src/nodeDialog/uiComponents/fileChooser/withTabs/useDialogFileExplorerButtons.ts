@@ -6,17 +6,19 @@ import { GO_INTO_FOLDER_INJECTION_KEY } from "../settingsSubPanel/SettingsSubPan
 import { useApplyButton } from "../settingsSubPanel/useApplyButton";
 
 export const useDialogFileExplorerButtons = ({
-  actions: { chooseSelectedItem, goIntoSelectedFolder },
+  actions: { chooseItem, goIntoSelectedFolder },
   selectionMode,
   selectedItem,
+  toBeChosenItem,
   isRootParent,
 }: {
   actions: {
-    chooseSelectedItem: () => Promise<void>;
+    chooseItem: () => Promise<void>;
     goIntoSelectedFolder: () => Promise<void>;
   };
   selectionMode: Ref<FileSelectionMode>;
   selectedItem: Ref<SelectedItem | null>;
+  toBeChosenItem: Ref<SelectedItem | null>;
   isRootParent: Ref<boolean>;
 }) => {
   const {
@@ -34,7 +36,7 @@ export const useDialogFileExplorerButtons = ({
   } = useApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
 
   onMounted(() => {
-    onApply.value = chooseSelectedItem;
+    onApply.value = chooseItem;
 
     goIntoFolderButtonShown.value = true;
     goIntoFolderButtonDisabled.value = true;
@@ -47,8 +49,8 @@ export const useDialogFileExplorerButtons = ({
   ]);
 
   watch(
-    [selectedItem, selectionMode, isRootParent],
-    ([newSelectedItem, mode, isRoot]) => {
+    [selectedItem, selectionMode, isRootParent, toBeChosenItem],
+    ([newSelectedItem, mode, isRoot, newToBeChosenItem]) => {
       if (mode === "FILE") {
         applyText.value = "Choose file";
       } else if (mode === "WORKFLOW") {
@@ -62,23 +64,30 @@ export const useDialogFileExplorerButtons = ({
       }
       const onlyFilesAllowed = mode === "FILE" || mode === "WORKFLOW";
       const onlyFoldersAllowed = mode === "FOLDER";
-      if (!newSelectedItem) {
-        goIntoFolderButtonDisabled.value = true;
+
+      if (!newToBeChosenItem) {
         applyButtonDisabled.value = onlyFilesAllowed || isRoot;
-      } else if (newSelectedItem.selectionType === "FILE") {
+      } else if (newToBeChosenItem.selectionType === "FILE") {
         applyButtonDisabled.value = onlyFoldersAllowed;
-        goIntoFolderButtonDisabled.value = true;
         if (mode === "FILE_OR_FOLDER") {
           applyText.value = "Choose file";
         }
-      } else if (newSelectedItem.selectionType === "FOLDER") {
+      } else if (newToBeChosenItem.selectionType === "FOLDER") {
         applyButtonDisabled.value = onlyFilesAllowed;
-        goIntoFolderButtonDisabled.value = false;
-      } else if (newSelectedItem.selectionType === "FILE_OR_FOLDER") {
+      } else if (newToBeChosenItem.selectionType === "FILE_OR_FOLDER") {
         // only possible if mode is FILE_OR_FOLDER and item is determined via the text input field
         applyButtonDisabled.value = false;
-        goIntoFolderButtonDisabled.value = true;
         applyText.value = "Choose";
+      }
+
+      if (!newSelectedItem) {
+        goIntoFolderButtonDisabled.value = true;
+      } else if (newSelectedItem.selectionType === "FILE") {
+        goIntoFolderButtonDisabled.value = true;
+      } else if (newSelectedItem.selectionType === "FOLDER") {
+        goIntoFolderButtonDisabled.value = false;
+      } else if (newSelectedItem.selectionType === "FILE_OR_FOLDER") {
+        goIntoFolderButtonDisabled.value = true;
       }
     },
     { immediate: true },
