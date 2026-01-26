@@ -55,6 +55,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
@@ -78,7 +79,7 @@ public final class PersistTreeFactory extends TreeFactory<Persistable> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
         List.of(Persist.class, Migrate.class, Persistor.class, Migration.class, DynamicParameters.class,
-            PersistWithin.class, PersistWithin.PersistEmbedded.class, PersistArrayElement.class);
+            PersistWithin.class, PersistWithin.PersistEmbedded.class, PersistArrayElement.class, SaveAdditional.class);
 
     /**
      * Peristors and backwards compatible loaders on classes are interpreted differently than the same annotation on a
@@ -88,11 +89,13 @@ public final class PersistTreeFactory extends TreeFactory<Persistable> {
         new ClassAnnotationSpec(Persistor.class, false), //
         new ClassAnnotationSpec(Migration.class, false), //
         new ClassAnnotationSpec(LoadDefaultsForAbsentFields.class, false), //
-        new ClassAnnotationSpec(PersistWithin.class, false) //
+        new ClassAnnotationSpec(PersistWithin.class, false), //
+        new ClassAnnotationSpec(SaveAdditional.class, false) //
     );
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(Persist.class,
-        Migrate.class, Persistor.class, Migration.class, PersistWithin.class, PersistArrayElement.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
+        List.of(Persist.class, Migrate.class, Persistor.class, Migration.class, PersistWithin.class,
+            PersistArrayElement.class, SaveAdditional.class);
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS =
         Stream.concat(POSSIBLE_LEAF_ANNOTATIONS.stream(), Stream.of(PersistArray.class)).toList();

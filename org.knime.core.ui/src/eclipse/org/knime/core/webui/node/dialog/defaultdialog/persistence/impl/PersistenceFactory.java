@@ -59,6 +59,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
@@ -77,6 +78,7 @@ import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
@@ -264,6 +266,17 @@ public abstract class PersistenceFactory<T> {
     }
 
     /**
+     * Post process step for adjusting the property if a {@link SaveAdditional} annotation is present.
+     *
+     * @param existing the already extracted property so far
+     * @param parametersSaver the saver instantiated from the {@link SaveAdditional} annotation.
+     * @return a property that performs additional saving if necessary.
+     */
+    protected T combineWithSaveAdditional(final T existing, final ParametersSaver parametersSaver) {
+        return existing;
+    }
+
+    /**
      * Extracts the to be extracted property from a settings class.
      *
      * @param settingsClass
@@ -419,6 +432,19 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
+            return postProcessReroute(postProcessSaveAdditional(result));
+        }
+
+        private T postProcessSaveAdditional(final T result) {
+            final var saveAdditional =
+                m_node.getTypeAnnotation(SaveAdditional.class).map(InitializeWithDefaultConstructorUtil::createSaver);
+            if (saveAdditional.isPresent()) {
+                return combineWithSaveAdditional(result, saveAdditional.get());
+            }
+            return result;
+        }
+
+        private T postProcessReroute(final T result) {
             final var relativePath = m_node.getTypeAnnotation(PersistWithin.class).map(PersistWithin::value);
             if (relativePath.isPresent()) {
                 return rerouteForType(relativePath.get(), result, m_node);
@@ -527,13 +553,22 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-            return postProcessReroute(postProcessLoadDefault(result, configPathsProvider));
+            return postProcessReroute(postProcessSaveAdditional(postProcessLoadDefault(result, configPathsProvider)));
         }
 
         private T postProcessReroute(final T result) {
             final var relativePath = m_node.getAnnotation(PersistWithin.class).map(PersistWithin::value);
             if (relativePath.isPresent()) {
                 return reroute(relativePath.get(), result, m_node);
+            }
+            return result;
+        }
+
+        private T postProcessSaveAdditional(final T result) {
+            final var saveAdditional =
+                m_node.getAnnotation(SaveAdditional.class).map(InitializeWithDefaultConstructorUtil::createSaver);
+            if (saveAdditional.isPresent()) {
+                return combineWithSaveAdditional(result, saveAdditional.get());
             }
             return result;
         }
