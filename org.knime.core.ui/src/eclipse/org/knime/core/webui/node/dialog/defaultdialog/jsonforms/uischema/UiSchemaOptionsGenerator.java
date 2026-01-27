@@ -109,6 +109,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStrin
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
@@ -342,6 +343,10 @@ final class UiSchemaOptionsGenerator {
                     default -> throw new IllegalArgumentException("Unexpected value: " + simpleButtonWidget.icon());
                 });
             }
+            if (!NoopStringProvider.class.equals(simpleButtonWidget.runFinishedProvider())) {
+                getOrCreateProvidedOptions(control).add(UiSchema.TAG_RUN_FINISHED);
+            }
+
         }
 
         final var isValueSwitch = annotatedWidgets.contains(ValueSwitchWidget.class);

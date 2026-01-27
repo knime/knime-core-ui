@@ -54,6 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.StateProvider;
 
@@ -77,4 +78,13 @@ public @interface SimpleButtonWidget {
      */
     Icon icon() default Icon.NONE;
 
+    /**
+     * An optional provider that is to be used if a long-running action is triggered and the user should be prevented
+     * from clicking the button again until the action has finished. The button will be disabled whenever clicked and
+     * re-enabled once the provider provides a new uuid.
+     *
+     * @return provide a unique uuid once the button action has finished which lets frontend know the button can be
+     *         re-enabled
+     */
+    Class<? extends StateProvider<String>> runFinishedProvider() default NoopStringProvider.class;
 }
