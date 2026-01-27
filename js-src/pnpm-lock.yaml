@@ -55,8 +55,8 @@ importers:
         specifier: 1.45.3
         version: 1.45.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/jsonforms':
-        specifier: 1.18.3
-        version: 1.18.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
+        specifier: 1.18.4
+        version: 1.18.4(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/kds-components':
         specifier: 'catalog:'
         version: 0.5.9(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
@@ -1256,8 +1256,8 @@ packages:
       prettier: 3.x
       stylelint: 16.x
 
-  '@knime/jsonforms@1.18.3':
-    resolution: {integrity: sha512-JyoxNNLHyU+b3B1E9Nmd+CHrhKINoqKD8njrUKuoVz5D2Y1OLA/djKTKcaGaOFJWP5+pDd2r9/tcNRUOlKLEvg==}
+  '@knime/jsonforms@1.18.4':
+    resolution: {integrity: sha512-ogC2xkHkuKdMtWGwthMCFj768xBwOd7+j+kWVo0Df3+V44YPmDRr4wnosir61BJxiJlMZKoSYbwqqda3Qt5s6w==}
     engines: {node: '>=22 <25'}
     peerDependencies:
       consola: 3.x
@@ -7201,7 +7201,7 @@ snapshots:
       - typescript
       - vitest
 
-  '@knime/jsonforms@1.18.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
+  '@knime/jsonforms@1.18.4(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.18(typescript@5.4.5))
       '@jsonforms/core': 3.4.0

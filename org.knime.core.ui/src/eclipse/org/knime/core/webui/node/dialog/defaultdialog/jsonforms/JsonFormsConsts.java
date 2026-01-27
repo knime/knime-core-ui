@@ -225,6 +225,11 @@ public final class JsonFormsConsts {
         public static final String TAG_MESSAGE = "message";
 
         /**
+         * Used to re-activate a button after its action has been performed.
+         */
+        public static final String TAG_RUN_FINISHED = "runFinished";
+
+        /**
          * Used for providing the possible formats of a {@link DateTimeFormatPickerWidget}
          */
         public static final String TAG_DATE_TIME_FORMATS = "dateTimeFormats";
