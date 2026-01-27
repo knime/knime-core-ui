@@ -63,6 +63,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
@@ -349,6 +350,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 TextMessage.class, //
                 TextMessage::value, //
                 null //
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_RUN_FINISHED, //
+                SimpleButtonWidget.class, //
+                SimpleButtonWidget::runFinishedProvider, //
+                NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE, //
