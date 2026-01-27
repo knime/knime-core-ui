@@ -48,9 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom;
 
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Use this base class for a {@link CustomValidation custom validation} that does not depend on the other settings or
@@ -59,7 +57,7 @@ import org.knime.node.parameters.updates.StateProvider;
  * @author Paul Bärnreuther
  * @param <T> the type of the validated value
  */
-public abstract class SimpleValidation<T> implements StateProvider<ValidationCallback<T>>, ValidationCallback<T> {
+public abstract class SimpleValidation<T> implements CustomValidationProvider<T>, ValidationCallback<T> {
 
     @Override
     public final void init(final StateProviderInitializer initializer) {
@@ -67,8 +65,7 @@ public abstract class SimpleValidation<T> implements StateProvider<ValidationCal
     }
 
     @Override
-    public final ValidationCallback<T> computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
+    public ValidationCallback<T> computeValidationCallback(final NodeParametersInput parametersInput) {
         return this;
     }
 
