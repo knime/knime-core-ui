@@ -72,12 +72,12 @@ import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter.TwinList.InclListRef;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter.TwinList.TwinListModification;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.TypedStringChoice;
@@ -103,6 +103,8 @@ public final class LegacyStringFilter implements NodeParameters {
     public abstract static class LegacyStringFilterModification implements Modification.Modifier {
 
         private boolean m_showKeepAll;
+
+        private final Class<? extends EffectPredicateProvider> m_alwaysIncludeAllColumnsRefClass;
 
         private TwinListModification m_twinListModification;
 
@@ -160,23 +162,55 @@ public final class LegacyStringFilter implements NodeParameters {
             final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
             final Class<? extends InclListProvider<?>> inclListProviderClass,
             final Class<? extends ExclListProvider<?>> exclListProviderClass) {
+            /**
+             * No custom predicate provider, as the "Keep all columns" checkbox is static when using the
+             * {@link LegacyStringFilter}.
+             */
+            this(showKeepAll, title, description, inclListTitle, exclListTitle, choicesProviderClass,
+                inclListProviderClass, exclListProviderClass, null);
+        }
+
+        /**
+         * Constructor setting the provider classes for the include and exclude list.
+         *
+         * @param showKeepAll whether to show the "Keep all columns" checkbox
+         * @param title the title for the column selection twin list widget, or null to keep the default title
+         * @param description the description for the column selection twin list widget, or null to keep the default
+         *            description
+         * @param inclListTitle the inclList title, or null to keep the default
+         * @param exclListTitle the exclList title, or null to keep the default
+         * @param choicesProviderClass the choices provider class for the include list, or {@code null} to keep the
+         *            default if it is non-{@code null}, the {@code exclListProviderClass} must be non-{@code null} as
+         *            well
+         * @param inclListProviderClass provider class for the include list, only needed if showKeepAll is true and the
+         *            choicesProviderClass is not {@code null}
+         * @param exclListProviderClass provider class for the exclude list
+         * @param alwaysIncludeAllColumnsRefClass reference class for the "Always include all columns" checkbox
+         */
+        protected LegacyStringFilterModification(final boolean showKeepAll, final String title,
+            final String description, final String inclListTitle, final String exclListTitle,
+            final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
+            final Class<? extends InclListProvider<?>> inclListProviderClass,
+            final Class<? extends ExclListProvider<?>> exclListProviderClass,
+            final Class<? extends EffectPredicateProvider> alwaysIncludeAllColumnsRefClass) {
             m_showKeepAll = showKeepAll;
+            m_alwaysIncludeAllColumnsRefClass = alwaysIncludeAllColumnsRefClass;
             m_twinListModification = new TwinListModification(showKeepAll, title, description, inclListTitle,
                 exclListTitle, choicesProviderClass, inclListProviderClass, exclListProviderClass,
-                /**
-                 * No custom predicate provider, as the "Keep all columns" checkbox is static when using the
-                 * {@link LegacyStringFilter}.
-                 */
-                null);
+                alwaysIncludeAllColumnsRefClass);
         }
 
         @Override
         public void modify(final WidgetGroupModifier group) {
             if (m_showKeepAll) {
-                group.find(KeepAllColumnsSelectedRef.class).addAnnotation(Widget.class)
+                group.find(AlwaysIncludeAllColumns.class).addAnnotation(Widget.class)
                     .withProperty("title", "Always include all columns").withProperty("description",
                         "If checked, node behaves as if all columns were moved to the \"Include\" list.")
                     .modify();
+                if (m_alwaysIncludeAllColumnsRefClass != null) {
+                    group.find(AlwaysIncludeAllColumns.class).modifyAnnotation(ValueReference.class)
+                        .withValue(m_alwaysIncludeAllColumnsRefClass).modify();
+                }
             }
             m_twinListModification.modify(group);
         }
@@ -188,21 +222,14 @@ public final class LegacyStringFilter implements NodeParameters {
 
     private static final String CFG_KEY_KEEP_ALL = "keep_all_columns_selected";
 
-    interface KeepAllColumnsSelectedRef extends ParameterReference<Boolean>, Modification.Reference {
+    private static final class AlwaysIncludeAllColumns implements BooleanReference, Modification.Reference {
     }
 
     @Persist(configKey = CFG_KEY_KEEP_ALL)
-    @ValueReference(KeepAllColumnsSelectedRef.class)
-    @Modification.WidgetReference(KeepAllColumnsSelectedRef.class)
+    @ValueReference(AlwaysIncludeAllColumns.class)
+    @Modification.WidgetReference(AlwaysIncludeAllColumns.class)
     @Migrate(loadDefaultIfAbsent = true)
     boolean m_keepAllColumnsSelected;
-
-    static final class KeepAllColumnsSelectedIsTrue implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getBoolean(KeepAllColumnsSelectedRef.class).isTrue();
-        }
-    }
 
     /**
      * Twin list for include and exclude list.
@@ -227,11 +254,20 @@ public final class LegacyStringFilter implements NodeParameters {
 
         abstract String getChoiceID(T choice);
 
+        /**
+         *
+         * @return reference class for the "Always include all columns" checkbox
+         */
+        public Class<? extends BooleanReference> getAlwaysIncludeAllColumnsRefClass() {
+            return AlwaysIncludeAllColumns.class;
+        }
+
         private Supplier<List<T>> m_choicesSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_keepAllColumnsSelectedSupplier = initializer.computeFromValueSupplier(KeepAllColumnsSelectedRef.class);
+            m_keepAllColumnsSelectedSupplier =
+                initializer.computeFromValueSupplier(getAlwaysIncludeAllColumnsRefClass());
             m_choicesSupplier = initializer.computeFromProvidedState(getChoicesProviderClass());
         }
 
@@ -430,8 +466,8 @@ public final class LegacyStringFilter implements NodeParameters {
                         .withProperty("value", m_exclListProviderClass).modify();
                 }
                 if (m_inclListProviderClass != null) {
-                    group.find(InclListRef.class).addAnnotation(ValueProvider.class)
-                        .withValue(m_inclListProviderClass).modify();
+                    group.find(InclListRef.class).addAnnotation(ValueProvider.class).withValue(m_inclListProviderClass)
+                        .modify();
                 } else if (m_showKeepAll) {
                     group.find(InclListRef.class).addAnnotation(ValueProvider.class)
                         .withValue(DefaultInclListProvider.class).modify();
@@ -479,7 +515,7 @@ public final class LegacyStringFilter implements NodeParameters {
             description = "Move the numeric columns of interest to the \"Include\" list.")
         @ChoicesProvider(DoubleColumnsProvider.class) // could at some point be generalized to other types if needed
         @ValueReference(InclListRef.class)
-        @Effect(predicate = KeepAllColumnsSelectedIsTrue.class, type = Effect.EffectType.DISABLE)
+        @Effect(predicate = AlwaysIncludeAllColumns.class, type = Effect.EffectType.DISABLE)
         @Modification.WidgetReference(InclListRef.class)
         @TwinlistWidget
         public String[] m_inclList = new String[0];
