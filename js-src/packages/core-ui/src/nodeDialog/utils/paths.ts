@@ -34,6 +34,15 @@ const isDynamicParametersSchema = (
   return pathToPersistSchema.has(parentPath);
 };
 
+const containsPropertiesPaths = (
+  schema: PersistSchema,
+): schema is PersistTreeSchema => {
+  return (
+    "propertiesConfigPaths" in schema ||
+    "propertiesDeprecatedConfigKeys" in schema
+  );
+};
+
 /**
  * Composes multiple path segments into a single path.
  *
@@ -170,7 +179,8 @@ export const getConfigPaths = ({
       schema = schema.items;
     } else if (
       schema.type === "object" ||
-      isDynamicParametersSchema(schema, parentPath)
+      isDynamicParametersSchema(schema, parentPath) ||
+      containsPropertiesPaths(schema)
     ) {
       const parentPropertiesRoute = schema.propertiesRoute ?? [];
       const getRoutedParentPaths = () =>
