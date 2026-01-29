@@ -166,6 +166,10 @@ public final class FileFilterPreviewDataService {
 
         filterMode.assertMultiSelection();
 
+        if (folderInput.isEmpty()) {
+            return new PreviewResult.Error("Root path cannot be empty.");
+        }
+
         final Path folder = fileSystem.getPath(folderInput);
 
         if (!Files.exists(folder)) {
