@@ -62,4 +62,25 @@ import java.lang.annotation.Target;
 @Target(FIELD)
 public @interface SortListWidget {
 
+    /**
+     * Will default to "<any unknown new column>" if not set.
+     *
+     * @return the id that will be used for the element representing all unknown elements in the sort list
+     */
+    String unknownElementId() default "";
+
+    /**
+     * Will default to "Any unknown column" if not set.
+     *
+     * @return the label that will be used for the element representing all unknown elements in the sort list
+     */
+    String unknownElementLabel() default "";
+
+    /**
+     * The label for the reset sort order button. Defaults to "Reset all" if not set.
+     *
+     * @return the label for the reset sort order button
+     */
+    String resetSortButtonLabel() default "";
+
 }
