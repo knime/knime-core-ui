@@ -57,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -163,16 +164,15 @@ public final class FileFilterPreviewDataService {
     private static PreviewResult listFilteredAndSortedItemsForPreview(final FileSystem fileSystem,
         final String folderInput, final MultiFileSelectionMode filterMode, final boolean includeSubfolders,
         final FileChooserFilters listItemConfig) throws IOException {
-
         filterMode.assertMultiSelection();
+
+        final var errorMessage = validateFolderPath(fileSystem, folderInput);
+        if (errorMessage.isPresent()) {
+            return new PreviewResult.Error(errorMessage.get());
+        }
 
         final Path folder = fileSystem.getPath(folderInput);
 
-        if (!Files.exists(folder)) {
-            return new PreviewResult.Error("Root path does not exist.");
-        } else if (!Files.isDirectory(folder)) {
-            return new PreviewResult.Error("Root path is not a folder.");
-        }
         try {
             var filterResult = FileChooserFilters.getPassingFilesInFolder( //
                 listItemConfig, //
@@ -189,5 +189,19 @@ public final class FileFilterPreviewDataService {
             LOGGER.warn("Error while filtering files", e);
             return new PreviewResult.Error("Error while filtering files: " + e.getMessage());
         }
+    }
+
+    private static Optional<String> validateFolderPath(final FileSystem fileSystem, final String folderInput) {
+        if (folderInput.isEmpty()) {
+            return Optional.of("Root path cannot be empty.");
+        }
+        final Path folder = fileSystem.getPath(folderInput);
+        if (!Files.exists(folder)) {
+            return Optional.of("Root path does not exist.");
+        }
+        if (!Files.isDirectory(folder)) {
+            return Optional.of("Root path is not a folder.");
+        }
+        return Optional.empty();
     }
 }

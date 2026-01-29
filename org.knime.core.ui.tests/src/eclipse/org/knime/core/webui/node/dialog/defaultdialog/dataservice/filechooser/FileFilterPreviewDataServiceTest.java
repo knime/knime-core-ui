@@ -322,6 +322,21 @@ final class FileFilterPreviewDataServiceTest {
         assertThat(errorResult.m_errorMessage).isEqualTo("Root path does not exist.");
     }
 
+    @Test
+    void testFailsWhenRootIsEmpty() throws IOException {
+        var result = m_service.listItemsForPreview( //
+            "local", //
+            "", //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
+            constructFilterParameter(new FileFilters(true)) //
+        );
+
+        assertThat(result).isInstanceOf(PreviewResult.Error.class);
+        var errorResult = (PreviewResult.Error)result;
+
+        assertThat(errorResult.m_errorMessage).isEqualTo("Root path cannot be empty.");
+    }
+
     void testThrowsIfNoMultiFileSelectionIsPresent() {
         final var wrongFileFilterParams = new AdditionalFilterConfiguration(
             JsonFormsDataUtil.getMapper().valueToTree(new FileFilters(true)), EmptySettings.class.getName());
