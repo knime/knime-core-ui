@@ -396,6 +396,16 @@ final class UiSchemaOptionsGenerator {
 
         if (annotatedWidgets.contains(SortListWidget.class)) {
             options.put(TAG_FORMAT, Format.SORT_LIST);
+            final var sortListWidget = m_node.getAnnotation(SortListWidget.class).orElseThrow();
+            if (!sortListWidget.unknownElementId().isEmpty()) {
+                options.put("unknownElementId", sortListWidget.unknownElementId());
+            }
+            if (!sortListWidget.unknownElementLabel().isEmpty()) {
+                options.put("unknownElementLabel", sortListWidget.unknownElementLabel());
+            }
+            if (!sortListWidget.resetSortButtonLabel().isEmpty()) {
+                options.put("resetSortButtonLabel", sortListWidget.resetSortButtonLabel());
+            }
         }
 
         if (annotatedWidgets.contains(TwinlistWidget.class)) {
