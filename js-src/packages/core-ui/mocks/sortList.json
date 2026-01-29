@@ -22,12 +22,27 @@
         "missing1",
         "double",
         "path"
+      ],
+      "sortListCustomOptions": [
+        "existing 2",
+        "Lorem",
+        "ipsum",
+        "existing 1",
+        "dolor",
+        "<customUnknownId>",
+        "sit",
+        "amet",
+        "consetetur",
+        "sadipscing"
       ]
     },
     "schema": {
       "type": "object",
       "properties": {
         "sortList": {
+          "type": "array"
+        },
+        "sortListCustomOptions": {
           "type": "array"
         }
       }
@@ -96,6 +111,34 @@
                   "id": "path-datatype",
                   "text": "Path"
                 }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "properties/sortListCustomOptions",
+          "options": {
+            "format": "sortList",
+            "unknownElementId": "<customUnknownId>",
+            "unknownElementLabel": "Custom unknown label",
+            "resetSortButtonLabel": "Custom reset",
+            "possibleValues": [
+              {
+                "id": "existing 1",
+                "text": "Existing 1"
+              },
+              {
+                "id": "existing 2",
+                "text": "Existing 2"
+              },
+              {
+                "id": "unknown 1",
+                "text": "Unknown 1"
+              },
+              {
+                "id": "unknown 2",
+                "text": "Unknown 2"
               }
             ]
           }
