@@ -54,8 +54,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.widget.credentials.Credentials;
 
@@ -67,6 +69,8 @@ import org.knime.node.parameters.widget.credentials.Credentials;
  * @author Paul Bärnreuther
  */
 public final class CustomValidationContext {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(CustomValidationContext.class);
 
     final Map<String, Pair<ValidationCallback<?>, Type>> m_validators = new ConcurrentHashMap<>();
 
@@ -100,11 +104,13 @@ public final class CustomValidationContext {
                 String.format("No validator found for id %s. Most likely an implementation error.", validatorId));
         }
         final var type = validatorPair.getSecond();
-        if (Credentials.class.equals(type)) {
-            throw new UnsupportedOperationException(
-                "Validation of Credentials is not yet supported due to security reasons.");
+        Object currentConvertedValue;
+        if (Credentials.class.equals(type) || LegacyCredentials.class.equals(type)) {
+            LOGGER.coding("Validation of Credentials is not yet directly supported due to security reasons. currentValue will be null.");
+            currentConvertedValue = null;
+        } else {
+            currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null);
         }
-        final var currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null);
         final var validator = validatorPair.getFirst();
         return validate(validator, currentConvertedValue);
     }
