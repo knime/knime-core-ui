@@ -90,7 +90,7 @@ public class ProductionPathUtils {
      */
     public static String getPathIdentifier(final ProductionPath productionPath) {
         final var converterId = productionPath.getConverterFactory().getIdentifier();
-        final var producerId = productionPath.getConverterFactory().getIdentifier();
+        final var producerId = productionPath.getProducerFactory().getIdentifier();
         return getPathIdentifier(producerId, converterId);
     }
 
@@ -101,6 +101,7 @@ public class ProductionPathUtils {
     /**
      * Checks whether the given string is a valid path identifier (which implicitly means that it contains the
      * delimiter).
+     *
      * @param pathIdentifier the path identifier
      * @return true if valid, false otherwise
      */
@@ -116,7 +117,8 @@ public class ProductionPathUtils {
      * @return the production path
      * @throws InvalidSettingsException if loading the production path failed
      */
-    public static ProductionPath fromPathIdentifier(final String pathIdentifier, final ProducerRegistry<?, ?> producerRegistry) throws InvalidSettingsException {
+    public static ProductionPath fromPathIdentifier(final String pathIdentifier,
+        final ProducerRegistry<?, ?> producerRegistry) throws InvalidSettingsException {
         final var serializer = new DefaultProductionPathSerializer(producerRegistry);
         final var nodeSettings = new NodeSettings("does_not_matter");
         final var parts = pathIdentifier.split(DELIMITER, 2);
@@ -124,6 +126,7 @@ public class ProductionPathUtils {
         final var producerId = parts[0];
         nodeSettings.addString(CONVERTER_CFG_KEY, converterId);
         nodeSettings.addString(PRODUCER_CFG_KEY, producerId);
+        nodeSettings.addConfig(PRODUCER_CFG_KEY + "_config");
         return serializer.loadProductionPath(nodeSettings, "");
     }
 
