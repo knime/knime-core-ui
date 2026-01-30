@@ -48,9 +48,10 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -187,17 +188,18 @@ public abstract class FallbackDialogNodeParameters implements DynamicNodeParamet
 
     private static final String FALLBACK_DIALOG_ID_TAG = "fallbackDialogID";
 
-    static final Map<NodeID, Map<String, NodeSettings>> SCHEMA_CACHE = new HashMap<>();
+    static final Map<NodeID, List<NodeSettings>> SCHEMA_CACHE = new HashMap<>();
 
     static ObjectNode cacheFallbackDialogSchema(final ObjectNode json, final NodeSettings nodeSettings) {
-        final var id = UUID.randomUUID().toString();
+        final var fallbacksForNode = SCHEMA_CACHE.computeIfAbsent(getNodeId(), k -> new ArrayList<>());
+        final var id = fallbacksForNode.size();
+        fallbacksForNode.add(nodeSettings);
         json.put(FALLBACK_DIALOG_ID_TAG, id);
-        SCHEMA_CACHE.computeIfAbsent(getNodeId(), k -> new HashMap<>()).put(id, nodeSettings);
         return json;
     }
 
     private static NodeSettings getCachedFallbackDialogSchema(final ObjectNode json) {
-        final var id = json.get(FALLBACK_DIALOG_ID_TAG).asText();
+        final var id = json.get(FALLBACK_DIALOG_ID_TAG).asInt();
         final var nodeId = getNodeId();
         if (SCHEMA_CACHE.containsKey(nodeId)) {
             return SCHEMA_CACHE.get(nodeId).get(id);
