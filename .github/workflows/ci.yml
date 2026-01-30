@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: js-src/packages/${{ matrix.package }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: js-src/package.json
