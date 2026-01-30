@@ -99,6 +99,16 @@ public class ProductionPathUtils {
     }
 
     /**
+     * Checks whether the given string is a valid path identifier (which implicitly means that it contains the
+     * delimiter).
+     * @param pathIdentifier the path identifier
+     * @return true if valid, false otherwise
+     */
+    public static boolean isPathIdentifier(final String pathIdentifier) {
+        return pathIdentifier != null && pathIdentifier.contains(DELIMITER);
+    }
+
+    /**
      * The reversal of {@link #getPathIdentifier(ProductionPath)}.
      *
      * @param pathIdentifier the path identifier
@@ -108,7 +118,12 @@ public class ProductionPathUtils {
      */
     public static ProductionPath fromPathIdentifier(final String pathIdentifier, final ProducerRegistry<?, ?> producerRegistry) throws InvalidSettingsException {
         final var serializer = new DefaultProductionPathSerializer(producerRegistry);
-        final var nodeSettings = new NodeSettings("production_path");
+        final var nodeSettings = new NodeSettings("does_not_matter");
+        final var parts = pathIdentifier.split(DELIMITER, 2);
+        final var converterId = parts[1];
+        final var producerId = parts[0];
+        nodeSettings.addString(CONVERTER_CFG_KEY, converterId);
+        nodeSettings.addString(PRODUCER_CFG_KEY, producerId);
         return serializer.loadProductionPath(nodeSettings, "");
     }
 
@@ -148,7 +163,8 @@ public class ProductionPathUtils {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{m_configKey}};
+            // no flow variables for production paths
+            return new String[0][];
         }
 
     }
