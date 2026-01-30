@@ -46,10 +46,28 @@ const callRpcMethod: NodeDialogCoreRpcMethods = async (method, options) => {
   return {} as any;
 };
 
+
+const cellPosition = ref<{ x: number; y: number } | null>(null);
+
+
+const onCellPositionChange = (newPos: { x: number; y: number } | null) => { 
+  cellPosition.value = newPos;
+}
+
+const selectedColumnIndex = computed(() => {
+  return cellPosition.value ? cellPosition.value.x : -1;
+});
+
 /**
- * Index of the column whose context menu is currently active. -1 if none.
+ * -1 if either no selection or header cell is selected.
  */
-const activeColumnIndex = ref<number>(0);
+const selectedRowIndex = computed(() => {
+  return cellPosition.value ? cellPosition.value.y : -1;
+});
+
+const isHeaderCellSelected = computed(() => {
+  return cellPosition.value ? cellPosition.value.y === -1 : false;
+})
 
 // Extract columns from dialog initial data
 const columns = computed(() => {
@@ -246,6 +264,42 @@ const onCopySelection = async ({
   document.body.style.cursor = "unset";
 };
 
+const onDeleteSelection = ({
+  rect: { x, y },
+  id,
+}: {
+  rect: { x: { min: number; max: number }; y: { min: number; max: number } };
+  id: null | number;
+}) => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (!cols) {
+    return;
+  }
+
+  for (let colIndex = x.min; colIndex <= x.max; colIndex++) {
+    const column = cols[colIndex];
+    if (!column.values) {
+      continue;
+    }
+
+    for (let rowIndex = y.min; rowIndex <= y.max; rowIndex++) {
+      if (rowIndex < column.values.length) {
+        column.values[rowIndex] = null; // Set to null to represent deletion
+      }
+    }
+  }
+
+  console.log(`Deleted values in selection (${x.min},${y.min}) to (${x.max},${y.max})`);
+};
+
+const onCutSelection = async ({rect, id} : {
+  rect: { x: { min: number; max: number }; y: { min: number; max: number } };
+  id: null | number;
+}) => {
+  await onCopySelection({rect , id, withHeaders: false});
+  onDeleteSelection({rect, id});
+};
+
 // Handle paste into table
 const onPasteSelection = async ({
   rect: { x, y },
@@ -440,7 +494,9 @@ const addNewColumn = async () => {
             :table-config="tableConfig"
             @copy-selection="onCopySelection"
             @paste-selection="onPasteSelection"
-            @cell-selection-change="(cellPosition) => activeColumnIndex = cellPosition?.x ?? -1"
+            @cut-selection="onCutSelection"
+            @delete-selection="onDeleteSelection"
+            @cell-selection-change="onCellPositionChange"
             @new-row-button-click="addNewRow($event)"
             @new-column-button-click="addNewColumn()"
           >
@@ -473,17 +529,22 @@ const addNewColumn = async () => {
 
       <!-- Right panel - only visible in large mode -->
       <template #secondary>
-        <div v-if="dialogInitialData && activeColumnIndex !== -1" class="right-pane">
-          <JsonFormsDialog
-            :data="dialogInitialData.data.model!.columns[activeColumnIndex]"
-            :schema="dialogInitialData.schema.properties!.model.properties!.columns.items as JsonSchema"
-            :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
-            @change="({data}) => {
-              dialogInitialData!.data.model!.columns[activeColumnIndex] = data;
-            }"
-            :renderers="defaultRenderers"
-            @state-provider-listener="(_id, callback) => callback(dialogInitialData?.initialUpdates[0].values[0].value)"
-          />
+        <div v-if="dialogInitialData" class="right-pane">
+          <template v-if="isHeaderCellSelected">
+            <JsonFormsDialog
+              :data="dialogInitialData.data.model!.columns[selectedColumnIndex]"
+              :schema="dialogInitialData.schema.properties!.model.properties!.columns.items as JsonSchema"
+              :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
+              @change="({data}) => {
+                dialogInitialData!.data.model!.columns[selectedColumnIndex] = data;
+              }"
+              :renderers="defaultRenderers"
+              @state-provider-listener="(_id, callback) => callback(dialogInitialData?.initialUpdates[0].values[0].value)"
+            />
+          </template>
+          <template v-else-if="selectedRowIndex >= 0 && selectedColumnIndex >= 0">
+           TODO: Cell editor for row {{selectedRowIndex}}, {{ selectedColumnIndex }}  
+          </template>
         </div>
       </template>
     </SplitPanel>
