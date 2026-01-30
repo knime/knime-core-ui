@@ -248,10 +248,10 @@ public final class SettingsApplier {
 
         if (changedModelSettings.isPresent() || changedJobManagerSettings.isPresent()) {
             try {
-                validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
                 if (changedModelSettings.isPresent()) {
                     setWarningOnInvalidFlowVariables(SettingsType.MODEL, changedModelSettings.get());
                 }
+                validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
             } catch (InvalidSettingsException ex) {
                 if (m_nc instanceof NativeNodeContainer nnc) {
                     if (changedModelSettings.isPresent()) {
