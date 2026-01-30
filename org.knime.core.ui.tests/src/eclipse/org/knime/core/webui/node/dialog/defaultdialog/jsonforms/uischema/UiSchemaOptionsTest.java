@@ -302,6 +302,37 @@ class UiSchemaOptionsTest {
     }
 
     @Test
+    void testSortListWidgetOptions() {
+        class SortListWidgetSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            @ChoicesProvider(TestChoicesProvider.class)
+            @SortListWidget(unknownElementId = "myUnknownId", unknownElementLabel = "My Unknown Label",
+                resetSortButtonLabel = "Reset Sort")
+            String[] m_withOptions;
+
+            @Widget(title = "", description = "")
+            @ChoicesProvider(TestChoicesProvider.class)
+            @SortListWidget
+            String[] m_withoutOptions;
+
+        }
+
+        var response = buildTestUiSchema(SortListWidgetSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].options.unknownElementId").isString()
+            .isEqualTo("myUnknownId");
+        assertThatJson(response).inPath("$.elements[0].options.unknownElementLabel").isString()
+            .isEqualTo("My Unknown Label");
+        assertThatJson(response).inPath("$.elements[0].options.resetSortButtonLabel").isString()
+            .isEqualTo("Reset Sort");
+
+        assertThatJson(response).inPath("$.elements[1].options.unknownElementId").isAbsent();
+        assertThatJson(response).inPath("$.elements[1].options.unknownElementLabel").isAbsent();
+        assertThatJson(response).inPath("$.elements[1].options.resetSortButtonLabel").isAbsent();
+    }
+
+    @Test
     void testAdvancedSettings() {
         class AdvancedSettings implements NodeParameters {
 
