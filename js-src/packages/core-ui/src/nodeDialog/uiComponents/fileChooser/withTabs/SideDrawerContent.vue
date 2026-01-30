@@ -46,6 +46,7 @@ const {
   isWriter,
   isLocal,
   isLoaded,
+  tabsCanBeRendered,
   spacePath,
   mountId,
   relativeWorkflowPath,
@@ -189,7 +190,11 @@ const browseAction: Record<Exclude<TabType, "CONNECTED">, string> = {
 
 <template>
   <div class="flex">
-    <TabBar v-model="tabType" :possible-values="possibleCategories" />
+    <TabBar
+      v-if="tabsCanBeRendered"
+      v-model="tabType"
+      :possible-values="possibleCategories"
+    />
     <div class="flex-grow">
       <ConnectionPreventsTab
         v-if="isConnected && modelValue.fsCategory !== 'CONNECTED'"
