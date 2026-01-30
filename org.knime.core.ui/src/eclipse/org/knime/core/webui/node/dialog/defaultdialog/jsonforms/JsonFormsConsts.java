@@ -260,6 +260,11 @@ public final class JsonFormsConsts {
         public static final String TAG_FILE_EXTENSION = "fileExtension";
 
         /**
+         * Used for providing the single file selection mode of a file selection widget dynamically.
+         */
+        public static final String TAG_SELECTION_MODE = "selectionMode";
+
+        /**
          * Several formats which are written to the options of the ui-schema of an ui element
          *
          * @author Paul Bärnreuther
