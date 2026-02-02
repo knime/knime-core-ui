@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import flushPromises from "flush-promises";
 
-import { Label } from "@knime/components";
 import { TextControl } from "@knime/jsonforms";
 
 import {
@@ -42,7 +41,7 @@ describe("dynamic parameters - dynamic rendering", () => {
     expect(textControls.length).toBeGreaterThan(0);
 
     // Find the label for the dynamic input
-    const labels = wrapper.findAllComponents(Label);
+    const labels = wrapper.findAll("label");
     const dynamicLabel = labels.find((label) => label.text() === "Dynamic Key");
     expect(dynamicLabel).toBeDefined();
   });

@@ -3,7 +3,6 @@ import { VueWrapper, mount } from "@vue/test-utils";
 import type { UISchemaElement } from "@jsonforms/core";
 import flushPromises from "flush-promises";
 
-import { Label } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import type { MultiFileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
@@ -166,11 +165,11 @@ describe("multi file selection", () => {
     label: string,
     container: VueWrapper = wrapper,
   ) => {
-    const labels = wrapper.findAllComponents(Label);
+    const labels = wrapper.findAll("label");
     const labelComponent = labels.find(
-      (labelComponent) => labelComponent.props("text") === label,
+      (labelComponent) => labelComponent.text() === label,
     );
-    const labelForId = labelComponent?.emitted("labelForId")![0][0];
+    const labelForId = labelComponent?.attributes("for");
     expect(labelForId).toBeDefined();
     return container.find(`#${labelForId}`);
   };
@@ -197,8 +196,8 @@ describe("multi file selection", () => {
     const wrapper = await mountNodeDialog();
     const multiFileChooser = wrapper.findComponent(MultiFileChooserControl);
     expect(multiFileChooser.exists()).toBe(true);
-    const labels = wrapper.findAllComponents(Label);
-    expect(labels.map((label) => label.props("text"))).toStrictEqual([
+    const labels = wrapper.findAll("label");
+    expect(labels.map((label) => label.text())).toStrictEqual([
       "Type",
       "Source",
     ]);
