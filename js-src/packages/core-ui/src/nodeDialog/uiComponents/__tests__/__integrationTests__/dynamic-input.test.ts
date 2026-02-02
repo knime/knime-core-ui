@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
-import { InputField, Label } from "@knime/components";
+import { InputField } from "@knime/components";
 import { TextControl } from "@knime/jsonforms";
 import { JsonDataService } from "@knime/ui-extension-service";
 
@@ -145,9 +145,10 @@ describe("dynamic input", () => {
   };
 
   const getLabelFor = (inputField: VueWrapper, wrapper: VueWrapper) => {
-    const inputFieldLabelForId = inputField.attributes("id");
+    const inputFieldLabelForId = inputField.find("input").attributes("id");
+    expect(inputFieldLabelForId).toBeDefined();
     const label = wrapper
-      .findAllComponents(Label)
+      .findAll("label")
       .find((l) => l?.attributes("for") === inputFieldLabelForId);
     expect(label).toBeDefined();
     return label!;
