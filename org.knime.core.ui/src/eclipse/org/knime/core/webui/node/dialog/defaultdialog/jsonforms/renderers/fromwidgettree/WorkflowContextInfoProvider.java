@@ -48,12 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.core.runtime.IPath;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
@@ -180,11 +179,13 @@ final class WorkflowContextInfoProvider {
                 public Optional<String> getRelativeWorkflowPath() {
                     final var restCurrentWorkflowPath = getRestCurrentWorkflowPath(hubSpace);
                     final var spacePathString = hubSpace.getSpacePath();
-                    if (spacePathString == null) {
+                    if (spacePathString == null || restCurrentWorkflowPath.isEmpty()) {
                         return restCurrentWorkflowPath;
                     }
-                    return restCurrentWorkflowPath.map(Paths::get).map(Paths.get(spacePathString)::relativize)
-                        .map(Path::toString);
+
+                    final var relWorkflowPath = IPath.forPosix(restCurrentWorkflowPath.get());
+                    final var relSpacePath = IPath.forPosix(spacePathString);
+                    return Optional.of(relWorkflowPath.makeRelativeTo(relSpacePath).toString());
                 }
 
             });
@@ -203,8 +204,9 @@ final class WorkflowContextInfoProvider {
                 @Override
                 public Optional<String> getRelativeWorkflowPath() {
                     return getRestCurrentWorkflowPath(server)
-                        // leading slash exists. See RestLocationInfoBuilderFactory
-                        .map(path -> path.startsWith("/") ? path.substring(1) : path);
+                        .map(IPath::forPosix) //
+                        .map(IPath::makeRelative) //
+                        .map(IPath::toString);
                 }
             });
         }
@@ -229,7 +231,8 @@ final class WorkflowContextInfoProvider {
         final var mpLocation = mountPoint.getSecond().toAbsolutePath();
         CheckUtils.checkState(wfLocation.startsWith(mpLocation),
             "Workflow '%s' is not contained in mountpoint root '%s'.", wfLocation, mpLocation);
-        return Optional.of(mpLocation.relativize(wfLocation).toString());
+        final var relativeOSPath = mpLocation.relativize(wfLocation).toString();
+        return Optional.of(IPath.fromOSString(relativeOSPath).toString());
     }
 
     private static Optional<String> getRestCurrentWorkflowPath(final RestLocationInfo hubSpace) {
