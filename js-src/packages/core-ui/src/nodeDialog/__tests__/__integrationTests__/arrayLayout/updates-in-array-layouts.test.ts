@@ -27,6 +27,8 @@ import { getOptions } from "../../utils";
 import { mockRegisterSettings } from "../utils/dirtySettingState";
 import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
 
+import { nestedArrayInitialData } from "./nestedArrayTestData";
+
 describe("updates in array layouts", () => {
   type Wrapper = VueWrapper<any> & {
     vm: {
@@ -907,6 +909,51 @@ describe("updates in array layouts", () => {
           );
         });
       });
+    });
+  });
+
+  describe("nested array layouts with dependencies", () => {
+    it("calls update2 once with four updates for afterOpenDialog trigger with nested array dependencies", async () => {
+      Object.assign(initialDataJson, cloneDeep(nestedArrayInitialData));
+      const dependencyScope =
+        "#/properties/model/properties/layer1/items/properties/layer2/items/properties/id";
+      initialDataJson.globalUpdates = [
+        {
+          trigger: {
+            id: "after-open-dialog",
+          },
+          triggerInitially: true,
+          dependencies: [dependencyScope],
+        },
+      ];
+
+      const rpcDataSpy = mockRPCResultOnce(() => []);
+      await mountNodeDialog();
+      expect(rpcDataSpy).toHaveBeenCalledTimes(1);
+
+      const call = rpcDataSpy.mock.calls[0][0];
+      const dependencyValues = call?.options?.[2]?.[dependencyScope];
+      // Verify we have exactly 4 updates (2 elements in layer1, each with 2 elements in layer2)
+      expect(dependencyValues).toHaveLength(4);
+      expect(dependencyValues[0].value).toBe("Choice1");
+      expect(dependencyValues[1].value).toBe("Choice1,Choice2");
+      expect(dependencyValues[2].value).toBe("Choice1,Choice2,Choice3");
+      expect(dependencyValues[3].value).toBe("Choice1,Choice2,Choice3,Choice4");
+      // Verify that each update has exactly 2 indices (one for layer1 and one for layer2)
+      dependencyValues.forEach((update) => {
+        expect(update.indices).toHaveLength(2);
+      });
+
+      // Verify that elements from the same layer1 item share the first index
+      expect(dependencyValues[0].indices[0]).toBe(
+        dependencyValues[1].indices[0],
+      );
+      expect(dependencyValues[2].indices[0]).toBe(
+        dependencyValues[3].indices[0],
+      );
+      expect(dependencyValues[0].indices[0]).not.toBe(
+        dependencyValues[2].indices[0],
+      );
     });
   });
 });

@@ -12,7 +12,7 @@ export const topLevelElementScope = "topLevelElementScope";
 import { computed } from "vue";
 
 import { Label } from "@knime/components";
-import { useProvidedState } from "@knime/jsonforms";
+import { SectionHeading, useProvidedState } from "@knime/jsonforms";
 
 import type { ArrayLayoutControl } from "./ArrayLayout.vue";
 
@@ -20,6 +20,7 @@ const props = defineProps<{
   arrayUiSchema: ArrayLayoutControl["uischema"];
   titleConfig: TitleConfig;
   index: number;
+  useSectionLayout: boolean;
 }>();
 
 const titleConfig = props.titleConfig;
@@ -45,7 +46,12 @@ const subTitle = useProvidedState(
 </script>
 
 <template>
-  <div class="vertical">
+  <SectionHeading
+    v-if="useSectionLayout"
+    :title-text="elementTitle"
+    style="flex: 1"
+  />
+  <div v-else class="vertical">
     <Label :text="elementTitle" compact />
     <span v-if="subTitle">{{ subTitle }}</span>
   </div>
