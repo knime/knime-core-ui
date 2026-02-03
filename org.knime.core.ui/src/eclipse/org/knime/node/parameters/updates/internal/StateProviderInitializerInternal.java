@@ -50,6 +50,7 @@ package org.knime.node.parameters.updates.internal;
 
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.ValueProvider;
 
 /**
  * Internal implementation with additional methods that are not yet part of the public API.
@@ -68,5 +69,23 @@ public interface StateProviderInitializerInternal extends StateProviderInitializ
      * because the number of ports can be the same and then the dialog remains available.
      */
     void computeAfterApplyDialog();
+
+    /**
+     * A post-load hook that is called with the loaded parameters before {@link #computeBeforeOpenDialog()}. This is
+     * only allowed within state providers used within a {@link ValueProvider} since all it does is to manipulate the
+     * JSON sent to the frontend before the dialog is opened.
+     *
+     * The functionality difference to {@link #computeBeforeOpenDialog()} is that the changes do not appear as dirty in
+     * the dialog. This way we can load in a backwards-compatible way but still do some changes to the parameters that
+     * differ from the ones loaded into the model. This especially makes sense if there is no way to display the old
+     * parameters in the dialog and a transformation is needed although we are sure that there is no impact when
+     * applying the new settings.
+     *
+     * Use this with caution. It can cause cases of confusion where the node claims that the dialog needs to be applied
+     * although nothing was changed by the user and the apply button is disabled.
+     *
+     * @since 5.10 introduced for the RowFilter node that became dirty whenever loading a workflow from before 5.10
+     */
+    void computeOnParametersLoaded();
 
 }

@@ -61,6 +61,8 @@ import org.knime.node.parameters.updates.ButtonReference;
  */
 final class IdTriggerVertex extends TriggerVertex {
 
+    static final String ON_LOADED_PARAMS_ID = "on-loaded-params";
+
     static final String BEFORE_OPEN_DIALOG_ID = "before-open-dialog";
 
     static final String AFTER_OPEN_DIALOG_ID = "after-open-dialog";

@@ -54,7 +54,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -68,6 +67,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.Fi
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult.IdUiStateUpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult.LocationUiStateUpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult.ValueUpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
@@ -190,11 +192,12 @@ public final class UpdateResultsUtil {
 
     static UnaryOperator<Object> serializeValue = v -> JsonFormsDataUtil.getMapper().valueToTree(v);
 
-    private static <I> UpdateResult createValueUpdateResult(final String scope, final List<IndexedValue<I>> values) {
+    private static <I> ValueUpdateResult<I> createValueUpdateResult(final String scope,
+        final List<IndexedValue<I>> values) {
         return new UpdateResult.ValueUpdateResult<>(scope, sortByIndices(serializeValues(values, serializeValue)));
     }
 
-    private static <I> UpdateResult createLocationUiStateUpdateResult(final Location location,
+    private static <I> LocationUiStateUpdateResult<I> createLocationUiStateUpdateResult(final Location location,
         final String providedOptionName, final List<IndexedValue<I>> values,
         final NodeDialogServiceRegistry serviceRegistry) {
         final var scope = getScopeFromLocation(location);
@@ -209,8 +212,9 @@ public final class UpdateResultsUtil {
             sortByIndices(serializeValues(values, serializeUiState)));
     }
 
-    private static <I> Optional<UpdateResult> interceptStateUpdateIfNecessary(final String providedOptionName,
-        final List<IndexedValue<I>> values, final NodeDialogServiceRegistry serviceRegistry, final String scope) {
+    private static <I> Optional<LocationUiStateUpdateResult<I>> interceptStateUpdateIfNecessary(
+        final String providedOptionName, final List<IndexedValue<I>> values,
+        final NodeDialogServiceRegistry serviceRegistry, final String scope) {
         // Special handling for fileSystemId: intercept FSConnection and register it
         if (FILE_SYSTEM_ID.equals(providedOptionName)) {
             CheckUtils.checkNotNull(serviceRegistry,
@@ -273,8 +277,9 @@ public final class UpdateResultsUtil {
         final DynamicParametersTriggerInvocationHandlerContext context) {
         return values.stream().map(value -> {
             if (value.value() instanceof DataAndDialog dataAndDialog) {
-                final Optional<Supplier<TriggerInvocationHandler<String>>> supplier =
-                    Optional.ofNullable(dataAndDialog).flatMap(DataAndDialog::getTriggerInvocationHandlerSupplier);
+                final var supplier =
+                    Optional.ofNullable(dataAndDialog).<Supplier<TriggerInvocationHandler<String>>> flatMap(
+                        DataAndDialog::getTriggerInvocationHandlerSupplier);
                 if (supplier.isPresent()) {
                     final var id = context.registerTriggerInvocationHandler(supplier.get());
                     dataAndDialog.setTriggerInvocationHandlerSupplierId(id);
@@ -286,8 +291,8 @@ public final class UpdateResultsUtil {
         }).toList();
     }
 
-    private static <I> UpdateResult createIdUiStateUpdateResult(final String id, final String providedOptionName,
-        final List<IndexedValue<I>> values) {
+    private static <I> IdUiStateUpdateResult<I> createIdUiStateUpdateResult(final String id,
+        final String providedOptionName, final List<IndexedValue<I>> values) {
         return new UpdateResult.IdUiStateUpdateResult<>(id, providedOptionName,
             sortByIndices(serializeValues(values, serializeUiState)));
     }
@@ -316,6 +321,28 @@ public final class UpdateResultsUtil {
     }
 
     /**
+     * All update results produced by a trigger invocation.
+     *
+     * @param <I> the type by which dependencies and results are indexed.
+     * @param valueUpdates the value updates
+     * @param locationUiStateUpdates the location-based ui state updates
+     * @param idUiStateUpdates the id-based ui state updates
+     */
+    public record UpdateResults<I>(List<ValueUpdateResult<I>> valueUpdates,
+        List<LocationUiStateUpdateResult<I>> locationUiStateUpdates, List<IdUiStateUpdateResult<I>> idUiStateUpdates) {
+
+        /**
+         * Create a sorted list of all update results
+         *
+         * @return a sorted list of all update results
+         */
+        public List<UpdateResult> toList() {
+            return Stream.<UpdateResult> concat(Stream.concat(valueUpdates.stream(), locationUiStateUpdates.stream()),
+                idUiStateUpdates.stream()).sorted().toList();
+        }
+    }
+
+    /**
      * Transform the result of a trigger invocation to a list of update results that can be interpreted by the frontend.
      *
      * @param triggerResult the result from the trigger invocation
@@ -323,7 +350,7 @@ public final class UpdateResultsUtil {
      *            for components)
      * @return the list of resulting instructions
      */
-    public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult,
+    public static <I> UpdateResults<I> toUpdateResults(final TriggerResult<I> triggerResult,
         final NodeDialogServiceRegistry serviceRegistry) {
         final var valueUpdates = triggerResult.valueUpdates().entrySet().stream()
             .map(entry -> createValueUpdateResult(getScopeFromLocation(entry.getKey()), entry.getValue())).sorted();
@@ -333,9 +360,7 @@ public final class UpdateResultsUtil {
         final var idUiStateUpdates =
             triggerResult.idUiStateUpdates().entrySet().stream().flatMap(entry -> entry.getValue().entrySet().stream()
                 .map(e -> createIdUiStateUpdateResult(entry.getKey(), e.getKey(), e.getValue())));
-        return Stream.of(valueUpdates, locationUiStateUpdates, idUiStateUpdates).flatMap(Function.identity()).sorted()
-            .toList();
-
+        return new UpdateResults<>(valueUpdates.toList(), locationUiStateUpdates.toList(), idUiStateUpdates.toList());
     }
 
 }

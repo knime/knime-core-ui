@@ -57,16 +57,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -149,37 +147,13 @@ public class TriggerAndDependencies {
         var groupJsonNode = jsonNodes.get(Optional.ofNullable(location.settingsType()));
 
         final var paths = location.paths();
-        var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);
+        final var indicesList = Arrays.stream(triggerIndices).boxed().toList();
+        var indexedFieldValues = JsonFormsDataUtil.traverseWithIndices(groupJsonNode, paths, indicesList);
         return indexedFieldValues.stream()
             .map(pair -> new IndexedValue<Integer>(pair.getFirst(),
                 ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(), locationAndType.location(),
                     locationAndType.getSpecialDeserializer().orElse(null))))
             .toList();
-    }
-
-    private static List<Pair<List<Integer>, JsonNode>> getIndexedFieldValues(final JsonNode jsonNode,
-        final List<List<String>> paths, final int... triggerIndices) {
-        final var atFirstPath = jsonNode.at(toJsonPointer(paths.get(0)));
-        if (paths.size() == 1) {
-            return List.of(new Pair<>(List.of(), atFirstPath));
-        }
-        CheckUtils.checkState(atFirstPath.isArray(), "Json node at field with nested path should be an array.");
-        final var restPaths = paths.subList(1, paths.size());
-        final var nestLength = triggerIndices.length;
-        if (nestLength > 0) {
-            return getIndexedFieldValues(atFirstPath.get(triggerIndices[0]), restPaths,
-                Arrays.copyOfRange(triggerIndices, 1, nestLength));
-        }
-        return IntStream.range(0, atFirstPath.size()).mapToObj(i -> i)
-            .flatMap(i -> getIndexedFieldValues(atFirstPath.get(i), restPaths).stream().map(pair -> {
-                final var indices = Stream.concat(Stream.of(i), pair.getFirst().stream()).toList();
-                return new Pair<>(indices, pair.getSecond());
-            })).toList();
-
-    }
-
-    private static String toJsonPointer(final List<String> path) {
-        return "/" + String.join("/", path);
     }
 
     private Collection<SettingsType> getDependencySettingsTypes() {
@@ -203,6 +177,47 @@ public class TriggerAndDependencies {
      */
     public boolean isBeforeOpenDialogTrigger() {
         return isIdTriggerWithId(IdTriggerVertex.BEFORE_OPEN_DIALOG_ID);
+    }
+
+    /**
+     * The three possible points in time when a trigger is to be resolved.
+     */
+    public enum TriggerResolutionTime {
+            /**
+             * See {@link StateProviderInitializerInternal#computeOnParametersLoaded}
+             */
+            ON_LOAD_PARAMS,
+            /**
+             * See {@link StateProviderInitializerInternal#computeBeforeOpenDialog}
+             */
+            BEFORE_OPEN_DIALOG,
+            /**
+             * All other triggers issued by the frontend after the dialog is opened (e.g.
+             * {@link StateProviderInitializerInternal#computeAfterOpenDialog})
+             */
+            LATER_ASYNC;
+    }
+
+    /**
+     * The three possible times when a trigger can be resolved:
+     *
+     * <ul>
+     * <li>on load, manipulating loaded parameters in place</li>
+     * <li>before opening the dialog, adding instructions to the frontend on how to manipulate the initial json</li>
+     * <li>later - asynchronously, after the dialog is opened</li>
+     * </ul>
+     *
+     * @return the trigger resolution time
+     */
+    public TriggerResolutionTime getResolutionTime() {
+        if (isIdTriggerWithId(IdTriggerVertex.ON_LOADED_PARAMS_ID)) {
+            return TriggerResolutionTime.ON_LOAD_PARAMS;
+        } else if (isIdTriggerWithId(IdTriggerVertex.BEFORE_OPEN_DIALOG_ID)) {
+            return TriggerResolutionTime.BEFORE_OPEN_DIALOG;
+        } else {
+            return TriggerResolutionTime.LATER_ASYNC;
+        }
+
     }
 
     /**
