@@ -8,9 +8,8 @@ import { computed, ref, watch } from "vue";
 import type { Component } from "vue";
 import Handlebars, { type HelperOptions } from "handlebars";
 
-import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
-import { KdsDataType } from "@knime/kds-components";
-import EyeIcon from "@knime/styles/img/icons/eye.svg";
+import { BaseButton, PortIcon, useMultiSelection } from "@knime/components";
+import { KdsDataType, KdsIcon } from "@knime/kds-components";
 
 import { useInputOutputSelectionStore } from "../store/io-selection";
 import { useReadonlyStore } from "../store/readOnly";
@@ -140,28 +139,42 @@ watch(
   },
 );
 
-const collapserRef = ref();
+const isExpanded = ref(
+  (props.inputOutputItem.subItems?.length ?? 0) > 0 &&
+    (props.inputOutputItem.subItems?.length ?? 0) <=
+      INITIALLY_EXPANDED_MAX_SUBITEMS,
+);
+
+watch(
+  () => props.inputOutputItem.subItems?.length,
+  (newLength) => {
+    if (!newLength) {
+      isExpanded.value = false;
+      return;
+    }
+    isExpanded.value = newLength <= INITIALLY_EXPANDED_MAX_SUBITEMS;
+  },
+);
 
 const toggleExpansion = () => {
-  if (collapserRef.value) {
-    collapserRef.value.isExpanded = !collapserRef.value.isExpanded;
-  }
+  isExpanded.value = !isExpanded.value;
 };
 
-const isExpanded = () => {
-  return collapserRef.value?.isExpanded;
+const setExpanded = (expanded: boolean) => {
+  isExpanded.value = expanded;
 };
 
-const setExpanded = (b: boolean) => {
-  if (collapserRef.value) {
-    collapserRef.value.isExpanded = b;
+const onTrigger = () => {
+  if (isExpanded.value) {
+    multiSelection.resetSelection();
   }
+  toggleExpansion();
 };
 
 defineExpose({
   toggleExpansion,
   setExpanded,
-  isExpanded,
+  isExpanded: () => isExpanded.value,
 });
 
 const handleClick = (event: MouseEvent, index?: number) => {
@@ -271,7 +284,7 @@ const onHeaderDragStart = (event: DragEvent, codeAlias: string) => {
   const dragGhost = createDragGhost({
     elements: [{ dragGhostContent: el }],
     numSelectedItems: 1,
-    font: "monospace",
+    font: "var(--kds-font-base-code-xsmall)",
   });
   event.dataTransfer?.setDragImage(dragGhost, 0, 0);
   event.dataTransfer?.setData("text", codeAlias);
@@ -297,19 +310,20 @@ const fallbackType = computed(() => {
 </script>
 
 <template>
-  <Collapser
-    v-if="inputOutputItem.subItems?.length"
-    ref="collapserRef"
-    :initially-expanded="
-      inputOutputItem.subItems?.length <= INITIALLY_EXPANDED_MAX_SUBITEMS
-    "
-    class="collapser bottom-border"
-  >
-    <template #title>
-      <div class="top-card has-collapser">
+  <div v-if="props.inputOutputItem.subItems?.length" class="collapser">
+    <BaseButton
+      class="button"
+      :aria-expanded="String(isExpanded)"
+      @click.prevent="onTrigger"
+    >
+      <div class="top-card">
         <div class="title">
           <div class="port-icon-container">
-            <EyeIcon v-if="inputOutputItem.portType === 'view'" />
+            <KdsIcon
+              v-if="inputOutputItem.portType === 'view'"
+              name="eye"
+              size="small"
+            />
             <svg v-else viewBox="-6 -6 12 12">
               <PortIcon
                 :type="inputOutputItem.portType"
@@ -319,95 +333,119 @@ const fallbackType = computed(() => {
           </div>
           {{ inputOutputItem.name }}
         </div>
-        <div
-          v-if="inputOutputItem.codeAlias"
-          class="code-alias"
-          :class="{
-            'code-alias-dragging': isDraggingHeader,
-            disabled: globalReadOnly,
-          }"
-          :draggable="!globalReadOnly"
-          @mousedown="(event) => handleClick(event)"
-          @dblclick="handleHeaderDoubleClick"
-          @dragstart="
-            (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
-          "
-          @dragend="onHeaderDragEnd"
-        >
-          {{ inputOutputItem.codeAlias }}
+        <div class="header-actions">
+          <div
+            v-if="inputOutputItem.codeAlias"
+            class="code-alias"
+            :class="{
+              'code-alias-dragging': isDraggingHeader,
+              disabled: globalReadOnly,
+            }"
+            :draggable="!globalReadOnly"
+            @mousedown="(event) => handleClick(event)"
+            @dblclick="handleHeaderDoubleClick"
+            @dragstart="
+              (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
+            "
+            @dragend="onHeaderDragEnd"
+          >
+            {{ inputOutputItem.codeAlias }}
+          </div>
+          <KdsIcon
+            name="chevron-down"
+            size="xsmall"
+            :class="{ 'dropdown-icon': true, 'rotate-icon': isExpanded }"
+          />
         </div>
       </div>
-    </template>
-    <div v-if="props.inputOutputItem.subItems" class="collapser-content">
-      <div
-        v-for="(subItem, index) in props.inputOutputItem.subItems"
-        :key="index"
-        class="sub-item"
-        :class="{
-          disabled: !subItem.supported || globalReadOnly,
-        }"
-      >
-        <div v-if="typeof subItem.icon !== 'undefined'" class="sub-item-icon">
-          <component :is="subItem.icon.component" v-bind="subItem.icon.props" />
-        </div>
+    </BaseButton>
+    <transition name="collapser-expand">
+      <div v-show="isExpanded" class="collapser-content">
         <div
-          class="sub-item-content"
+          v-for="(subItem, index) in props.inputOutputItem.subItems"
+          :key="index"
+          class="sub-item"
           :class="{
-            draggable:
-              inputOutputItem.subItemCodeAliasTemplate &&
-              !globalReadOnly &&
-              subItem.supported,
-            interactive: props.inputOutputItem.subItemCodeAliasTemplate,
+            disabled: !subItem.supported || globalReadOnly,
           }"
-          :draggable="
-            Boolean(
-              inputOutputItem.subItemCodeAliasTemplate &&
-                !globalReadOnly &&
-                subItem.supported,
-            )
-          "
-          @dragstart="(event) => onSubItemDragStart(event, index)"
-          @dragend="onSubItemDragEnd"
-          @click="(event) => handleClick(event, index)"
-          @dblclick="handleSubItemDoubleClick($event, index)"
         >
           <div
-            class="sub-item-icon-name-wrapper sub-item-icon-name-wrapper-flex"
+            class="sub-item-content"
             :class="{
-              selected:
-                props.inputOutputItem.subItemCodeAliasTemplate &&
-                props.inputOutputItem.multiSelection &&
-                multiSelection.isSelected(index) &&
+              draggable:
+                inputOutputItem.subItemCodeAliasTemplate &&
+                !globalReadOnly &&
                 subItem.supported,
+              interactive: props.inputOutputItem.subItemCodeAliasTemplate,
             }"
+            :draggable="
+              Boolean(
+                inputOutputItem.subItemCodeAliasTemplate &&
+                  !globalReadOnly &&
+                  subItem.supported,
+              )
+            "
+            @dragstart="(event) => onSubItemDragStart(event, index)"
+            @dragend="onSubItemDragEnd"
+            @click="(event) => handleClick(event, index)"
+            @dblclick="handleSubItemDoubleClick($event, index)"
           >
-            <KdsDataType
-              v-if="subItem.type.id"
-              size="small"
-              :icon-name="subItem.type.id"
-              :icon-title="subItem.type.title"
-            />
-            <KdsDataType
-              v-else-if="subItem.type.displayName === 'UNKNOWN' && fallbackType"
-              size="small"
-              :icon-name="fallbackType.id"
-              :icon-title="fallbackType.text"
-            />
-            <span class="sub-item-name">
-              {{ subItem.name }}
+            <div class="sub-item-left">
+              <div
+                class="sub-item-icon-name-wrapper"
+                :class="{
+                  selected:
+                    props.inputOutputItem.subItemCodeAliasTemplate &&
+                    props.inputOutputItem.multiSelection &&
+                    multiSelection.isSelected(index) &&
+                    subItem.supported,
+                }"
+              >
+                <KdsDataType
+                  v-if="subItem.type.id"
+                  size="small"
+                  class="sub-item-icon"
+                  :icon-name="subItem.type.id"
+                  :icon-title="subItem.type.title"
+                />
+                <KdsDataType
+                  v-else-if="
+                    subItem.type.displayName === 'UNKNOWN' && fallbackType
+                  "
+                  size="small"
+                  :icon-name="fallbackType.id"
+                  :icon-title="fallbackType.text"
+                />
+                <span class="sub-item-name">
+                  {{ subItem.name }}
+                </span>
+              </div>
+              <div
+                v-if="typeof subItem.icon !== 'undefined'"
+                class="sub-item-component"
+              >
+                <component
+                  :is="subItem.icon.component"
+                  v-bind="subItem.icon.props"
+                />
+              </div>
+            </div>
+            <span class="sub-item-type">
+              {{ subItem.type.displayName }}
             </span>
           </div>
-          <span class="subitem-type">
-            {{ subItem.type.displayName }}
-          </span>
         </div>
       </div>
-    </div>
-  </Collapser>
+    </transition>
+  </div>
   <div v-else class="top-card bottom-border">
     <div class="title">
       <div class="port-icon-container">
-        <EyeIcon v-if="inputOutputItem.portType === 'view'" />
+        <KdsIcon
+          v-if="inputOutputItem.portType === 'view'"
+          name="eye"
+          size="small"
+        />
         <svg v-else viewBox="-6 -6 12 12">
           <PortIcon
             :type="inputOutputItem.portType"
@@ -437,25 +475,51 @@ const fallbackType = computed(() => {
 </template>
 
 <style scoped lang="postcss">
+.button {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 26px;
+  color: inherit; /* Safari needs this */
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  background-color: transparent;
+  border: 0;
+
+  .dropdown-icon {
+    height: var(--kds-dimension-icon-0-56x);
+    width: var(--kds-dimension-icon-0-56x);
+  }
+
+  .rotate-icon {
+    transform: rotate(180deg);
+  }
+
+  & :deep(.dropdown-icon) {
+    color: var(--kds-color-text-and-icon-neutral);
+  }
+
+  & :deep(.dropdown-icon svg) {
+    fill: var(--kds-color-text-and-icon-neutral);
+  }
+}
+
 .top-card {
   --in-out-item-icon-size: 12px;
 
-  min-height: 28px;
-  background-color: var(--knime-porcelain);
-  padding-left: var(--space-8);
+  height: var(--kds-dimension-component-height-1-5x);
+  background-color: var(--kds-color-surface-muted);
+  padding-left: var(--kds-spacing-container-0-37x);
+  padding-right: var(--kds-spacing-container-0-37x);
+  border-radius: var(--kds-border-radius-container-0-25x);
   position: relative;
-  margin: 0;
-  font-size: 13px;
-  font-weight: bold;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: var(--space-8);
   align-items: center;
-  line-height: 26px;
-  overflow: hidden;
-  padding-right: var(--space-32);
-  width: 100%;
+  justify-content: space-between;
 }
 
 .port-icon-container {
@@ -465,32 +529,44 @@ const fallbackType = computed(() => {
   display: inline-block;
   overflow: hidden;
   position: relative;
-  margin-right: var(--space-4);
+}
 
-  & svg {
-    width: var(--in-out-item-icon-size);
-    height: var(--in-out-item-icon-size);
-    display: block;
-    top: 0;
-    left: 0;
-    margin: 0;
-  }
+.sub-item-left {
+  display: flex;
+  align-items: center;
+  gap: var(--kds-spacing-container-0-12x);
+}
+
+.sub-item-component {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
 }
 
 .sub-item-icon {
-  padding-left: 6px;
-  margin-right: -3px;
+  height: var(--kds-dimension-component-height-0-75x);
+  width: var(--kds-dimension-component-height-0-75x);
+  gap: var(--kds-spacing-container-none);
+  color: var(--kds-color-text-and-icon-muted);
+  border: var(--kds-border-base-muted);
+  border-radius: var(--kds-border-radius-container-0-12x);
+  border-width: var(--kds-border-width-icon-stroke-s);
 }
 
 .title {
-  flex-basis: calc(100px + var(--in-out-item-icon-size) + var(--space-4));
-  min-width: 60px;
-  align-items: center;
+  color: var(--kds-color-text-and-icon-neutral);
+  font: var(--kds-font-base-title-small-strong);
+  gap: var(--kds-spacing-container-0-25x);
   display: flex;
-  text-wrap: nowrap;
-  text-overflow: ellipsis;
-  padding-right: var(--space-4);
-  font-weight: 500;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--kds-spacing-container-0-25x);
+  min-width: 0;
 }
 
 .collapser-content {
@@ -500,17 +576,16 @@ const fallbackType = computed(() => {
 }
 
 .sub-item {
-  width: 100%;
   display: flex;
-  flex-direction: row;
-  height: 22px;
-  line-height: 18px;
-  align-items: center;
-  padding-right: 10px;
-  padding-left: 1px;
+  font: var(--kds-font-base-interactive-small);
+  color: var(--kds-color-text-and-icon-neutral);
+  height: var(--kds-dimension-component-height-1-5x);
+  padding-left: var(--kds-spacing-container-0-25x);
+  padding-right: var(--kds-spacing-container-0-25x);
+  border-radius: var(--kds-border-radius-container-0-31xs);
 
   &.disabled {
-    opacity: 0.5;
+    color: var(--kds-color-text-and-icon-disabled);
     pointer-events: none;
   }
 }
@@ -520,6 +595,8 @@ const fallbackType = computed(() => {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  padding-left: var(--kds-spacing-container-0-25x);
+  padding-right: var(--kds-spacing-container-0-25x);
   width: 100%;
 
   &.draggable {
@@ -533,20 +610,20 @@ const fallbackType = computed(() => {
   text-overflow: ellipsis;
 }
 
-.sub-item-icon-name-wrapper-flex {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-}
-
 .sub-item-icon-name-wrapper {
-  background-color: transparent;
-  border-radius: 30px;
-  transition: background-color 0.1s ease;
-  padding: 2px var(--space-8);
+  display: flex;
+  align-items: center;
+  height: var(--kds-dimension-component-height-1-25x);
+  padding-right: var(--kds-spacing-container-0-25x);
+  padding-left: var(--kds-spacing-container-0-25x);
+  gap: var(--kds-spacing-container-0-12x);
+  background-color: var(--kds-color-background-neutral-initial);
+  border-radius: var(--kds-border-radius-container-0-31x);
 
   &.selected {
-    background-color: var(--knime-cornflower-semi);
+    background-color: var(--kds-color-background-selected-initial);
+    border-radius: var(--kds-border-radius-container-0-31x);
+    color: var(--kds-color-text-and-icon-selected);
   }
 
   .sub-item-name {
@@ -557,57 +634,57 @@ const fallbackType = computed(() => {
 }
 
 .sub-item-content:hover .sub-item-icon-name-wrapper:not(.selected) {
-  background-color: var(--knime-stone-light);
+  background-color: var(--kds-color-background-neutral-hover);
+  border-radius: var(--kds-border-radius-container-0-31x);
 }
 
-.subitem-type {
-  font-style: italic;
+.sub-item-type {
   text-align: end;
-  text-wrap: nowrap;
-  flex-shrink: 0;
-  padding-right: 1px;
-  margin-left: var(--space-4);
+  fill: var(--kds-color-text-and-icon-neutral);
+  font: var(--kds-font-base-interactive-small-italic);
 }
 
 .code-alias {
-  font-family: monospace;
-  font-weight: normal;
-  font-size: 10px;
-  line-height: var(--space-16);
-  padding-left: var(--space-8);
-  padding-right: var(--space-8);
+  font: var(--kds-font-base-code-xsmall);
+  color: var(--kds-color-text-and-icon-neutral);
+  height: var(--kds-dimension-component-height-1x);
+  padding-left: var(--kds-spacing-container-0-25x);
+  padding-right: var(--kds-spacing-container-0-25x);
+  border-radius: var(--kds-border-radius-container-0-31x);
+  cursor: grab;
   text-overflow: ellipsis;
   overflow: hidden;
-  flex-shrink: 10;
-  cursor: grab;
-  border-radius: 30px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
 
   &:active {
     cursor: grabbing;
   }
 
   &:hover {
-    background-color: var(--knime-stone-light);
-    box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
+    background-color: var(--kds-color-background-neutral-hover);
   }
 }
 
 .code-alias-dragging {
-  background-color: var(--knime-stone-light);
-  box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
+  background-color: var(--kds-color-background-selected-initial);
+  color: var(--kds-color-text-and-icon-selected);
+  font: var(--kds-font-base-code-xsmall);
 }
 
 .collapser {
-  position: relative;
-
   & :deep(.dropdown) {
-    width: 14px;
-    height: 14px;
-    top: 7px;
+    width: var(--kds-dimension-component-width-0-75x);
+    height: var(--kds-dimension-component-height-0-75x);
 
     & .dropdown-icon {
-      width: 10px;
-      height: 10px;
+      color: var(--kds-color-text-and-icon-neutral);
+      width: var(--kds-dimension-icon-0-56x);
+      height: var(--kds-dimension-icon-0-56x);
+      transition: transform 0.2s ease;
     }
   }
 
@@ -618,7 +695,23 @@ const fallbackType = computed(() => {
   }
 }
 
-.bottom-border {
-  border-bottom: 1px solid var(--knime-white);
+.collapser-expand-enter-active,
+.collapser-expand-leave-active {
+  transition:
+    max-height 0.2s ease,
+    opacity 0.2s ease;
+  overflow: hidden;
+}
+
+.collapser-expand-enter-from,
+.collapser-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.collapser-expand-enter-to,
+.collapser-expand-leave-from {
+  max-height: 800px;
+  opacity: 1;
 }
 </style>
