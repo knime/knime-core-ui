@@ -9,6 +9,15 @@ export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
   {
     name: "Input table 1",
     portType: "table",
+    codeAlias: "knio.input_tables[0].to_pandas()",
+    multiSelection: true,
+    subItemCodeAliasTemplate: `knio.input_tables[0][
+        {{~#if subItems.[1]~}}
+          [{{#each subItems}}"{{{escapeDblQuotes this}}}"{{#unless @last}},{{/unless}}{{/each}}]
+        {{~else~}}
+          "{{{escapeDblQuotes subItems.[0].name}}}"
+          {{~/if~}}
+      ].to_pandas()`,
     subItems: [
       {
         name: "Column 1",
@@ -46,6 +55,10 @@ export const DEFAULT_OUTPUT_OBJECTS: InputOutputModel[] = [
   {
     name: "Output table 1",
     portType: "table",
+  },
+  {
+    name: "Generated View",
+    portType: "view",
   },
 ];
 
