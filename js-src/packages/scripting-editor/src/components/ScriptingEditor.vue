@@ -68,7 +68,7 @@ const props = withDefaults(defineProps<Props>(), {
   fileName: null,
   menuItems: () => [],
   showControlBar: true,
-  initialPaneSizes: () => ({ left: 260, right: 260, bottom: 300 }),
+  initialPaneSizes: () => ({ left: 280, right: 380, bottom: 300 }),
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: { script: string }) => settings,
   modelOrView: "model",
@@ -200,6 +200,7 @@ watchEffect(() => {
       use-pixel
       keep-element-on-close
       :secondary-snap-size="180"
+      :secondary-max-size="500"
       class="vertical-splitpanel allow-splitter-overflow-right-pane"
     >
       <template #secondary>
@@ -227,6 +228,7 @@ watchEffect(() => {
           :hide-secondary-pane="isSmallEmbeddedMode || !$slots['right-pane']"
           direction="right"
           :secondary-snap-size="220"
+          :secondary-max-size="540"
           use-pixel
           keep-element-on-close
           splitter-id="verticalSplitpane"

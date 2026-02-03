@@ -2,6 +2,8 @@
 import { type Directive, ref, toRef, watch } from "vue";
 import * as monaco from "monaco-editor";
 
+import { KdsEmptyState } from "@knime/kds-components";
+
 import { useMainCodeEditorStore } from "../editor";
 import { currentInputOutputItems } from "../store/ai-bar";
 import { useInputOutputSelectionStore } from "../store/io-selection";
@@ -143,9 +145,10 @@ const handleOnClick = (
 
 <template>
   <div
+    v-if="inputOutputItems.length > 0"
     class="in-out-container"
     tabindex="0"
-    aria-role="menu"
+    role="menu"
     @keydown="handleKeyDown"
   >
     <InputOutputItem
@@ -161,6 +164,12 @@ const handleOnClick = (
       @input-output-item-clicked="handleOnClick"
     />
   </div>
+  <div v-else class="empty-state-container">
+    <KdsEmptyState
+      headline="No data connected"
+      description="Connect data to the port and get started."
+    />
+  </div>
 </template>
 
 <style scoped lang="postcss">
@@ -168,6 +177,10 @@ const handleOnClick = (
   display: flex;
   flex-direction: column;
   min-width: 150px;
+  height: 100%;
+  padding: var(--kds-spacing-container-0-5x);
+  gap: var(--kds-spacing-container-0-10x);
+  background-color: var(--kds-color-surface-default);
 }
 
 .in-out-container:focus-within :deep(.focus-painted.keyboard-selected::after) {
@@ -181,5 +194,12 @@ const handleOnClick = (
 
 .in-out-container:focus {
   outline: none;
+}
+
+.empty-state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 </style>
