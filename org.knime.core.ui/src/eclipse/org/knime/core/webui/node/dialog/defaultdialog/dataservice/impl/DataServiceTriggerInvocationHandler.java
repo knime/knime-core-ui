@@ -110,7 +110,7 @@ final class DataServiceTriggerInvocationHandler {
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
-        return UpdateResultsUtil.toUpdateResults(triggerResult, m_serviceRegistry);
+        return UpdateResultsUtil.toUpdateResults(triggerResult, m_serviceRegistry).toList();
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location,
