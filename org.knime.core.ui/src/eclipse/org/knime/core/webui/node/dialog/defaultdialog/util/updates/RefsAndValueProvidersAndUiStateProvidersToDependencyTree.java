@@ -197,6 +197,10 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
                 return addTriggerVertex(new IdTriggerVertex(buttonReferenceClass));
             }
 
+            TriggerVertex getOnLoadedParamsVertex() {
+                return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.ON_LOADED_PARAMS_ID));
+            }
+
             TriggerVertex getBeforeOpenDialogVertex() {
                 return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.BEFORE_OPEN_DIALOG_ID));
             }
@@ -254,6 +258,9 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
                     .map(this::getButtonTriggerVertex).toList());
                 parentVertices.addAll(stateProviderDependencyReceiver.getStateProviders().stream()
                     .map(ResolvedStateProvider::new).map(this::getStateVertex).toList());
+                if (stateProviderDependencyReceiver.m_computeOnParametersLoaded) {
+                    parentVertices.add(getOnLoadedParamsVertex());
+                }
                 if (stateProviderDependencyReceiver.m_computeBeforeOpenDialog) {
                     parentVertices.add(getBeforeOpenDialogVertex());
                 }
@@ -295,6 +302,8 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<Class<? extends StateProvider>> m_stateProviders = new HashSet<>();
 
+        boolean m_computeOnParametersLoaded;
+
         boolean m_computeBeforeOpenDialog;
 
         boolean m_computeAfterOpenDialog;
@@ -310,6 +319,11 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         @Override
         public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
             getButtonRefTriggers().add(ref);
+        }
+
+        @Override
+        public void computeOnParametersLoaded() {
+            m_computeOnParametersLoaded = true;
         }
 
         @Override

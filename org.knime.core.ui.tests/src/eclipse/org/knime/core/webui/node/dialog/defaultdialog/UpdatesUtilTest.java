@@ -94,6 +94,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSe
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -114,6 +115,7 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
@@ -1652,6 +1654,371 @@ public class UpdatesUtilTest {
             .contains("bond");
 
         Mockito.verify(dynamicParametersContext).registerTriggerInvocationHandler(ArgumentMatchers.any());
+    }
+
+    /**
+     * Tests for {@link StateProviderInitializerInternal#computeOnParametersLoaded()} checking that such update adjust
+     * the initial data in place.
+     */
+    @Nested
+    class ComputeOnLoadParamsTest {
+
+        static ObjectNode addUpdatesAndGetData(final Map<SettingsType, WidgetGroup> settings,
+            final NodeParametersInput context) {
+            return (ObjectNode)addUpdatesAndGetRoot(settings, context).get("data");
+        }
+
+        static ObjectNode addUpdatesAndGetRoot(final Map<SettingsType, WidgetGroup> settings,
+            final NodeParametersInput context) {
+            final var mapper = JsonFormsDataUtil.getMapper();
+            final var jsonData = mapper.createObjectNode();
+            settings.forEach(
+                (type, widgetGroup) -> jsonData.set(type.getConfigKeyFrontend(), mapper.valueToTree(widgetGroup)));
+            final var rootNode = mapper.createObjectNode();
+            rootNode.set("data", jsonData);
+            final var widgetTreeFactory = new WidgetTreeFactory();
+            final var widgetTrees = settings.entrySet().stream()
+                .map(e -> widgetTreeFactory.createTree(e.getValue().getClass(), e.getKey())).toList();
+            UpdatesUtil.addUpdates(rootNode, widgetTrees, jsonData, context, null);
+            return rootNode;
+        }
+
+        @Test
+        void testComputeOnLoadParamsString() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class LoadParamsProvider implements StateProvider<String> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "modifiedValue";
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                String m_loadedParam = "initialValue";
+
+            }
+
+            final var settings = new TestSettings();
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+            assertThatJson(dataNode).inPath("$.model.loadedParam").isString().isEqualTo("modifiedValue");
+
+        }
+
+        @Test
+        void testComputeOnLoadParamsInt() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class LoadParamsProvider implements StateProvider<Integer> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public Integer computeState(final NodeParametersInput context) {
+                        return 42;
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                int m_loadedParam = 0;
+
+            }
+
+            final var settings = new TestSettings();
+
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(dataNode).inPath("$.model.loadedParam").isNumber().isEqualTo(new BigDecimal(42));
+        }
+
+        static class InnerSettings implements NodeParameters {
+
+            @Widget(title = "Inner Field", description = "")
+            String m_innerField = "innerInitial";
+        }
+
+        @Test
+        void testComputeOnLoadParamsNodeParameters() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class LoadParamsProvider implements StateProvider<InnerSettings> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public InnerSettings computeState(final NodeParametersInput context) {
+                        final var inner = new InnerSettings();
+                        inner.m_innerField = "innerModified";
+                        return inner;
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                InnerSettings m_loadedParam = new InnerSettings();
+
+            }
+
+            final var settings = new TestSettings();
+
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(dataNode).inPath("$.model.loadedParam.innerField").isString().isEqualTo("innerModified");
+
+        }
+
+        @Test
+        void testComputeOnLoadParamsArray() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class LoadParamsProvider implements StateProvider<String[]> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String[] computeState(final NodeParametersInput context) {
+                        return new String[]{"one", "two", "three"};
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                String[] m_loadedParam = new String[0];
+
+            }
+
+            final var settings = new TestSettings();
+
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(dataNode).inPath("$.model.loadedParam").isArray().hasSize(3);
+            assertThatJson(dataNode).inPath("$.model.loadedParam[0]").isString().isEqualTo("one");
+            assertThatJson(dataNode).inPath("$.model.loadedParam[1]").isString().isEqualTo("two");
+            assertThatJson(dataNode).inPath("$.model.loadedParam[2]").isString().isEqualTo("three");
+        }
+
+        @Test
+        void testComputeOnLoadParamsInsideAnArray() {
+            class ElementSettings implements NodeParameters {
+                static final class LoadParamsProvider implements StateProvider<String> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "modifiedInArray";
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                String m_loadedParam = "initialInArray";
+            }
+
+            class TestSettings implements NodeParameters {
+
+                @ArrayWidgetInternal
+                @Widget(title = "Elements", description = "")
+                ElementSettings[] m_elements = new ElementSettings[]{new ElementSettings(), new ElementSettings()};
+
+            }
+
+            final var settings = new TestSettings();
+
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(dataNode).inPath("$.model.elements").isArray().hasSize(2);
+            assertThatJson(dataNode).inPath("$.model.elements[0].loadedParam").isString().isEqualTo("modifiedInArray");
+            assertThatJson(dataNode).inPath("$.model.elements[1].loadedParam").isString().isEqualTo("modifiedInArray");
+
+        }
+
+        @Test
+        void testComputeOnLoadParamsWithDependencies() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class DependentRef implements ParameterReference<String> {
+                }
+
+                static final class LoadParamsProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_dependencySupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        m_dependencySupplier = initializer.computeFromValueSupplier(DependentRef.class);
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "modifiedBasedOn-" + m_dependencySupplier.get();
+                    }
+
+                }
+
+                @ValueReference(DependentRef.class)
+                String m_dependency = "initialDependency";
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                String m_loadedParam = "initialValue";
+
+            }
+
+            final var settings = new TestSettings();
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+            assertThatJson(dataNode).inPath("$.model.loadedParam").isString()
+                .isEqualTo("modifiedBasedOn-initialDependency");
+        }
+
+        @Test
+        void testComputeOnLoadParamsWithDependenciesInsideArray() {
+
+            class ElementSettings implements NodeParameters {
+                static final class DependentRef implements ParameterReference<String> {
+                }
+
+                static final class LoadParamsProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_dependencySupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        m_dependencySupplier = initializer.computeFromValueSupplier(DependentRef.class);
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "modifiedInArrayBasedOn-" + m_dependencySupplier.get();
+                    }
+
+                }
+
+                @ValueReference(DependentRef.class)
+                String m_dependency = "initialInArray";
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                String m_loadedParam = "initialInArrayValue";
+            }
+
+            class TestSettings implements NodeParameters {
+
+                @ArrayWidgetInternal
+                @Widget(title = "Elements", description = "")
+                ElementSettings[] m_elements = new ElementSettings[]{new ElementSettings(), new ElementSettings()};
+
+            }
+
+            final var settings = new TestSettings();
+
+            final var dataNode =
+                addUpdatesAndGetData(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(dataNode).inPath("$.model.elements").isArray().hasSize(2);
+            assertThatJson(dataNode).inPath("$.model.elements[0].loadedParam").isString()
+                .isEqualTo("modifiedInArrayBasedOn-initialInArray");
+            assertThatJson(dataNode).inPath("$.model.elements[1].loadedParam").isString()
+                .isEqualTo("modifiedInArrayBasedOn-initialInArray");
+        }
+
+        @Test
+        void testBeforeOpenDialogUpdatesGetChangedValuesFromOnLoadedParamsUpdates() {
+            class TestSettings implements NodeParameters {
+
+                static final class LoadParamsProvider implements StateProvider<String> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "modifiedValue";
+                    }
+
+                }
+
+                @ValueProvider(LoadParamsProvider.class)
+                @Widget(title = "Loaded Param", description = "")
+                @ValueReference(LoadedParam.class)
+                String m_loadedParam = "initialValue";
+
+                static final class LoadedParam implements ParameterReference<String> {
+                }
+
+                static final class BeforeOpenDialogProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_loadedParamSupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        m_loadedParamSupplier = initializer.getValueSupplier(LoadedParam.class);
+                        initializer.computeBeforeOpenDialog();
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return "beforeOpenDialogBasedOn-" + m_loadedParamSupplier.get();
+                    }
+
+                }
+
+                @ValueProvider(BeforeOpenDialogProvider.class)
+                @Widget(title = "Before Open Dialog Param", description = "")
+                String m_beforeOpenDialogParam = "initialBeforeOpenDialogValue";
+
+            }
+
+            final var settings = new TestSettings();
+            final var response =
+                addUpdatesAndGetRoot(Map.of(SettingsType.MODEL, settings), createDefaultNodeSettingsContext());
+
+            assertThatJson(response).inPath("$.data.model.loadedParam").isString().isEqualTo("modifiedValue");
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString()
+                .isEqualTo("beforeOpenDialogBasedOn-modifiedValue");
+
+        }
     }
 
 }

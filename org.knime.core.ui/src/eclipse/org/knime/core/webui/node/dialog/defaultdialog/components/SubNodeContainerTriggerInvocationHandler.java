@@ -94,7 +94,7 @@ final class SubNodeContainerTriggerInvocationHandler {
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
         // Pass null for FileSystemConnector since custom file systems are not supported in components yet
-        return UpdateResultsUtil.toUpdateResults(triggerResult, null);
+        return UpdateResultsUtil.toUpdateResults(triggerResult, null).toList();
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location) {

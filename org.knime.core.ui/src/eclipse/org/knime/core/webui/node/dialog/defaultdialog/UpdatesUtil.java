@@ -55,17 +55,21 @@ import java.util.stream.Collectors;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult.ValueUpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResults;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToDependencyTreeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies.TriggerResolutionTime;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
@@ -167,11 +171,14 @@ public final class UpdatesUtil {
         final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var triggersWithDependencies = pair.getFirst();
         final var invocationHandler = pair.getSecond();
-        final var partitioned = triggersWithDependencies.stream()
-            .collect(Collectors.partitioningBy(TriggerAndDependencies::isBeforeOpenDialogTrigger));
+        final var partitioned =
+            triggersWithDependencies.stream().collect(Collectors.groupingBy(TriggerAndDependencies::getResolutionTime));
 
-        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context, serviceRegistry);
-        addGlobalUpdates(rootNode, partitioned.get(false));
+        postProcessLoadedJsonData(jsonData, invocationHandler,
+            partitioned.getOrDefault(TriggerResolutionTime.ON_LOAD_PARAMS, List.of()), context, serviceRegistry);
+        addInitialUpdates(rootNode, invocationHandler, jsonData,
+            partitioned.getOrDefault(TriggerResolutionTime.BEFORE_OPEN_DIALOG, List.of()), context, serviceRegistry);
+        addGlobalUpdates(rootNode, partitioned.getOrDefault(TriggerResolutionTime.LATER_ASYNC, List.of()));
     }
 
     /**
@@ -202,6 +209,43 @@ public final class UpdatesUtil {
         addUpdates(rootNode, pair, jsonData, context, serviceRegistry);
     }
 
+    private static void postProcessLoadedJsonData(final ObjectNode jsonData,
+        final TriggerInvocationHandler<Integer> invocationHandler,
+        final List<TriggerAndDependencies> onLoadParamTriggersWithDependencies, final NodeParametersInput context,
+        final NodeDialogServiceRegistry serviceRegistry) {
+        if (onLoadParamTriggersWithDependencies.isEmpty()) {
+            return;
+        }
+        CheckUtils.check(onLoadParamTriggersWithDependencies.size() == 1, IllegalStateException::new,
+            () -> "There should not exist more than one on-load-params trigger.");
+        final var updateResults = getUpdateResults(onLoadParamTriggersWithDependencies.get(0), invocationHandler,
+            jsonData, context, serviceRegistry);
+        CheckUtils.check(updateResults.idUiStateUpdates().isEmpty() && updateResults.idUiStateUpdates().isEmpty(),
+            IllegalStateException::new, () -> "on-load-params triggers must not produce ui state.");
+        for (final var updateResult : updateResults.valueUpdates()) {
+            resolveUpdateResultInJsonData(jsonData, updateResult);
+        }
+
+    }
+
+    /**
+     * We need to use the same mapper here as is used to serialize update results in RPC or initial data service calls.
+     */
+    static final ObjectMapper SERVICE_MAPPER = ObjectMapperUtil.getInstance().getObjectMapper();
+
+    private static void resolveUpdateResultInJsonData(final ObjectNode jsonData,
+        final ValueUpdateResult<Integer> updateResult) {
+        final var values = updateResult.values();
+        final var location = JsonFormsScopeUtil.getLocationFromScope(updateResult.scope());
+        for (final var indexedValue : values) {
+            final var indices = indexedValue.indices();
+            final var value = indexedValue.value();
+            JsonFormsDataUtil.setValueAtLocation(jsonData, location.settingsType(), location.paths(), indices,
+                SERVICE_MAPPER.valueToTree(value));
+
+        }
+    }
+
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerInvocationHandler<Integer> invocationHandler, final ObjectNode jsonData,
         final List<TriggerAndDependencies> initialTriggersWithDependencies, final NodeParametersInput context,
@@ -217,14 +261,20 @@ public final class UpdatesUtil {
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerAndDependencies triggerWithDependencies, final TriggerInvocationHandler<Integer> invocationHandler,
         final ObjectNode jsonData, final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
+        final var updateResults =
+            getUpdateResults(triggerWithDependencies, invocationHandler, jsonData, context, serviceRegistry);
+
+        final var initialUpdates = rootNode.putArray("initialUpdates");
+        updateResults.toList().forEach(updateResult -> addInitialUpdate(updateResult, initialUpdates));
+    }
+
+    private static UpdateResults<Integer> getUpdateResults(final TriggerAndDependencies triggerWithDependencies,
+        final TriggerInvocationHandler<Integer> invocationHandler, final ObjectNode jsonData,
+        final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData);
         final var triggerResult =
             invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
-
-        final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult, serviceRegistry);
-
-        final var initialUpdates = rootNode.putArray("initialUpdates");
-        updateResults.forEach(updateResult -> addInitialUpdate(updateResult, initialUpdates));
+        return UpdateResultsUtil.toUpdateResults(triggerResult, serviceRegistry);
     }
 
     private static void addInitialUpdate(final UpdateResult updateResult, final ArrayNode initialUpdates) {
