@@ -59,6 +59,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_USE_SECTION_LAYOUT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DATE_TIME_FORMATS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
@@ -628,6 +629,7 @@ final class UiSchemaOptionsGenerator {
 
         m_node.getAnnotation(ArrayWidgetInternal.class).ifPresent(
             internalArrayWidget -> addInternalArrayLayoutOptions(internalArrayWidget, control, options, elementTree));
+        validateArrayLayoutOptions(options);
     }
 
     private void addArrayLayoutOptions(final ArrayWidget arrayWidget, final ObjectNode control,
@@ -679,6 +681,18 @@ final class UiSchemaOptionsGenerator {
         return fieldNameToElementTitle(nodeName.get());
     }
 
+    private static void validateArrayLayoutOptions(final ObjectNode options) {
+        final var useSectionLayout = options.has(TAG_ARRAY_LAYOUT_USE_SECTION_LAYOUT);
+        final var showSortButtons = options.has(TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS);
+        final var hasFixedSize = options.has(TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE);
+        final var withEditAndReset = options.has(TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET);
+        final var withElementCheckboxes = options.has(TAG_ARRAY_LAYOUT_ELEMENT_CHECKBOX_SCOPE);
+        if (useSectionLayout && (showSortButtons || !hasFixedSize || withEditAndReset || withElementCheckboxes)) {
+            throw new UiSchemaGenerationException("The section layout for array widgets must be used with hasFixedSize"
+                + " and cannot be used with showSortButtons, withEditAndReset or withElementCheckboxes options.");
+        }
+    }
+
     private static String fieldNameToElementTitle(final String nodeName) {
         return makeSingular(upperCase(resolveCamelCase(nodeName)));
     }
@@ -717,6 +731,10 @@ final class UiSchemaOptionsGenerator {
 
         if (!NoopStringProvider.class.equals(arrayWidgetInternal.subTitleProvider())) {
             getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE);
+        }
+
+        if (arrayWidgetInternal.isSectionLayout()) {
+            options.put(TAG_ARRAY_LAYOUT_USE_SECTION_LAYOUT, true);
         }
     }
 

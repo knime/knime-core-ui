@@ -81,11 +81,11 @@ function getDependencyValuesWithoutFixedIndices(
         firstDataPath,
         arrayRecord,
       );
-      return getDependencyValuesFromDataPaths(
+      const nestedArrayRecord = arrayRecord[id] || {};
+      return getDependencyValuesWithoutFixedIndices(
         elementSettings,
         restDataPaths,
-        [index],
-        arrayRecord,
+        nestedArrayRecord,
       ).map(({ indices: indexIds, value }) => ({
         indices: [id, ...indexIds],
         value,

@@ -30,6 +30,7 @@ const props = defineProps<{
   id: string;
   idsRecord: IdsRecord;
   useCardLayout: boolean;
+  useSectionLayout: boolean;
 }>();
 
 const resetElementDirtyState = props.hasBeenAdded
@@ -65,11 +66,14 @@ defineExpose({
 </script>
 
 <template>
-  <template v-if="useCardLayout && arrayElementTitle">
+  <template v-if="(useCardLayout || useSectionLayout) && arrayElementTitle">
     <div class="item-header">
       <div
         class="left"
-        :style="{ alignItems: subTitleProvider ? 'normal' : 'center' }"
+        :style="{
+          alignItems: subTitleProvider ? 'normal' : 'center',
+          ...(useSectionLayout ? { flex: 1 } : {}),
+        }"
       >
         <slot
           v-if="elementCheckboxScope"
@@ -87,6 +91,7 @@ defineExpose({
           :title-config="arrayElementTitle"
           :array-ui-schema
           :index="index"
+          :use-section-layout="useSectionLayout"
         />
       </div>
       <slot name="controls" />

@@ -57,6 +57,7 @@ import java.lang.annotation.Target;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicateProvider;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.array.ArrayWidget.ElementLayout;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
@@ -137,5 +138,13 @@ public @interface ArrayWidgetInternal {
      * @return the provider for an optional subtitle of the array layout elements
      */
     Class<? extends StateProvider<String>> subTitleProvider() default NoopStringProvider.class;
+
+    /**
+     * If set to true, the array elements are displayed using a sections layout instead of using one of the options from
+     * {@link ElementLayout}.
+     *
+     * @return whether to use a sections layout for the array elements
+     */
+    boolean isSectionLayout() default false;
 
 }

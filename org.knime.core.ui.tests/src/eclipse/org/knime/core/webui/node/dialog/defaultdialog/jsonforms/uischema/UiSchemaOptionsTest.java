@@ -1462,6 +1462,80 @@ class UiSchemaOptionsTest {
     }
 
     @Test
+    void testArrayWidgetWithSectionLayout() {
+        class ArrayWidgetSectionLayoutTestSettings implements NodeParameters {
+
+            static final class ElementSettings implements NodeParameters {
+
+                @Widget(title = "Element value", description = "")
+                String m_elementValue;
+            }
+
+            @ArrayWidget(hasFixedSize = true)
+            @ArrayWidgetInternal(isSectionLayout = true, titleProvider = TestStringProvider.class)
+            @Widget(title = "title", description = "description")
+            ElementSettings[] m_elementSettings;
+
+        }
+
+        var response = buildTestUiSchema(ArrayWidgetSectionLayoutTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("elementSettings");
+        assertThatJson(response).inPath("$.elements[0].options.useSectionLayout").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().contains("arrayElementTitle");
+    }
+
+    private static final class ElementSettings implements NodeParameters {
+        @Widget(title = "Element value", description = "")
+        String m_elementValue;
+    }
+
+    @Test
+    void testArrayWidgetSectionLayoutValidation() {
+        final class WithSortButtonsSettings implements NodeParameters {
+            @ArrayWidget(hasFixedSize = true, showSortButtons = true)
+            @ArrayWidgetInternal(isSectionLayout = true, titleProvider = TestStringProvider.class)
+            @Widget(title = "title", description = "description")
+            ElementSettings[] m_elementSettings;
+        }
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(WithSortButtonsSettings.class));
+
+        final class WithOutFixedSizeSettings implements NodeParameters {
+            @ArrayWidget
+            @ArrayWidgetInternal(isSectionLayout = true, titleProvider = TestStringProvider.class)
+            @Widget(title = "title", description = "description")
+            ElementSettings[] m_elementSettings;
+        }
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(WithOutFixedSizeSettings.class));
+
+        final class WithEditAndResetSettings implements NodeParameters {
+            @ArrayWidget(hasFixedSize = true)
+            @ArrayWidgetInternal(isSectionLayout = true, withEditAndReset = true,
+                titleProvider = TestStringProvider.class)
+            @Widget(title = "title", description = "description")
+            ElementSettings[] m_elementSettings;
+        }
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(WithEditAndResetSettings.class));
+
+        final class WithElementCheckboxesSettings implements NodeParameters {
+            static final class ElementSettings implements NodeParameters {
+                @Widget(title = "Element value", description = "")
+                @ArrayWidgetInternal.ElementCheckboxWidget
+                boolean m_checkbox;
+
+                @Widget(title = "Element value", description = "")
+                String m_elementValue;
+            }
+
+            @ArrayWidget(hasFixedSize = true)
+            @ArrayWidgetInternal(isSectionLayout = true, withElementCheckboxes = true,
+                titleProvider = TestStringProvider.class)
+            @Widget(title = "title", description = "description")
+            ElementSettings[] m_elementSettings;
+        }
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(WithElementCheckboxesSettings.class));
+    }
+
+    @Test
     void testTextMessage() {
         class TestSettings implements NodeParameters {
 
