@@ -399,6 +399,11 @@ public final class JsonFormsConsts {
         public static final String TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE = "elementDefaultValue";
 
         /**
+         * Whether the array layout should be rendered as section layout
+         */
+        public static final String TAG_ARRAY_LAYOUT_USE_SECTION_LAYOUT = "useSectionLayout";
+
+        /**
          * Rules to show/hide/enable/disable an ui element in the ui-schema
          */
         public static final String TAG_RULE = "rule";

@@ -49,6 +49,7 @@ export interface ArrayLayoutControl {
       elementSubTitle?: string;
       elementDefaultValue?: unknown;
       elementLayout?: "HORIZONTAL_SINGLE_LINE" | "VERTICAL_CARD";
+      useSectionLayout?: boolean;
     };
     providedOptions?: (
       | "arrayElementTitle"
@@ -230,7 +231,10 @@ const ArrayLayout = defineComponent({
       );
     },
     useCardLayout() {
-      return this.elementLayout === "VERTICAL_CARD";
+      return this.elementLayout === "VERTICAL_CARD" && !this.useSectionLayout;
+    },
+    useSectionLayout() {
+      return this.control.uischema.options?.useSectionLayout || false;
     },
   },
   methods: {
@@ -301,6 +305,7 @@ export default ArrayLayout;
         :has-been-added="objIndex === elementCountBeforeAddingOne"
         :element-checkbox-scope="elementCheckboxScope"
         :use-card-layout="useCardLayout"
+        :use-section-layout="useSectionLayout"
       >
         <template #renderer="{ element, path }">
           <DispatchRenderer

@@ -8,6 +8,7 @@ import * as jsonformsVueModule from "@jsonforms/vue";
 import flushPromises from "flush-promises";
 
 import { FunctionButton } from "@knime/components";
+import { SectionHeading } from "@knime/jsonforms";
 import ArrowDownIcon from "@knime/styles/img/icons/arrow-down.svg";
 import ArrowUpIcon from "@knime/styles/img/icons/arrow-up.svg";
 import TrashIcon from "@knime/styles/img/icons/trash.svg";
@@ -427,6 +428,16 @@ describe("ArrayLayout.vue", () => {
     });
     expect(wrapper.find(".item-header").exists()).toBeFalsy();
     expect(wrapper.vm.useCardLayout).toBeFalsy();
+  });
+
+  it("renders the header with section style when useSectionLayout is true", () => {
+    control.value.uischema.options.useSectionLayout = true;
+    const { wrapper } = mountArrayLayout({
+      props: { control },
+    });
+    expect(wrapper.findComponent(SectionHeading).exists()).toBeTruthy();
+    expect(wrapper.vm.useCardLayout).toBeFalsy();
+    expect(wrapper.vm.useSectionLayout).toBeTruthy();
   });
 
   it.each([
