@@ -201,6 +201,11 @@ final class InvokeTrigger<I> {
             }
 
             @Override
+            public void computeOnParametersLoaded() {
+                // Nothing to do here during invocation
+            }
+
+            @Override
             public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
                 // Nothing to do here during invocation
             }

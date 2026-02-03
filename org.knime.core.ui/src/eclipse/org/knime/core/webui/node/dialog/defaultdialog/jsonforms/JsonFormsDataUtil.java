@@ -55,10 +55,16 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.CredentialsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeSerializationUtil;
@@ -82,6 +88,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -246,6 +253,171 @@ public final class JsonFormsDataUtil {
 
             return ZonedDateTime.of(dateTime, timeZone);
         }
+    }
+
+    /**
+     * Utility method for modifying json data at specific location(s).
+     *
+     * The location is specified via a settings type followed by a list of paths and indices. The list of indices can be
+     * shorter than paths.size() - 1. When indices run out, the traversal branches into every element of the current
+     * array, setting the value at all matching locations.
+     *
+     * For example, given the json
+     *
+     * <pre>
+     * {
+     *   "model": {
+     *     "arrayField": [
+     *       {
+     *         "nestedField": "foo"
+     *       }, {
+     *         "nestedField": "bar"
+     *       }
+     *     ]
+     *   }
+     * }
+     * </pre>
+     *
+     * and
+     * <ul>
+     * <li>settingsType = SettingsType.MODEL</li>
+     * <li>paths = [ ["arrayField"], ["nestedField"] ]</li>
+     * <li>indices = [1]</li>
+     * <li>value = "baz" (as JsonNode)</li>
+     * </ul>
+     *
+     * the resulting json will be
+     *
+     * <pre>
+     * {
+     *   "model": {
+     *     "arrayField": [
+     *       {
+     *         "nestedField": "foo"
+     *       }, {
+     *         "nestedField": "baz"
+     *       }
+     *     ]
+     *   }
+     * }
+     * </pre>
+     *
+     * If indices were empty [], the value would be set at both nestedField locations.
+     *
+     * @param jsonData the json data to modify
+     * @param settingsType the settings type
+     * @param paths the paths to the location(s) to set the value at
+     * @param indices the indices of the array elements to set the value at (can be shorter than paths.size() - 1)
+     * @param value the value to set, already converted to a JsonNode
+     */
+    public static void setValueAtLocation(final ObjectNode jsonData, final SettingsType settingsType,
+        final List<List<String>> paths, final List<Integer> indices, final JsonNode value) {
+        final var rootNode = jsonData.get(settingsType.getConfigKeyFrontend());
+        final var parentPathsAndLastSegment = toParentPathsAndLastSegment(paths);
+        final var parentPaths = parentPathsAndLastSegment.getFirst();
+        final var lastSegment = parentPathsAndLastSegment.getSecond();
+
+        traverseWithIndices(rootNode, parentPaths, indices, (indicesUsed, node) -> {
+            if (node instanceof ObjectNode obj) {
+                obj.set(lastSegment, value);
+            } else {
+                throw new IllegalArgumentException("Cannot set value - parent is not an object node");
+            }
+        });
+    }
+
+    /**
+     * Convert a list of strings to a json pointer. The strings must not contain '/' characters.
+     *
+     * @param path the path as list of strings
+     * @return the json pointer
+     */
+    public static String toJsonPointer(final List<String> path) {
+        if (path.isEmpty()) {
+            return "";
+        }
+        return "/" + String.join("/", path);
+    }
+
+    /**
+     * Traverses JSON data at a path with indices, handling branching when indices are exhausted. When indices run out
+     * before paths do, the traversal branches into every element of the current array.
+     *
+     * @param jsonNode the JSON node to traverse
+     * @param paths the paths to traverse (each path is a list of field names)
+     * @param indices the indices for array elements (can be shorter than paths.size() - 1)
+     * @return list of (indices used, final JsonNode) pairs
+     */
+    public static List<Pair<List<Integer>, JsonNode>> traverseWithIndices(final JsonNode jsonNode,
+        final List<List<String>> paths, final List<Integer> indices) {
+        return traverseWithIndicesInternal(jsonNode, paths, indices);
+    }
+
+    /**
+     * Traverses JSON data at a path with indices, calling the consumer for each reached node.
+     *
+     * @param jsonNode the JSON node to traverse
+     * @param paths the paths to traverse (each path is a list of field names)
+     * @param indices the indices for array elements (can be shorter than paths.size() - 1)
+     * @param consumer called for each (indices used, node) pair reached
+     */
+    public static void traverseWithIndices(final JsonNode jsonNode, final List<List<String>> paths,
+        final List<Integer> indices, final BiConsumer<List<Integer>, JsonNode> consumer) {
+        traverseWithIndicesInternal(jsonNode, paths, indices).forEach(pair -> consumer.accept(pair.getFirst(), pair.getSecond()));
+    }
+
+    private static List<Pair<List<Integer>, JsonNode>> traverseWithIndicesInternal(final JsonNode jsonNode,
+        final List<List<String>> paths, final List<Integer> indices) {
+        if (paths.isEmpty()) {
+            return List.of(new Pair<>(List.of(), jsonNode));
+        }
+
+        final var firstPath = paths.get(0);
+        final var atFirstPath = firstPath.isEmpty() ? jsonNode : jsonNode.at(toJsonPointer(firstPath));
+        if (paths.size() == 1) {
+            return List.of(new Pair<>(List.of(), atFirstPath));
+        }
+
+        CheckUtils.checkState(atFirstPath.isArray(), "Json node at field with nested path should be an array.");
+        final var restPaths = paths.subList(1, paths.size());
+
+        if (!indices.isEmpty()) {
+            // Use the provided index
+            final var restIndices = indices.subList(1, indices.size());
+            return traverseWithIndicesInternal(atFirstPath.get(indices.get(0)), restPaths, restIndices);
+        }
+
+        // No more indices - branch into all array elements
+        return IntStream.range(0, atFirstPath.size()).mapToObj(i -> i)
+            .flatMap(i -> traverseWithIndicesInternal(atFirstPath.get(i), restPaths, List.of()).stream().map(pair -> {
+                final var newIndices = Stream.concat(Stream.of(i), pair.getFirst().stream()).toList();
+                return new Pair<>(newIndices, pair.getSecond());
+            })).toList();
+    }
+
+    /**
+     * Splits the paths into the parent paths and the last segment. For setValueAtLocation, we need to traverse to the
+     * parent and then set the value using the last segment.
+     *
+     * @param paths the full paths
+     * @return a pair of (parentPaths, lastSegment)
+     */
+    private static Pair<List<List<String>>, String> toParentPathsAndLastSegment(final List<List<String>> paths) {
+        CheckUtils.checkArgument(!paths.isEmpty(), "Paths must not be empty");
+        final var lastPath = paths.get(paths.size() - 1);
+        CheckUtils.checkArgument(!lastPath.isEmpty(), "Last path must not be empty");
+
+        final var lastSegment = lastPath.get(lastPath.size() - 1);
+        final var parentLastPath = lastPath.subList(0, lastPath.size() - 1);
+
+        if (parentLastPath.isEmpty() && paths.size() == 1) {
+            // Single path with single segment - parent is the root
+            return new Pair<>(List.of(List.of()), lastSegment);
+        }
+
+        final var parentPaths = Stream.concat(paths.subList(0, paths.size() - 1).stream(), Stream.of(parentLastPath))
+            .toList();
+        return new Pair<>(parentPaths, lastSegment);
     }
 
 }
