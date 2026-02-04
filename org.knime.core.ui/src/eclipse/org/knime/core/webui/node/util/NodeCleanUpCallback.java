@@ -50,7 +50,6 @@ package org.knime.core.webui.node.util;
 
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
-import org.knime.core.node.workflow.NodeContainerParent;
 import org.knime.core.node.workflow.NodeStateChangeListener;
 import org.knime.core.node.workflow.NodeStateEvent;
 import org.knime.core.node.workflow.WorkflowEvent;
@@ -100,10 +99,16 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
         m_onCleanUp = null;
     }
 
-    /** The (non-)workflow that has the node's project as child. This often is {@link WorkflowManager#ROOT},
-     * but not when projects are organized in "sub-roots" (like in KNIME Executor, see AP-25307). */
+    /**
+     * The (non-)workflow that has the node's project as child. This often is {@link WorkflowManager#ROOT}, but not when
+     * projects are organized in "sub-roots" (like in KNIME Executor, see AP-25307).
+     */
     private WorkflowManager getProjectParent() {
-        return NodeContainerParent.getProjectWFM(m_nc).getParent();
+        var parent = m_nc instanceof WorkflowManager wfm ? wfm : m_nc.getDirectNCParent();
+        while (!parent.isProject()) {
+            parent = parent.getDirectNCParent();
+        }
+        return (WorkflowManager)parent.getDirectNCParent();
     }
 
     @Override
