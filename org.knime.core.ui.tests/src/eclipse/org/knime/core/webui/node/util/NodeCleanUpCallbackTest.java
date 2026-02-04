@@ -58,6 +58,7 @@ import java.util.function.Consumer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.webui.node.util.NodeCleanUpCallback.Builder;
 import org.knime.testing.node.view.NodeViewNodeFactory;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -77,7 +78,7 @@ public class NodeCleanUpCallbackTest {
      */
     @Test
     public void testWithDefaults() throws IOException {
-        runWithNewNodeContainerInstance(nc -> {
+        Consumer<NodeContainer> consumer = nc -> {
             var wfm = nc.getParent();
             wfm.executeAllAndWaitUntilDone();
 
@@ -89,7 +90,9 @@ public class NodeCleanUpCallbackTest {
 
             wfm.removeNode(nc.getID());
             Awaitility.await().untilAsserted(() -> verify(callback).run());
-        });
+        };
+        runWithNewNodeContainerInstance(consumer);
+        runWithNewNodeContainerInstanceWithinComponentProject(consumer);
     }
 
     /**
@@ -147,6 +150,17 @@ public class NodeCleanUpCallbackTest {
         var nc = WorkflowManagerUtil.createAndAddNode(wfm, new NodeViewNodeFactory(0, 0));
         nodeContainerConsumer.accept(nc);
         WorkflowManagerUtil.disposeWorkflow(wfm);
+    }
+
+    private static void runWithNewNodeContainerInstanceWithinComponentProject(
+        final Consumer<NodeContainer> nodeContainerConsumer) throws IOException {
+        var wfm = WorkflowManagerUtil.createEmptyWorkflow();
+        var parent = wfm.getParent();
+        var componentId = parent.convertMetaNodeToSubNode(wfm.getID()).getConvertedNodeID();
+        wfm = ((SubNodeContainer)parent.getNodeContainer(componentId)).getWorkflowManager();
+        var nc = WorkflowManagerUtil.createAndAddNode(wfm, new NodeViewNodeFactory(0, 0));
+        nodeContainerConsumer.accept(nc);
+        parent.removeProject(componentId);
     }
 
 }
