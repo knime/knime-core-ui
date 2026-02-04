@@ -131,6 +131,55 @@ public class NodeDialogTest {
     }
 
     /**
+     * Tests that applying settings with flow variables to a newly created node (where flowObjectStack is null)
+     * does not throw a NullPointerException. This is a regression test for UIEXT-3297.
+     *
+     * @throws Exception
+     */
+    @Test
+    void testApplySettingsWithFlowVariablesToNewlyCreatedNode() throws Exception {
+        var wfm = WorkflowManagerUtil.createEmptyWorkflow();
+        
+        // Create a node with input ports (unconnected, so flowObjectStack will be null)
+        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(), null),
+                1));
+        var nncWrapper = NodeWrapper.of(nnc);
+        
+        // Verify flowObjectStack is null for newly created unconnected node
+        assertThat(nnc.getFlowObjectStack()).isNull();
+
+        var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
+        
+        // Create settings with flow variable controls
+        var modelSettings = new NodeSettings("model");
+        modelSettings.addString("model_key1", "model_value");
+        
+        var nodeSettings = new NodeSettings("ignored");
+        nodeSettings.addNodeSettings(modelSettings);
+        var variableModelSettings = new VariableSettings(nodeSettings, SettingsType.MODEL);
+        
+        // Add a flow variable control (this triggers the code path that would NPE without the fix)
+        variableModelSettings.addUsedVariable("model_key1", "some_var", false);
+        
+        // This should NOT throw a NullPointerException even though flowObjectStack is null
+        // Before the fix, this would fail in getOverwrittenSettings when trying to call
+        // nc.getFlowObjectStack().getAvailableFlowVariables(...)
+        dataServiceManager.callApplyDataService(nncWrapper, 
+            settingsToString(modelSettings, new NodeSettings("view"), variableModelSettings, null));
+        
+        // Verify settings were actually applied
+        var savedSettings = new NodeSettings("node_settings");
+        wfm.saveNodeSettings(nnc.getID(), savedSettings);
+        assertThat(savedSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()).getString("model_key1"))
+            .isEqualTo("model_value");
+        
+        WorkflowManagerUtil.disposeWorkflow(wfm);
+    }
+
+    /**
      * Tests that model- and view-settings a being applied correctly and most importantly that the node is being reset
      * in case of changed model settings but not in case of changed view settings.
      *
