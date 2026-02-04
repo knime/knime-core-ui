@@ -359,10 +359,14 @@ public final class SettingsApplier {
     private static NodeSettings getOverwrittenSettings(final NodeContainer nc, final NodeSettings underlyingSettings,
         final NodeSettings variables) throws InvalidSettingsException {
         final var configEdit = ConfigEditTreeModel.create(underlyingSettings, variables);
-        final var flowVariables =
-            nc.getFlowObjectStack().getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
+        final var flowObjectStack = nc.getFlowObjectStack();
         final var overwrittenSettings = new NodeSettings("overwritten");
         underlyingSettings.copyTo(overwrittenSettings);
+        if (flowObjectStack == null) {
+            return overwrittenSettings;
+        }
+        final var flowVariables =
+            nc.getFlowObjectStack().getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
         configEdit.overwriteSettings(overwrittenSettings, flowVariables);
         return overwrittenSettings;
     }
