@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from "vue";
 
 import { InputField, Label, NumberInput, SplitPanel } from "@knime/components";
 import {
@@ -150,6 +150,7 @@ const tableConfig = computed<TableConfig>(() => {
     subMenuItems: [],
     groupSubMenuItems: [],
     enableCellSelection: true,
+    enableHeaderCellSelection: true,
     enableEditingCells: true,
     enableVirtualScrolling: true,
     showNewColumnAndRowButton: true,
@@ -395,16 +396,17 @@ lastPosition?.rectId);
 
 };
 
-const addNewColumn = () => {
+const addNewColumn = async () => {
   const cols = dialogInitialData.value?.data?.model?.columns;
   if (cols && Array.isArray(cols)) {
-    const newColIndex = cols.length + 1;
+    const newColIndex = cols.length;
     cols.push({
-      name: "Column " + newColIndex,
+      name: "Column " + (newColIndex + 1),
       type: getTypeIdByText("String"),
       values: [],
     });
-    console.log("Added new column. Total columns now:", cols.length);
+    await nextTick();
+    tableComponent.value?.focusHeaderCell(newColIndex);
   }
 };
 </script>
