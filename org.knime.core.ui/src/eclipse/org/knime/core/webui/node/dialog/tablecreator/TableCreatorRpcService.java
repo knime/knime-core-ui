@@ -48,8 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.tablecreator;
 
-import org.knime.core.data.DataType;
-
 /**
  * RPC service interface for the Table Creator dialog. The frontend calls these methods to validate cell values against
  * data types.
@@ -61,18 +59,22 @@ public interface TableCreatorRpcService {
     /**
      * Validates whether each of the given string values can be converted to a cell of the given data type.
      *
-     * @param dataType the target data type
+     * @param serializedDataType the target data type as a serialized string (use
+     *            {@link org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeSerializationUtil.DataTypeSerializer#typeToString}
+     *            to serialize)
      * @param stringValues the string values to validate
      * @return an array of booleans, where {@code true} indicates a valid value
      */
-    Boolean[] validateCellsFromStringValues(DataType dataType, String[] stringValues);
+    Boolean[] validateCellsFromStringValues(String serializedDataType, String[] stringValues);
 
     /**
      * Validates whether the given string value can be converted to a cell of the given data type.
      *
-     * @param dataType the target data type
+     * @param serializedDataType the target data type as a serialized string (use
+     *            {@link org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeSerializationUtil.DataTypeSerializer#typeToString}
+     *            to serialize)
      * @param stringValue the string value to validate
      * @return {@code true} if the value is valid for the given type
      */
-    boolean validateCellFromStringValue(DataType dataType, String stringValue);
+    boolean validateCellFromStringValue(String serializedDataType, String stringValue);
 }

@@ -9,9 +9,12 @@ const modelValue = defineModel<CellData>();
 const stringValue = computed<string>({
     get: () => modelValue.value?.value ?? '',
     set: (val: string) => {
-        modelValue.value = { value: val, isValid: false};
+        // Set isValid: true optimistically - async validation will update later if invalid
+        modelValue.value = { value: val, isValid: true };
     },
 });
+
+const isValid = computed(() => modelValue.value?.isValid ?? true);
 const props = defineProps<{
     initialValue?: string;
     referenceElement: HTMLElement;
@@ -57,7 +60,13 @@ onMounted(() => {
         class="textArea"
         :style="{ left: `${x}px`, top: `${y}px` }"
     >
-        <TextArea :ref="inputFieldRef" v-model="stringValue" :rows="1" :cols="18" @pointerdown.stop
+        <TextArea
+            :ref="inputFieldRef"
+            v-model="stringValue"
+            :is-valid="isValid"
+            :rows="1"
+            :cols="18"
+            @pointerdown.stop
         />
     </div>
 </template>

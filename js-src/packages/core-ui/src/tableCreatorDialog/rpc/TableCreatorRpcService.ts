@@ -5,9 +5,27 @@ import type { JsonDataService } from "@knime/ui-extension-service";
  * Each method here corresponds to a Java RPC method.
  */
 export interface TableCreatorRpcMethods {
-  // Add RPC method signatures here as they are implemented on the backend
-  // Example:
-  // getColumnTypes(): Promise<Array<{ id: string; text: string }>>;
+  /**
+   * Validates whether the given string value can be converted to a cell of the given data type.
+   * @param dataType - The target data type identifier (e.g., "org.knime.core.data.def.StringCell")
+   * @param stringValue - The string value to validate
+   * @returns true if the value is valid for the given type
+   */
+  validateCellFromStringValue(
+    dataType: string,
+    stringValue: string,
+  ): Promise<boolean>;
+
+  /**
+   * Validates whether each of the given string values can be converted to a cell of the given data type.
+   * @param dataType - The target data type identifier
+   * @param stringValues - The string values to validate
+   * @returns an array of booleans, where true indicates a valid value
+   */
+  validateCellsFromStringValues(
+    dataType: string,
+    stringValues: string[],
+  ): Promise<boolean[]>;
 }
 
 /**
@@ -17,7 +35,7 @@ export interface TableCreatorRpcMethods {
  * Usage:
  * ```ts
  * const rpcService = createTableCreatorRpcService(jsonDataService);
- * const types = await rpcService.getColumnTypes();
+ * const isValid = await rpcService.validateCellFromStringValue(dataType, value);
  * ```
  *
  * Each call to `rpcService.methodName(arg1, arg2)` is translated to:

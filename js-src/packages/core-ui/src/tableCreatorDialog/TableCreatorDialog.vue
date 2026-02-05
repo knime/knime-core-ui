@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 
 import { SplitPanel } from "@knime/components";
 import {
@@ -25,6 +25,8 @@ import CellInputFloating from "./CellInputFloating.vue";
 import CellInput from "./CellInput.vue";
 import ColumnHeaderInput from "./ColumnHeaderInput.vue";
 import TableCell from "./TableCell.vue";
+import { createTableCreatorRpcService, type TableCreatorRpcMethods } from "./rpc/TableCreatorRpcService";
+import { useValidationCache, type ValidationCacheConfig } from "./composables/useValidationCache";
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
@@ -62,6 +64,70 @@ const dialogInitialData = ref<InitialData| null>(null);
 const dataTypeIdToHashIdMap = ref<Record<string, string>>({});
 
 let dialogService: DialogService;
+
+// RPC service for backend validation
+const rpcService = ref<TableCreatorRpcMethods | null>(null);
+
+// Validation cache configuration
+const validationConfig = computed<ValidationCacheConfig>(() => ({
+  rpcService: rpcService.value,
+  onValidityUpdate: (colIndex: number, rowIndex: number, isValid: boolean) => {
+    const cols = dialogInitialData.value?.data?.model?.columns;
+    if (cols && cols[colIndex]?.valuesIsValid) {
+      cols[colIndex].valuesIsValid![rowIndex] = isValid;
+    }
+  },
+}));
+
+// Validation cache composable
+const { validateCell, clearCache } = useValidationCache(validationConfig);
+
+/**
+ * Gets the data type for a column by its index.
+ * Returns the column's type property which corresponds to the data type ID.
+ */
+const getColumnDataType = (colIndex: number): string | null => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (!cols || !cols[colIndex]) {
+    return null;
+  }
+  return cols[colIndex].type ?? null;
+};
+
+/**
+ * Validates a cell value against its column's data type.
+ * This is called when cell values change.
+ */
+const validateCellValue = (colIndex: number, rowIndex: number, value: string | null) => {
+  const dataType = getColumnDataType(colIndex);
+  if (!dataType || value === null) {
+    return;
+  }
+  validateCell(dataType, value, colIndex, rowIndex);
+};
+
+/**
+ * Revalidates all values in a column.
+ * Called when the column's data type changes.
+ */
+const revalidateColumn = (colIndex: number, dataType: string) => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (!cols || !cols[colIndex]) {
+    return;
+  }
+  const column = cols[colIndex];
+  const values = column.values ?? [];
+
+  values.forEach((value, rowIndex) => {
+    if (value !== null) {
+      // Reset to valid optimistically, then validate
+      if (column.valuesIsValid) {
+        column.valuesIsValid[rowIndex] = true;
+      }
+      validateCell(dataType, value, colIndex, rowIndex);
+    }
+  });
+};
 
 // Minimal RPC method implementation for demo purposes
 const callRpcMethod: NodeDialogCoreRpcMethods = async (method, options) => {
@@ -382,6 +448,7 @@ const onPasteSelection = async ({
         name: "Column " + (cols.length + 1),
         type: getTypeIdByText("String"),
         values: [],
+        valuesIsValid: [],
       });
     }
 
@@ -393,6 +460,9 @@ const onPasteSelection = async ({
       if (!column.values) {
         column.values = [];
       }
+      if (!column.valuesIsValid) {
+        column.valuesIsValid = [];
+      }
 
       for (let rowOffset = 0; rowOffset < numRows; rowOffset++) {
         const rowIndex = y.min + rowOffset;
@@ -401,9 +471,14 @@ const onPasteSelection = async ({
         // Extend values array if needed
         while (column.values.length <= rowIndex) {
           column.values.push(null);
+          column.valuesIsValid!.push(true);
         }
 
         column.values[rowIndex] = value;
+        column.valuesIsValid![rowIndex] = true; // Optimistic
+
+        // Trigger async validation for each pasted cell
+        validateCellValue(colIndex, rowIndex, value);
       }
     }
 
@@ -438,6 +513,9 @@ onMounted(async () => {
   const initialData = await jsonDataService.initialData();
   console.log("Initial data:", initialData);
 
+  // Create RPC service for validation
+  rpcService.value = createTableCreatorRpcService(jsonDataService);
+
   // Set dialog initial data if available
   if (initialData) {
     dialogInitialData.value = JSON.parse(initialData.settingsInitialData) as InitialData;
@@ -451,13 +529,18 @@ onMounted(async () => {
     }
   }
 
-  dialogService.setApplyListener(() => 
+  dialogService.setApplyListener(() =>
     jsonDataService.applyData({
       data: dialogInitialData.value?.data,
       flowVariableSettings: dialogInitialData.value?.flowVariableSettings,
     })
   )
 
+});
+
+onUnmounted(() => {
+  // Clean up validation cache
+  clearCache();
 });
 
 const tableRef = "tableRef";
@@ -473,7 +556,11 @@ const addNewRow = (lastPosition: { columnInd: number, rectId: number | null } | 
       if (!col.values) {
         col.values = [];
       }
-      col.values.push(null); // Add empty string as new row value
+      if (!col.valuesIsValid) {
+        col.valuesIsValid = [];
+      }
+      col.values.push(null); // Add empty/null as new row value
+      col.valuesIsValid.push(true); // Empty values are valid
     });
     console.log("Added new row to", cols.length, "columns");
   }
@@ -513,6 +600,7 @@ const addNewColumn = async () => {
       name: "Column " + (newColIndex + 1),
       type: getTypeIdByText("String"),
       values: [],
+      valuesIsValid: [],
     });
     await nextTick();
     tableComponent.value?.focusHeaderCell(newColIndex);
@@ -567,9 +655,6 @@ const tableDataDisplay = computed(() => {
 </script>
 
 <template>
-  {{ dataDisplay  }}
-  Table Data: 
-  {{ tableDataDisplay  }}
   <div class="table-creator-dialog" tabindex="-1" @focus="refocusTable">
     <SplitPanel
       v-model:expanded="rightPaneExpanded"
@@ -621,15 +706,17 @@ const tableDataDisplay = computed(() => {
         />
       </template>
       <template #editable-cell="{ initialValue, rowInd, colInd, onKeydown, onClickAway, cellElement}">
-        <CellInputFloating 
+        <CellInputFloating
            :initial-value="initialValue"
            :model-value="tableData[0][rowInd]?.['col' + colInd]"
            :reference-element="cellElement"
            @update:model-value="(val) => {
               const value = val ? val.value : null;
-              const isValid = val ? val.isValid : true;
+              // Update value immediately (optimistic)
               dialogInitialData!.data.model!.columns[colInd].values![rowInd] = value;
-              dialogInitialData!.data.model!.columns[colInd].valuesIsValid![rowInd] = isValid;
+              dialogInitialData!.data.model!.columns[colInd].valuesIsValid![rowInd] = true;
+              // Trigger async validation
+              validateCellValue(colInd, rowInd, value);
            }"
            @keydown="onKeydown"
            @click-away="onClickAway"
@@ -659,7 +746,12 @@ const tableDataDisplay = computed(() => {
               v-if="selectedRowIndex >= 0 && selectedColumnIndex >= 0"
               :model-value="tableData[0][selectedRowIndex]?.['col' + selectedColumnIndex]"
               @update:model-value="(val) => {
-                  dialogInitialData!.data.model!.columns[selectedColumnIndex].values![selectedRowIndex] = val ? val.value : null;
+                  const value = val ? val.value : null;
+                  // Update value immediately (optimistic)
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex].values![selectedRowIndex] = value;
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex].valuesIsValid![selectedRowIndex] = true;
+                  // Trigger async validation
+                  validateCellValue(selectedColumnIndex, selectedRowIndex, value);
               }"
             />
             <ColumnHeaderInput
@@ -670,7 +762,13 @@ const tableDataDisplay = computed(() => {
                 :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
                 :state-provider-listener-value="dialogInitialData?.initialUpdates?.[0].values[0].value"
                 @update:column-data="(data) => {
+                  const oldType = dialogInitialData!.data.model!.columns[selectedColumnIndex].type;
+                  const newType = (data as any).type;
                   dialogInitialData!.data.model!.columns[selectedColumnIndex] = data as any;
+                  // Revalidate all values if the type changed
+                  if (oldType !== newType && newType) {
+                    revalidateColumn(selectedColumnIndex, newType);
+                  }
                 }"
               />
               <div

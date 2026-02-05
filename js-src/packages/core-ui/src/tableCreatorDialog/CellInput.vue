@@ -13,6 +13,8 @@ const stringValue = computed<string>({
     },
 });
 
+const isValid = computed(() => modelValue.value?.isValid ?? true);
+
 
 const inputFieldRef = 'inputField';
 const inputField = useTemplateRef<TextArea>(inputFieldRef);
@@ -30,10 +32,15 @@ defineExpose({
         label="Value"
     >
     <template #default="{labelForId}">
-        <TextArea 
-        :id="labelForId"
+        <TextArea
+            :id="labelForId"
             class="text-area-input"
-            :ref="inputFieldRef"  v-model="stringValue" :rows="5" :cols="18" @pointerdown.stop
+            :ref="inputFieldRef"
+            v-model="stringValue"
+            :is-valid="isValid"
+            :rows="5"
+            :cols="18"
+            @pointerdown.stop
         />
     </template>
     </LabeledControl>

@@ -48,10 +48,9 @@ defineProps<{
   pointer-events: none;
 
   &.invalid {
-    /**
-     * TODO: Change to --kds-color-background-static-danger-muted once available
-     */
-    background-color: var(--kds-color-background-danger-active);
+    /* Fallback for environments without light-dark() support */
+    background-color: hsl(0 100% 97%);
+    background-color: var(--kds-color-background-static-danger-muted);
   }
 }
 </style>

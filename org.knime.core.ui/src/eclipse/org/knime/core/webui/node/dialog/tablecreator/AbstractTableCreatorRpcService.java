@@ -44,53 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 2, 2026 (Paul Bärnreuther): created
+ *   Feb 5, 2026 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.tablecreator;
 
-import java.util.Optional;
-import java.util.Set;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Arrays;
 
-import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeSettingsService;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.page.Page;
+import org.knime.core.data.DataType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.config.base.JSONConfig;
 
 /**
- * Dialog for the Table Creator node.
+ * Abstract base implementation of {@link TableCreatorRpcService} that handles DataType deserialization.
+ * Subclasses only need to implement the methods with actual {@link DataType} parameters.
  *
  * @author Paul Bärnreuther
  */
-public class TableCreatorNodeDialog implements NodeDialog {
+public abstract class AbstractTableCreatorRpcService implements TableCreatorRpcService {
 
-    private static final Page PAGE = Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
-        .relativeFilePath("dist/TableCreatorDialog.js").addResourceDirectory("dist");
+    private static final String TYPE_CFG_KEY = "dataType";
 
     @Override
-    public Set<SettingsType> getSettingsTypes() {
-        return Set.of(SettingsType.MODEL);
+    public final Boolean[] validateCellsFromStringValues(final String serializedDataType, final String[] stringValues) {
+        final var dataType = deserializeDataType(serializedDataType);
+        return Arrays.stream(stringValues)
+            .map(val -> validateCellFromStringValueInternal(dataType, val))
+            .toArray(Boolean[]::new);
     }
 
     @Override
-    public NodeSettingsService getNodeSettingsService() {
-        return new TableCreatorNodeSettingsService();
+    public final boolean validateCellFromStringValue(final String serializedDataType, final String stringValue) {
+        final var dataType = deserializeDataType(serializedDataType);
+        return validateCellFromStringValueInternal(dataType, stringValue);
     }
 
-    @Override
-    public Optional<RpcDataService> createRpcDataService() {
-        return Optional.empty();
-    }
+    /**
+     * Validates whether the given string value can be converted to a cell of the given data type.
+     *
+     * @param dataType the target data type
+     * @param stringValue the string value to validate
+     * @return {@code true} if the value is valid for the given type
+     */
+    protected abstract boolean validateCellFromStringValueInternal(DataType dataType, String stringValue);
 
-    @Override
-    public boolean canBeEnlarged() {
-        return true;
+    private static DataType deserializeDataType(final String serializedDataType) {
+        try {
+            final var settings = new NodeSettings("data_type_deserialization_settings");
+            JSONConfig.readJSON(settings, new StringReader(serializedDataType));
+            return settings.getDataType(TYPE_CFG_KEY);
+        } catch (IOException | InvalidSettingsException ex) {
+            throw new IllegalArgumentException("Could not deserialize DataType from: " + serializedDataType, ex);
+        }
     }
-
-    @Override
-    public Page getPage() {
-        return PAGE;
-    }
-
 }
