@@ -49,8 +49,7 @@ defineProps<{
 
   &.invalid {
     /* Fallback for environments without light-dark() support */
-    background-color: hsl(0 100% 97%);
-    background-color: var(--kds-color-background-static-danger-muted);
+    background-color: var(--kds-color-background-static-danger-muted, hsl(0, 100%, 97.1%));
   }
 }
 </style>

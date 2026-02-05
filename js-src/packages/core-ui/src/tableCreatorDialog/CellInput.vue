@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { TextArea } from '@knime/components';
-import { Form, LabeledControl } from '@knime/jsonforms';
-import { computed, useTemplateRef } from 'vue';
+import { TextArea, ValueSwitch } from '@knime/components';
+import { LabeledControl } from '@knime/jsonforms';
+import { computed, nextTick, useTemplateRef } from 'vue';
 import type { CellData } from './TableCreatorDialog.vue';
 
 const modelValue = defineModel<CellData>();
@@ -13,17 +13,34 @@ const stringValue = computed<string>({
     },
 });
 
+type MissingSwitchValue = "VALUE" | "MISSING";
+const valueSwitchPossibleValues : {id : MissingSwitchValue, text: string}[] = [
+    { id: "VALUE", text: "Value" },
+    { id: "MISSING", text: "Missing value" },
+];
+
+const missingSwitchValue = computed<MissingSwitchValue>({
+    get: () => modelValue.value?.value === undefined ? "MISSING" : "VALUE",
+    set: (val: MissingSwitchValue) => {
+        if (val === "MISSING") {
+            modelValue.value = null; 
+        } else {
+            stringValue.value = stringValue.value || '';
+            nextTick(                focusValueInput
+            );
+        }
+    }
+});
+
 const isValid = computed(() => modelValue.value?.isValid ?? true);
 
 
 const inputFieldRef = 'inputField';
 const inputField = useTemplateRef<TextArea>(inputFieldRef);
 
-defineExpose({
-    focus: () => {
+const   focusValueInput = () => {
         inputField.value?.$refs.input.focus();
-    },
-})
+    }
 
 </script>
 
@@ -32,7 +49,18 @@ defineExpose({
         label="Value"
     >
     <template #default="{labelForId}">
+        <ValueSwitch
+        class="value-switch"
+            
+        compact
+        v-model="missingSwitchValue"
+        :possible-values="valueSwitchPossibleValues
+
+        "
+            
+        />
         <TextArea
+        v-if="missingSwitchValue === 'VALUE'"
             :id="labelForId"
             class="text-area-input"
             :ref="inputFieldRef"
@@ -47,6 +75,10 @@ defineExpose({
 </template>
 
 <style lang="postcss" scoped>
+.value-switch {
+    margin-bottom: 8px;
+}
+
 .text-area-input {
   max-width: 100%;
 

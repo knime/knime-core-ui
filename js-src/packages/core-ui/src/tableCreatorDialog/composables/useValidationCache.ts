@@ -23,10 +23,11 @@ type ValidationResult = {
 
 /**
  * Callback to update cell validity.
+ * Uses stable IDs instead of indices to handle row/column deletion during async validation.
  */
 export type ValidityUpdateCallback = (
-  colIndex: number,
-  rowIndex: number,
+  columnId: string,
+  rowId: string,
   isValid: boolean,
 ) => void;
 
@@ -83,19 +84,19 @@ export const useValidationCache = (
    *
    * @param dataType - The data type to validate against
    * @param value - The string value to validate
-   * @param colIndex - Column index for callback
-   * @param rowIndex - Row index for callback
+   * @param columnId - Stable column ID for callback
+   * @param rowId - Stable row ID for callback
    * @returns The immediate (possibly cached or optimistic) validity
    */
   const validateCell = (
     dataType: string,
     value: string,
-    colIndex: number,
-    rowIndex: number,
+    columnId: string,
+    rowId: string,
   ): boolean => {
     // Empty/null values are always valid (missing values are allowed)
     if (value === null || value === undefined || value === "") {
-      config.value.onValidityUpdate(colIndex, rowIndex, true);
+      config.value.onValidityUpdate(columnId, rowId, true);
       return true;
     }
 
@@ -103,7 +104,7 @@ export const useValidationCache = (
     const cached = getCachedResult(dataType, value);
     if (cached && !cached.isPending) {
       // We have a definitive cached result
-      config.value.onValidityUpdate(colIndex, rowIndex, cached.isValid);
+      config.value.onValidityUpdate(columnId, rowId, cached.isValid);
       return cached.isValid;
     }
 
@@ -139,8 +140,8 @@ export const useValidationCache = (
         // Update cache with final result
         setCachedResult(dataType, value, { isValid, isPending: false });
 
-        // Update the cell via callback
-        config.value.onValidityUpdate(colIndex, rowIndex, isValid);
+        // Update the cell via callback (using stable IDs)
+        config.value.onValidityUpdate(columnId, rowId, isValid);
 
         // Clean up pending map
         pendingValidations.value.delete(cacheKey);
@@ -150,7 +151,7 @@ export const useValidationCache = (
         if (!abortController.signal.aborted) {
           console.warn("Validation error:", error);
           setCachedResult(dataType, value, { isValid: true, isPending: false });
-          config.value.onValidityUpdate(colIndex, rowIndex, true);
+          config.value.onValidityUpdate(columnId, rowId, true);
           pendingValidations.value.delete(cacheKey);
         }
       });
@@ -175,14 +176,6 @@ export const useValidationCache = (
   };
 
   /**
-   * Clears the validation cache for a specific data type.
-   * Useful when the column type changes.
-   */
-  const clearCacheForType = (dataType: string): void => {
-    cache.value.delete(dataType);
-  };
-
-  /**
    * Clears the entire validation cache.
    */
   const clearCache = (): void => {
@@ -195,7 +188,6 @@ export const useValidationCache = (
   return {
     validateCell,
     isCachedValid,
-    clearCacheForType,
     clearCache,
   };
 };

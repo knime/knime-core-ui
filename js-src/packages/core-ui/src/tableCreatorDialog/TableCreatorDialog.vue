@@ -30,6 +30,10 @@ import { useValidationCache, type ValidationCacheConfig } from "./composables/us
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
+// ID generator for stable cell identification
+let idCounter = 0;
+const generateId = () => `cell-${++idCounter}`;
+
 // Display mode tracking
 const displayMode = ref<"small" | "large">("small");
 const isLargeMode = computed(() => displayMode.value === "large");
@@ -49,6 +53,10 @@ const coreComponent = ref<InstanceType<typeof NodeDialogCore> | null>(null);
       valuesIsValid?: boolean[];
     }[];
   }
+
+// Stable IDs for validation (separate from data model)
+const columnIds = ref<string[]>([]);
+const rowIds = ref<string[]>([]);
 
 type InitialData = NodeDialogCoreInitialData & {
   data: {
@@ -71,10 +79,17 @@ const rpcService = ref<TableCreatorRpcMethods | null>(null);
 // Validation cache configuration
 const validationConfig = computed<ValidationCacheConfig>(() => ({
   rpcService: rpcService.value,
-  onValidityUpdate: (colIndex: number, rowIndex: number, isValid: boolean) => {
-    const cols = dialogInitialData.value?.data?.model?.columns;
-    if (cols && cols[colIndex]?.valuesIsValid) {
-      cols[colIndex].valuesIsValid![rowIndex] = isValid;
+  onValidityUpdate: (columnId: string, rowId: string, isValid: boolean) => {
+    // Look up current indices from stable IDs
+    const colIdx = columnIdToIndex.value.get(columnId);
+    if (colIdx === undefined) return; // Column was deleted
+
+    const rowIdx = rowIdToIndex.value.get(rowId);
+    if (rowIdx === undefined) return; // Row was deleted
+
+    const col = columns.value[colIdx];
+    if (col?.valuesIsValid) {
+      col.valuesIsValid[rowIdx] = isValid;
     }
   },
 }));
@@ -103,7 +118,13 @@ const validateCellValue = (colIndex: number, rowIndex: number, value: string | n
   if (!dataType || value === null) {
     return;
   }
-  validateCell(dataType, value, colIndex, rowIndex);
+
+  const columnId = columnIds.value[colIndex];
+  const rowId = rowIds.value[rowIndex];
+
+  if (!columnId || !rowId) return;
+
+  validateCell(dataType, value, columnId, rowId);
 };
 
 /**
@@ -117,6 +138,7 @@ const revalidateColumn = (colIndex: number, dataType: string) => {
   }
   const column = cols[colIndex];
   const values = column.values ?? [];
+  const columnId = columnIds.value[colIndex];
 
   values.forEach((value, rowIndex) => {
     if (value !== null) {
@@ -124,7 +146,10 @@ const revalidateColumn = (colIndex: number, dataType: string) => {
       if (column.valuesIsValid) {
         column.valuesIsValid[rowIndex] = true;
       }
-      validateCell(dataType, value, colIndex, rowIndex);
+      const rowId = rowIds.value[rowIndex];
+      if (columnId && rowId) {
+        validateCell(dataType, value, columnId, rowId);
+      }
     }
   });
 };
@@ -159,6 +184,20 @@ const selectedRowIndex = computed(() => {
 const columns = computed(() => {
   const cols = dialogInitialData.value?.data?.model?.columns;
   return Array.isArray(cols) ? cols : [];
+});
+
+// Map columnId -> current column index for O(1) lookup
+const columnIdToIndex = computed(() => {
+  const map = new Map<string, number>();
+  columnIds.value.forEach((id, idx) => map.set(id, idx));
+  return map;
+});
+
+// Map rowId -> current row index for O(1) lookup
+const rowIdToIndex = computed(() => {
+  const map = new Map<string, number>();
+  rowIds.value.forEach((id, idx) => map.set(id, idx));
+  return map;
 });
 
 const unknownDataType = { id: "unknown-datatype", text: "Unknown datatype" };
@@ -221,8 +260,15 @@ const dataConfig = computed<DataConfig>(() => {
 const setAllCellsValidInitially = (initialData: InitialData) => {
   const cols = initialData.data?.model?.columns;
   if (Array.isArray(cols)) {
+    // Find max row count
+    const maxRowCount = Math.max(0, ...cols.map(col => (col.values ?? []).length));
+
+    // Generate IDs for columns and rows
+    columnIds.value = cols.map(() => generateId());
+    rowIds.value = Array.from({ length: maxRowCount }, () => generateId());
+
     cols.forEach((col) => {
-      const values =  col.values ?? [];
+      const values = col.values ?? [];
       col.valuesIsValid = values.map(() => true); // All valid initially
     });
   }
@@ -444,12 +490,20 @@ const onPasteSelection = async ({
     // Create new columns if pasting beyond existing columns
     const neededColumns = x.min + numCols;
     while (cols.length < neededColumns) {
+      columnIds.value.push(generateId());
       cols.push({
         name: "Column " + (cols.length + 1),
         type: getTypeIdByText("String"),
-        values: [],
-        valuesIsValid: [],
+        values: Array(rowIds.value.length).fill(null),
+        valuesIsValid: Array(rowIds.value.length).fill(true),
       });
+    }
+
+    // Add new row IDs if pasting beyond existing rows
+    const existingRowCount = rowIds.value.length;
+    const targetRowCount = y.min + numRows;
+    while (rowIds.value.length < targetRowCount) {
+      rowIds.value.push(generateId());
     }
 
     // Update column values starting from the selection position
@@ -464,20 +518,20 @@ const onPasteSelection = async ({
         column.valuesIsValid = [];
       }
 
+      // Extend arrays for new rows
+      while (column.values.length < rowIds.value.length) {
+        column.values.push(null);
+        column.valuesIsValid!.push(true);
+      }
+
       for (let rowOffset = 0; rowOffset < numRows; rowOffset++) {
         const rowIndex = y.min + rowOffset;
         const value = rows[rowOffset][colOffset];
 
-        // Extend values array if needed
-        while (column.values.length <= rowIndex) {
-          column.values.push(null);
-          column.valuesIsValid!.push(true);
-        }
-
         column.values[rowIndex] = value;
         column.valuesIsValid![rowIndex] = true; // Optimistic
 
-        // Trigger async validation for each pasted cell
+        // Trigger async validation
         validateCellValue(colIndex, rowIndex, value);
       }
     }
@@ -552,6 +606,9 @@ const columnHeaderInputRef = useTemplateRef<InstanceType<typeof ColumnHeaderInpu
 const addNewRow = (lastPosition: { columnInd: number, rectId: number | null } | null) => {
   const cols = dialogInitialData.value?.data?.model?.columns;
   if (cols && Array.isArray(cols)) {
+    // Add new row ID
+    rowIds.value.push(generateId());
+
     cols.forEach((col) => {
       if (!col.values) {
         col.values = [];
@@ -592,15 +649,29 @@ const exitRightPane = () => {
   tableComponent.value?.refocusSelection();
 };
 
+// Debug: Delete first column
+const deleteFirstColumn = () => {
+  const cols = dialogInitialData.value?.data?.model?.columns;
+  if (cols && cols.length > 0) {
+    cols.shift();
+    columnIds.value.shift();
+  }
+};
+
 const addNewColumn = async () => {
   const cols = dialogInitialData.value?.data?.model?.columns;
   if (cols && Array.isArray(cols)) {
     const newColIndex = cols.length;
+    // Add new column ID
+    columnIds.value.push(generateId());
+
+    // Initialize values/validity for existing rows
+    const numRows = rowIds.value.length;
     cols.push({
       name: "Column " + (newColIndex + 1),
       type: getTypeIdByText("String"),
-      values: [],
-      valuesIsValid: [],
+      values: Array(numRows).fill(null),
+      valuesIsValid: Array(numRows).fill(true),
     });
     await nextTick();
     tableComponent.value?.focusHeaderCell(newColIndex);
@@ -723,6 +794,8 @@ const tableDataDisplay = computed(() => {
         />
       </template>
       </TableUI>
+
+        <button @click="deleteFirstColumn">DEBUG: Delete first column</button>
 
         <div v-if="!isLargeMode" class="small-mode-hint">
           <p>
