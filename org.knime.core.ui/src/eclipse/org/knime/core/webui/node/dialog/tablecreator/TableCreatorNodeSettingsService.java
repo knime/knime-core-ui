@@ -46,7 +46,7 @@
  * History
  *   Jan 6, 2026 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.tablecreator;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -67,10 +67,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeS
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-final class HiddenBigDialogNodeSettingsService implements NodeSettingsService {
+final class TableCreatorNodeSettingsService implements NodeSettingsService {
 
     static final NodeSettingsService settingsService =
-        new DefaultNodeSettingsService(Map.of(SettingsType.MODEL, HiddenBigDialogNodeParameters.class),
+        new DefaultNodeSettingsService(Map.of(SettingsType.MODEL, TableCreatorNodeParameters.class),
             new NodeDialogServiceRegistry(new FileSystemConnector(), new CustomValidationContext(),
                 new DynamicParametersTriggerInvocationHandlerContext()));
 

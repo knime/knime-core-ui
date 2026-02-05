@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { FocusTrap } from "focus-trap-vue";
 
 import { InputField, Label, NumberInput, SplitPanel } from "@knime/components";
 import {
@@ -9,6 +10,7 @@ import {
 } from "@knime/ui-extension-service";
 import {
   TableUI,
+  type ColumnConfig,
   type DataConfig,
   type TableConfig,
 } from "@knime/knime-ui-table";
@@ -17,10 +19,12 @@ import NodeDialogCore from "../nodeDialog/NodeDialogCore.vue";
 import type { NodeDialogCoreRpcMethods } from "../nodeDialog/api/types/RpcTypes";
 import type { NodeDialogCoreInitialData } from "../nodeDialog/types/InitialData";
 import useFlowVariableSystem from "../nodeDialog/composables/useFlowVariableSystem";
-import { defaultRenderers, JsonFormsDialog } from "@knime/jsonforms";
+import { Form } from "@knime/jsonforms";
 import SubHeaderTypeRendererBase from "@/tableView/components/SubHeaderTypeRendererBase.vue";
 import type { JsonSchema } from "@jsonforms/core";
+import CellInputFloating from "./CellInputFloating.vue";
 import CellInput from "./CellInput.vue";
+import ColumnHeaderInput from "./ColumnHeaderInput.vue";
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
@@ -65,10 +69,6 @@ const selectedRowIndex = computed(() => {
   return cellPosition.value ? cellPosition.value.y : -1;
 });
 
-const isHeaderCellSelected = computed(() => {
-  return cellPosition.value ? cellPosition.value.y === -1 : false;
-})
-
 // Extract columns from dialog initial data
 const columns = computed(() => {
   const cols = dialogInitialData.value?.data?.model?.columns;
@@ -111,13 +111,14 @@ const getTypeIdByText = (typeText: string) => {
 const dataConfig = computed<DataConfig>(() => {
   const cols = columns.value;
 
-  const columnConfigs = cols.map((col, index) => ({
+  const columnConfigs: ColumnConfig[] = cols.map((col, index) => ({
     header: col?.name ?? "",
     subHeader: col?.type,
     size: 150,
     type: col?.type ?? "?",
     key: `col${index}`,
     id: `col${index}`,
+    hasSlotContent: true,
     formatter: (value: any) => (value !== undefined && value !== null ? String(value) : ""),
   }));
 
@@ -425,6 +426,8 @@ const setStateProviderListener = (...listenerArgs: any) => {
 
 const tableRef = "tableRef";
 const tableComponent = useTemplateRef<typeof TableUI>(tableRef);
+const columnHeaderInputRef = useTemplateRef<InstanceType<typeof ColumnHeaderInput>>("columnHeaderInput");
+const rightPaneFocusTrap = ref<typeof FocusTrap | null>(null);
 
 
 
@@ -450,6 +453,23 @@ lastPosition?.rectId);
 
 };
 
+const refocusTable = (event: FocusEvent) => {
+  if (event.target === event.currentTarget) {
+    tableComponent.value?.refocusSelection();
+  }
+};
+
+const onHeaderCellStartEditing = (
+  _columnIndex: number,
+  initialValue?: string,
+) => {
+  columnHeaderInputRef.value?.focusFirstInput(initialValue);
+};
+
+const exitRightPane = () => {
+  tableComponent.value?.refocusSelection();
+};
+
 const addNewColumn = async () => {
   const cols = dialogInitialData.value?.data?.model?.columns;
   if (cols && Array.isArray(cols)) {
@@ -463,10 +483,13 @@ const addNewColumn = async () => {
     tableComponent.value?.focusHeaderCell(newColIndex);
   }
 };
+
+const tableCreatorDialogRef = "tableCreatorDialog";
+const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef);
 </script>
 
 <template>
-  <div class="table-creator-dialog">
+  <div :ref="tableCreatorDialogRef" class="table-creator-dialog" tabindex="-1" @focus="refocusTable">
     <SplitPanel
       v-model:expanded="rightPaneExpanded"
       v-model:secondary-size="rightPaneSize"
@@ -499,7 +522,17 @@ const addNewColumn = async () => {
             @cell-selection-change="onCellPositionChange"
             @new-row-button-click="addNewRow($event)"
             @new-column-button-click="addNewColumn()"
+            @header-cell-start-editing="onHeaderCellStartEditing"
           >
+          <template
+        v-for="config in dataConfig.columnConfigs"
+        :key="config.key"
+        #[`cellContent-${String(config.key)}`]="{
+          data: { cell, width, height, paddingTopBottom },
+        }"
+      >
+      {{ cell }}
+    </template>
            <template #subHeader="{ subHeader }">
         <SubHeaderTypeRendererBase
             :icon-name="getTypeIdAndText(subHeader).id"
@@ -507,7 +540,7 @@ const addNewColumn = async () => {
         />
       </template>
       <template #editable-cell="{ initialValue, rowInd, colInd, onKeydown, onClickAway, cellElement}">
-        <CellInput 
+        <CellInputFloating 
            :initial-value="initialValue"
            :model-value="tableData[0][rowInd]?.['col' + colInd]"
            :reference-element="cellElement"
@@ -529,23 +562,40 @@ const addNewColumn = async () => {
 
       <!-- Right panel - only visible in large mode -->
       <template #secondary>
-        <div v-if="dialogInitialData" class="right-pane">
-          <template v-if="isHeaderCellSelected">
-            <JsonFormsDialog
-              :data="dialogInitialData.data.model!.columns[selectedColumnIndex]"
-              :schema="dialogInitialData.schema.properties!.model.properties!.columns.items as JsonSchema"
-              :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
-              @change="({data}) => {
-                dialogInitialData!.data.model!.columns[selectedColumnIndex] = data;
+        <FocusTrap
+          active
+          v-if="dialogInitialData"
+          ref="rightPaneFocusTrap"
+          :escape-deactivates="false"
+          :click-outside-deactivates="false"
+          :fallback-focus="() => tableCreatorDialog!"
+          @focus="refocusTable"
+          @keydown.esc.prevent.stop="exitRightPane"
+          @keydown.enter.prevent.stop="exitRightPane"
+        >
+          <div class="right-pane" tabindex="-1"
+          >
+            <CellInput
+            class="cell-input"
+              v-if="selectedRowIndex >= 0 && selectedColumnIndex >= 0"
+              :model-value="tableData[0][selectedRowIndex]?.['col' + selectedColumnIndex]"
+              @update:model-value="(val) => {
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex].values[selectedRowIndex] = val;
               }"
-              :renderers="defaultRenderers"
-              @state-provider-listener="(_id, callback) => callback(dialogInitialData?.initialUpdates[0].values[0].value)"
             />
-          </template>
-          <template v-else-if="selectedRowIndex >= 0 && selectedColumnIndex >= 0">
-           TODO: Cell editor for row {{selectedRowIndex}}, {{ selectedColumnIndex }}  
-          </template>
-        </div>
+            <ColumnHeaderInput
+                ref="columnHeaderInput"
+                v-else-if="selectedColumnIndex >= 0"
+                :column-data="dialogInitialData.data.model!.columns[selectedColumnIndex]"
+                :schema="dialogInitialData.schema.properties!.model.properties!.columns.items as JsonSchema"
+                :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
+                :state-provider-listener-value="dialogInitialData?.initialUpdates[0].values[0].value"
+                @update:column-data="(data) => {
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex] = data;
+                }"
+              />
+          </div>
+        </FocusTrap>
       </template>
     </SplitPanel>
   </div>
@@ -588,6 +638,10 @@ const addNewColumn = async () => {
   height: 100%;
   overflow-y: auto;
   border-left: 1px solid var(--knime-gray-light, #e0e0e0);
+
+  & .cell-input {
+    padding: var(--space-16);
+  }
 }
 
 .loading {

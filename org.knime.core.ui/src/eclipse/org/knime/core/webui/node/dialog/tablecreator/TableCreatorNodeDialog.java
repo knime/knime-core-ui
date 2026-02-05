@@ -46,7 +46,7 @@
  * History
  *   Jan 2, 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.tablecreator;
 
 import java.util.Optional;
 import java.util.Set;
@@ -59,11 +59,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.page.Page;
 
 /**
- * Dialog for the hidden big dialog node.
+ * Dialog for the Table Creator node.
  *
  * @author Paul Bärnreuther
  */
-class HiddenBigDialogNodeDialog implements NodeDialog {
+public class TableCreatorNodeDialog implements NodeDialog {
 
     private static final Page PAGE = Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
         .relativeFilePath("dist/TableCreatorDialog.js").addResourceDirectory("dist");
@@ -75,13 +75,12 @@ class HiddenBigDialogNodeDialog implements NodeDialog {
 
     @Override
     public NodeSettingsService getNodeSettingsService() {
-        return new HiddenBigDialogNodeSettingsService();
+        return new TableCreatorNodeSettingsService();
     }
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
-        // TODO: Implement RPC data service
-        return Optional.empty();
+        return Optional.empty();// new TableCreatorRpcDataService();
     }
 
     @Override

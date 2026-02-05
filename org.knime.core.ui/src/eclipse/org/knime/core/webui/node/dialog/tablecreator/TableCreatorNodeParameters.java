@@ -46,7 +46,7 @@
  * History
  *   Jan 2, 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.tablecreator;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
@@ -57,7 +57,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 @LoadDefaultsForAbsentFields
-class HiddenBigDialogNodeParameters implements NodeParameters {
+public class TableCreatorNodeParameters implements NodeParameters {
 
     @Widget(title = "Columns", description = "The columns to create.")
     ColumnParameters[] m_columns = new ColumnParameters[0];

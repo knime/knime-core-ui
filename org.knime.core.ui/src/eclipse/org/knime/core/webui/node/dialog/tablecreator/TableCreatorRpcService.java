@@ -44,83 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 2, 2026 (Paul Bärnreuther): created
+ *   Feb 4, 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.tablecreator;
 
-import java.io.IOException;
-
-import org.apache.xmlbeans.XmlException;
-import org.knime.core.node.NodeDescription;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
-import org.xml.sax.SAXException;
+import org.knime.core.data.DataType;
 
 /**
- * Factory for the hidden big dialog node.
+ * RPC service interface for the Table Creator dialog. The frontend calls these methods to validate cell values against
+ * data types.
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("deprecation")
-public class HiddenBigDialogNodeFactory extends NodeFactory<HiddenBigDialogNodeModel> implements NodeDialogFactory {
+public interface TableCreatorRpcService {
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("WebUI Big Dialog (Labs)")//
-        .icon("")//
-        .shortDescription("""
-                This hidden node is used to test big dialog features.
-                """)//
-        .fullDescription("""
-                This hidden node is used to test big dialog features in the WebUI.
-                It will not be kept backwards compatible.
-                """)//
-        .modelSettingsClass(HiddenBigDialogNodeParameters.class)//
-        .nodeType(NodeType.Other)//
-        .build();
+    /**
+     * Validates whether each of the given string values can be converted to a cell of the given data type.
+     *
+     * @param dataType the target data type
+     * @param stringValues the string values to validate
+     * @return an array of booleans, where {@code true} indicates a valid value
+     */
+    Boolean[] validateCellsFromStringValues(DataType dataType, String[] stringValues);
 
-    @Override
-    public HiddenBigDialogNodeModel createNodeModel() {
-        return new HiddenBigDialogNodeModel(CONFIG);
-
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @SuppressWarnings("removal")
-    @Override
-    public NodeView<HiddenBigDialogNodeModel> createNodeView(final int viewIndex,
-        final HiddenBigDialogNodeModel nodeModel) {
-        return null;
-    }
-
-    @SuppressWarnings("removal")
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    @Override
-    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        return WebUINodeFactory.createNodeDescription(CONFIG);
-    }
-
-    @SuppressWarnings("removal")
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return null;
-    }
-
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new HiddenBigDialogNodeDialog();
-    }
-
+    /**
+     * Validates whether the given string value can be converted to a cell of the given data type.
+     *
+     * @param dataType the target data type
+     * @param stringValue the string value to validate
+     * @return {@code true} if the value is valid for the given type
+     */
+    boolean validateCellFromStringValue(DataType dataType, String stringValue);
 }
