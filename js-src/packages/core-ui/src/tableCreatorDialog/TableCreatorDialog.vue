@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, ref, useTemplateRef } from "vue";
-import { FocusTrap } from "focus-trap-vue";
 
-import { InputField, Label, NumberInput, SplitPanel } from "@knime/components";
+import { SplitPanel } from "@knime/components";
 import {
   DialogService,
   JsonDataService,
@@ -11,6 +10,7 @@ import {
 import {
   TableUI,
   type ColumnConfig,
+  type ColumnType,
   type DataConfig,
   type TableConfig,
 } from "@knime/knime-ui-table";
@@ -19,12 +19,12 @@ import NodeDialogCore from "../nodeDialog/NodeDialogCore.vue";
 import type { NodeDialogCoreRpcMethods } from "../nodeDialog/api/types/RpcTypes";
 import type { NodeDialogCoreInitialData } from "../nodeDialog/types/InitialData";
 import useFlowVariableSystem from "../nodeDialog/composables/useFlowVariableSystem";
-import { Form } from "@knime/jsonforms";
 import SubHeaderTypeRendererBase from "@/tableView/components/SubHeaderTypeRendererBase.vue";
 import type { JsonSchema } from "@jsonforms/core";
 import CellInputFloating from "./CellInputFloating.vue";
 import CellInput from "./CellInput.vue";
 import ColumnHeaderInput from "./ColumnHeaderInput.vue";
+import TableCell from "./TableCell.vue";
 
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
@@ -38,7 +38,27 @@ const rightPaneSize = ref<number>(300);
 
 // NodeDialogCore
 const coreComponent = ref<InstanceType<typeof NodeDialogCore> | null>(null);
-const dialogInitialData = ref<NodeDialogCoreInitialData | null>(null);
+
+  type TableCreatorParameters = {
+    columns: {
+      name: string;
+      type?: ColumnType;
+      values?: (string | null)[];
+      valuesIsValid?: boolean[];
+    }[];
+  }
+
+type InitialData = NodeDialogCoreInitialData & {
+  data: {
+    model: TableCreatorParameters
+  }
+  ui_schema: {
+    elements: any[];
+  };
+  flowVariableSettings?: Record<string, any>;
+}
+
+const dialogInitialData = ref<InitialData| null>(null);
 const dataTypeIdToHashIdMap = ref<Record<string, string>>({});
 
 let dialogService: DialogService;
@@ -92,19 +112,19 @@ const getTypeIdAndText = (typeId: string | undefined) => {
   )?.type ?? unknownDataType;
 };
 
-const getTypeIdByText = (typeText: string) => {
+const getTypeIdByText = (typeText: string): ColumnType => {
   if (!dialogInitialData.value) {
-    return "unknown-datatype";
+    return "unknown-datatype" as ColumnType;
   }
 
-  const possibleValues = dialogInitialData.value.initialUpdates![0].values[0].value as {id: string; type: {
+  const possibleValues = dialogInitialData.value.initialUpdates![0].values[0].value as {id: ColumnType; type: {
   id: string;
     text: string;
   }}[];
   const found = possibleValues.find(
     (item: any) => item.type.text === typeText
   );
-  return found ? found.id : "unknown-datatype";
+  return found ? found.id : "unknown-datatype" as ColumnType;
 };
 
 // Data configuration computed from columns
@@ -115,10 +135,12 @@ const dataConfig = computed<DataConfig>(() => {
     header: col?.name ?? "",
     subHeader: col?.type,
     size: 150,
-    type: col?.type ?? "?",
+    type: col?.type ?? "?" as ColumnType,
     key: `col${index}`,
     id: `col${index}`,
     hasSlotContent: true,
+    noPadding: true,
+    noPaddingLeft: true,
     formatter: (value: any) => (value !== undefined && value !== null ? String(value) : ""),
   }));
 
@@ -129,6 +151,21 @@ const dataConfig = computed<DataConfig>(() => {
     },
   };
 });
+
+const setAllCellsValidInitially = (initialData: InitialData) => {
+  const cols = initialData.data?.model?.columns;
+  if (Array.isArray(cols)) {
+    cols.forEach((col) => {
+      const values =  col.values ?? [];
+      col.valuesIsValid = values.map(() => true); // All valid initially
+    });
+  }
+};
+
+export type CellData = {
+  value: string;
+  isValid: boolean;
+} | null;
 
 // Table data computed from columns
 // TableUI expects an array of groups, where each group is an array of row objects
@@ -141,13 +178,18 @@ const tableData = computed(() => {
 
   // Find the maximum number of rows across all columns
   const numRows = Math.max(0, ...cols.map(col => (col?.values ?? []).length));
-  const rows: any[] = [];
+  const rows: CellData[][] = [];
 
   for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
     const row: any = {};
     cols.forEach((col, colIndex) => {
       const values = col?.values ?? [];
-      row[`col${colIndex}`] = values[rowIndex] ?? null;
+      const isValid = col?.valuesIsValid ? col.valuesIsValid[rowIndex] : false;
+      if ((values[rowIndex] ?? null) === null) {
+        row[`col${colIndex}`] = null;
+        return;
+      }
+      row[`col${colIndex}`] =  { value: values[rowIndex], isValid };
     });
     rows.push(row);
   }
@@ -398,7 +440,8 @@ onMounted(async () => {
 
   // Set dialog initial data if available
   if (initialData) {
-    dialogInitialData.value = JSON.parse(initialData.settingsInitialData) as NodeDialogCoreInitialData;
+    dialogInitialData.value = JSON.parse(initialData.settingsInitialData) as InitialData;
+    setAllCellsValidInitially(dialogInitialData.value);
     dataTypeIdToHashIdMap.value = initialData.dataTypeIdToHashIdMap || {};
 
 
@@ -417,17 +460,9 @@ onMounted(async () => {
 
 });
 
-const onChange = ({data}) => {
-}
-const setStateProviderListener = (...listenerArgs: any) => {
-  console.log("State provider listener set:", listenerArgs);
-};
-
-
 const tableRef = "tableRef";
 const tableComponent = useTemplateRef<typeof TableUI>(tableRef);
 const columnHeaderInputRef = useTemplateRef<InstanceType<typeof ColumnHeaderInput>>("columnHeaderInput");
-const rightPaneFocusTrap = ref<typeof FocusTrap | null>(null);
 
 
 
@@ -484,12 +519,58 @@ const addNewColumn = async () => {
   }
 };
 
-const tableCreatorDialogRef = "tableCreatorDialog";
-const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef);
+
+const shadowRoot = inject("shadowRoot", null);
+
+const activeElement = ref<HTMLElement | null>(null);
+onMounted(() => {
+  // reevaluate every second
+  setInterval(() => {
+    const activeEl = shadowRoot
+      ? (shadowRoot as ShadowRoot).activeElement as HTMLElement | null
+      : document.activeElement as HTMLElement | null;
+    activeElement.value = activeEl;
+  }, 1000);
+})
+
+const dataDisplay = computed(() => {
+//show dialogInitialData without the column types: 
+  if (!dialogInitialData.value) {
+    return "No initial data";
+  }
+  const displayData = {
+    ...dialogInitialData.value,
+    data: {
+      ...dialogInitialData.value.data,
+      model: {
+        ...dialogInitialData.value.data.model,
+        columns: dialogInitialData.value.data.model.columns.map((col) => ({
+          ...col,
+          type: undefined, // Remove type for display
+        })),
+      },
+    },
+  };
+  return JSON.stringify(displayData.data, null, 2);
+
+
+});
+
+const tableDataDisplay = computed(() => {
+  return JSON.stringify(tableData.value);
+});
+
+
+
+
+
 </script>
 
 <template>
-  <div :ref="tableCreatorDialogRef" class="table-creator-dialog" tabindex="-1" @focus="refocusTable">
+  {{ dataDisplay  }}
+  Table Data: 
+  {{ tableDataDisplay  }}
+  <div class="table-creator-dialog" tabindex="-1" @focus="refocusTable">
     <SplitPanel
       v-model:expanded="rightPaneExpanded"
       v-model:secondary-size="rightPaneSize"
@@ -531,8 +612,8 @@ const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef)
           data: { cell, width, height, paddingTopBottom },
         }"
       >
-      {{ cell }}
-    </template>
+        <TableCell :value="cell.value" :is-invalid="!cell.isValid" :padding-top-bottom="paddingTopBottom" />
+      </template>
            <template #subHeader="{ subHeader }">
         <SubHeaderTypeRendererBase
             :icon-name="getTypeIdAndText(subHeader).id"
@@ -545,7 +626,10 @@ const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef)
            :model-value="tableData[0][rowInd]?.['col' + colInd]"
            :reference-element="cellElement"
            @update:model-value="(val) => {
-              dialogInitialData!.data.model!.columns[colInd].values[rowInd] = val;
+              const value = val ? val.value : null;
+              const isValid = val ? val.isValid : true;
+              dialogInitialData!.data.model!.columns[colInd].values![rowInd] = value;
+              dialogInitialData!.data.model!.columns[colInd].valuesIsValid![rowInd] = isValid;
            }"
            @keydown="onKeydown"
            @click-away="onClickAway"
@@ -562,25 +646,20 @@ const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef)
 
       <!-- Right panel - only visible in large mode -->
       <template #secondary>
-        <FocusTrap
-          active
+          <div class="right-pane"
           v-if="dialogInitialData"
-          ref="rightPaneFocusTrap"
-          :escape-deactivates="false"
-          :click-outside-deactivates="false"
-          :fallback-focus="() => tableCreatorDialog!"
-          @focus="refocusTable"
           @keydown.esc.prevent.stop="exitRightPane"
-          @keydown.enter.prevent.stop="exitRightPane"
-        >
-          <div class="right-pane" tabindex="-1"
           >
+           <div
+              :tabindex="0"
+              @focus="refocusTable"
+              />
             <CellInput
             class="cell-input"
               v-if="selectedRowIndex >= 0 && selectedColumnIndex >= 0"
               :model-value="tableData[0][selectedRowIndex]?.['col' + selectedColumnIndex]"
               @update:model-value="(val) => {
-                  dialogInitialData!.data.model!.columns[selectedColumnIndex].values[selectedRowIndex] = val;
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex].values![selectedRowIndex] = val ? val.value : null;
               }"
             />
             <ColumnHeaderInput
@@ -589,13 +668,16 @@ const tableCreatorDialog = useTemplateRef<HTMLDivElement>(tableCreatorDialogRef)
                 :column-data="dialogInitialData.data.model!.columns[selectedColumnIndex]"
                 :schema="dialogInitialData.schema.properties!.model.properties!.columns.items as JsonSchema"
                 :uischema="{elements: dialogInitialData.ui_schema.elements[0].options.detail}"
-                :state-provider-listener-value="dialogInitialData?.initialUpdates[0].values[0].value"
+                :state-provider-listener-value="dialogInitialData?.initialUpdates?.[0].values[0].value"
                 @update:column-data="(data) => {
-                  dialogInitialData!.data.model!.columns[selectedColumnIndex] = data;
+                  dialogInitialData!.data.model!.columns[selectedColumnIndex] = data as any;
                 }"
               />
+              <div
+              :tabindex="0"
+              @focus="refocusTable"
+              />
           </div>
-        </FocusTrap>
       </template>
     </SplitPanel>
   </div>

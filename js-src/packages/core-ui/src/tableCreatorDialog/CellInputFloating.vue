@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { TextArea, useClickOutside } from '@knime/components';
-import { onMounted, useTemplateRef, type Ref, toRef, ref } from 'vue';
+import { onMounted, useTemplateRef, type Ref, toRef, ref, computed } from 'vue';
 import { autoUpdate, useFloating , offset } from '@floating-ui/vue';
+import type { CellData } from './TableCreatorDialog.vue';
 
-const modelValue = defineModel<string>();
+const modelValue = defineModel<CellData>();
+
+const stringValue = computed<string>({
+    get: () => modelValue.value?.value ?? '',
+    set: (val: string) => {
+        modelValue.value = { value: val, isValid: false};
+    },
+});
 const props = defineProps<{
     initialValue?: string;
     referenceElement: HTMLElement;
@@ -34,7 +42,7 @@ useClickOutside(
 
 onMounted(() => {
     if (props.initialValue) {
-        modelValue.value = props.initialValue;
+        stringValue.value =  props.initialValue;
     }
     inputField.value?.$refs.input.focus();
     setTimeout(() => {
@@ -49,9 +57,7 @@ onMounted(() => {
         class="textArea"
         :style="{ left: `${x}px`, top: `${y}px` }"
     >
-        <TextArea :ref="inputFieldRef" v-model="modelValue" :rows="1" :cols="18" @pointerdown.stop
-        
-        
+        <TextArea :ref="inputFieldRef" v-model="stringValue" :rows="1" :cols="18" @pointerdown.stop
         />
     </div>
 </template>

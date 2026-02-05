@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { TextArea } from '@knime/components';
 import { Form, LabeledControl } from '@knime/jsonforms';
-import { useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
+import type { CellData } from './TableCreatorDialog.vue';
 
-const modelValue = defineModel<string>();
+const modelValue = defineModel<CellData>();
+
+const stringValue = computed<string>({
+    get: () => modelValue.value?.value ?? '',
+    set: (val: string) => {
+        modelValue.value = { value: val, isValid: true };
+    },
+});
 
 
 const inputFieldRef = 'inputField';
@@ -25,7 +33,7 @@ defineExpose({
         <TextArea 
         :id="labelForId"
             class="text-area-input"
-            :ref="inputFieldRef"  v-model="modelValue" :rows="5" :cols="18" @pointerdown.stop
+            :ref="inputFieldRef"  v-model="stringValue" :rows="5" :cols="18" @pointerdown.stop
         />
     </template>
     </LabeledControl>
