@@ -84,6 +84,9 @@
 						</goals>
 						<configuration>
 							<arguments>pnpm run coverage</arguments>
+							<environmentVariables>
+								<SUPPRESS_VUE_WARNINGS>true</SUPPRESS_VUE_WARNINGS>
+							</environmentVariables>
 						</configuration>
 					</execution>
 					<execution>
