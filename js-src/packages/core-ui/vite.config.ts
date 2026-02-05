@@ -89,6 +89,10 @@ const getHtmlViewRollupOptions = (mode: string) => ({
   ),
 });
 
+const warningPrefixesToSuppress = ["[Vue warn]", "<Suspense>"];
+const suppressWarnings =
+  process.env.CI === "true" || process.env.SUPPRESS_WARNINGS === "true";
+
 // https://vitest.dev/config/
 export default defineConfig(({ mode }) => {
   const testMode = mode === "integration" ? "integration" : "unit";
@@ -223,6 +227,15 @@ export default defineConfig(({ mode }) => {
       },
       outputFile: {
         junit: "test-results/junit.xml", // needed for Bitbucket Pipeline, see https://support.atlassian.com/bitbucket-cloud/docs/test-reporting-in-pipelines/
+      },
+      // Suppress noisy warnings in CI/pipeline environments
+      //   Automatically enabled when CI=true (set by most CI systems)
+      //   Can also be manually enabled with: SUPPRESS_WARNINGS=true pnpm run test:integration
+      onConsoleLog: (l) => {
+        return !(
+          suppressWarnings &&
+          warningPrefixesToSuppress.some((p) => l.startsWith(p))
+        );
       },
     },
     envPrefix: "KNIME_",

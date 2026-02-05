@@ -109,6 +109,10 @@ Generate coverage:
 pnpm run coverage
 ```
 
+Note: noisy Vue warnings are suppressed if you set the environment flag `SUPPRESS_WARNINGS=true`,
+and they are also suppressed when running with `CI=true` which is set by default in most pipeline
+environments.
+
 ## Embedding
 
 Views can be embedded in Vue/Nuxt apps as regular Vue components. Requires Vue and Consola compatible with versions in `package.json`, plus CSS variables from `@knime/styles`.
