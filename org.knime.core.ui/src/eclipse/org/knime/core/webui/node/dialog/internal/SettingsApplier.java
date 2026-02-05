@@ -366,7 +366,7 @@ public final class SettingsApplier {
             return overwrittenSettings;
         }
         final var flowVariables =
-            nc.getFlowObjectStack().getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
+            flowObjectStack.getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
         configEdit.overwriteSettings(overwrittenSettings, flowVariables);
         return overwrittenSettings;
     }
