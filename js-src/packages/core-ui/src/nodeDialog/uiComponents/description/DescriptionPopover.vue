@@ -1,32 +1,20 @@
 <script setup lang="ts">
 import { Description } from "@knime/components";
-import DescriptionIcon from "@knime/styles/img/icons/circle-help.svg";
-
-import DialogPopover from "../../popover/DialogPopover.vue";
+import { KdsInfoToggleButton } from "@knime/kds-components";
 
 import type { DescriptionPopoverProps } from "./types/DescriptionPopoverProps";
 
 withDefaults(defineProps<DescriptionPopoverProps>(), {
   hover: false,
-  ignoredClickOutsideTarget: null,
 });
 </script>
 
 <template>
-  <DialogPopover
-    tooltip="Click for more information"
-    popover-width="max-content"
-    :ignored-click-outside-target="ignoredClickOutsideTarget"
-  >
-    <template #icon="{ expanded, focused }">
-      <DescriptionIcon v-show="hover || expanded || focused" />
-    </template>
-    <template #popover>
-      <div class="description-wrapper">
-        <Description class="description" :text="html" render-as-html />
-      </div>
-    </template>
-  </DialogPopover>
+  <KdsInfoToggleButton :hidden="!hover">
+    <div class="description-wrapper">
+      <Description class="description" :text="html" render-as-html />
+    </div>
+  </KdsInfoToggleButton>
 </template>
 
 <style lang="postcss" scoped>

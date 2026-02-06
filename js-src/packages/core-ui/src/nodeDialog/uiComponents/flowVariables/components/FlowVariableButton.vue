@@ -1,51 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
+
+import { KdsVariableToggleButton } from "@knime/kds-components";
 
 import { getFlowVariableSettingsProvidedByControl } from "../../../composables/components/useFlowVariables";
-import DialogPopover from "../../../popover/DialogPopover.vue";
 import type { FlowVariableButtonProps } from "../types/FlowVariableButtonProps";
 
-import FlowVariableIcon from "./FlowVariableIcon.vue";
 import FlowVariablePopover from "./FlowVariablePopover.vue";
 
 defineProps<FlowVariableButtonProps>();
 const emit = defineEmits<{
   controllingFlowVariableSet: [string, unknown, string];
 }>();
-const { configPaths } = getFlowVariableSettingsProvidedByControl();
 
-const tooltipPrefix = ref<string | null>(null);
-const setTooltipPrefix = (prefix: string) => {
-  tooltipPrefix.value = prefix;
-};
-const buttonTooltip = "Click to overwrite with or output as flow variable.";
-const tooltip = computed(() => {
-  if (tooltipPrefix.value === null) {
-    return buttonTooltip;
-  }
-  return `${tooltipPrefix.value} ${buttonTooltip}`;
-});
+const { configPaths, flowSettings } =
+  getFlowVariableSettingsProvidedByControl();
+const inSet = computed(() =>
+  Boolean(flowSettings.value?.controllingFlowVariableName),
+);
+const outSet = computed(() =>
+  Boolean(flowSettings.value?.exposedFlowVariableName),
+);
+
+// TODO UIEXT-3393: set error state based on the actual flaw, e.g. name conflict with existing flow variable, invalid variable name, etc.
+const error = computed(() => false);
 </script>
 
 <template>
-  <DialogPopover
+  <KdsVariableToggleButton
     v-if="configPaths.length"
-    popover-width="380px"
-    :tooltip="tooltip"
+    :in-set="inSet"
+    :out-set="outSet"
+    :error="error"
+    :hidden="!hover && !inSet && !outSet && !error"
   >
-    <template #icon="{ expanded, focused }">
-      <FlowVariableIcon
-        :show="hover || expanded || focused"
-        @tooltip="setTooltipPrefix"
-      />
-    </template>
-    <template #popover>
-      <FlowVariablePopover
-        @controlling-flow-variable-set="
-          (path, value, flowVarName) =>
-            emit('controllingFlowVariableSet', path, value, flowVarName)
-        "
-      />
-    </template>
-  </DialogPopover>
+    <FlowVariablePopover
+      @controlling-flow-variable-set="
+        (path, value, flowVarName) =>
+          emit('controllingFlowVariableSet', path, value, flowVarName)
+      "
+    />
+  </KdsVariableToggleButton>
 </template>

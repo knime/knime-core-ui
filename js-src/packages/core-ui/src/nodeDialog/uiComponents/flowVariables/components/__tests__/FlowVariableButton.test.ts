@@ -1,136 +1,143 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ref } from "vue";
 import { mount } from "@vue/test-utils";
-import flushPromises from "flush-promises";
 
-import { FunctionButton } from "@knime/components";
+import { KdsVariableToggleButton } from "@knime/kds-components";
 
+import type { FlowSettings } from "../../../../api/types";
 import {
   type ConfigPath,
   injectionKey as flowVariablesInjectionKey,
 } from "../../../../composables/components/useFlowVariables";
-import DialogPopover from "../../../../popover/DialogPopover.vue";
 import type { FlowVariableButtonProps } from "../../types/FlowVariableButtonProps";
 import FlowVariableButton from "../FlowVariableButton.vue";
-import FlowVariableIcon from "../FlowVariableIcon.vue";
 import FlowVariablePopover from "../FlowVariablePopover.vue";
 
 describe("FlowVariableButton.vue", () => {
-  let props: FlowVariableButtonProps;
-
-  beforeEach(() => {
-    props = {
-      hover: false,
-    };
-  });
-
-  window.ResizeObserver = vi.fn(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }));
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
+  const defaultConfigPaths: ConfigPath[] = [
+    {
+      configPath: "configPath",
+      dataPath: "dataPath",
+      deprecatedConfigPaths: [],
+    },
+  ];
 
   const mountFlowVariableButton = ({
-    props,
+    props = { hover: false },
     configPaths,
+    flowSettings = null,
   }: {
-    props: FlowVariableButtonProps;
+    props?: FlowVariableButtonProps;
     configPaths?: ConfigPath[];
-  }) => {
-    return mount(FlowVariableButton as any, {
+    flowSettings?: FlowSettings | null;
+  } = {}) => {
+    return mount(FlowVariableButton, {
       props,
       global: {
         stubs: {
           FlowVariablePopover: true,
-          FlowVariableIcon: true,
         },
         provide: {
-          getDialogPopoverTeleportDest: () => null,
           [flowVariablesInjectionKey as symbol]: {
-            configPaths: ref(
-              configPaths ?? [
-                {
-                  configPath: "configPath",
-                  dataPath: "dataPath",
-                  deprecatedConfigPaths: [],
-                },
-              ],
-            ),
+            configPaths: ref(configPaths ?? defaultConfigPaths),
+            flowSettings: ref(flowSettings),
+            getSettingStateFlowVariables: () => ({}),
           },
         },
       },
     });
   };
 
-  it("renders", () => {
-    const wrapper = mountFlowVariableButton({ props });
+  it("renders KdsVariableToggleButton with correct props", () => {
+    const wrapper = mountFlowVariableButton();
 
-    // Components
-    expect(wrapper.findComponent(DialogPopover).exists()).toBeTruthy();
-    expect(wrapper.findComponent(FlowVariableIcon).exists()).toBeTruthy();
-    expect(wrapper.findComponent(FlowVariablePopover).exists()).toBeFalsy();
-
-    // Props
-    expect(wrapper.findComponent(DialogPopover).props()).toStrictEqual({
-      ignoredClickOutsideTarget: null,
-      tooltip: "Click to overwrite with or output as flow variable.",
-      popoverWidth: "380px",
-    });
-    expect(wrapper.findComponent(FlowVariableIcon).props()).toStrictEqual({
-      show: false,
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.exists()).toBeTruthy();
+    expect(toggleButton.props()).toMatchObject({
+      inSet: false,
+      outSet: false,
+      error: false,
+      hidden: true,
     });
   });
 
-  it("does not render when no dataPaths are provided", () => {
-    const wrapper = mountFlowVariableButton({ props, configPaths: [] });
-    expect(wrapper.isVisible()).toBeFalsy();
+  it("does not render when no configPaths are provided", () => {
+    const wrapper = mountFlowVariableButton({ configPaths: [] });
+    expect(wrapper.findComponent(KdsVariableToggleButton).exists()).toBeFalsy();
   });
 
-  describe("show flow variable icon", () => {
-    it("shows icon on hover", () => {
-      props.hover = true;
-      const wrapper = mountFlowVariableButton({ props });
-      expect(wrapper.findComponent(FlowVariableIcon).props().show).toBeTruthy();
+  it("passes inSet when controlling flow variable is set", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: "myVar",
+        controllingFlowVariableAvailable: true,
+        controllingFlowVariableFlawed: false,
+        exposedFlowVariableName: null,
+      },
     });
 
-    it("shows icon on focusin and hides on focusout", async () => {
-      const wrapper = mountFlowVariableButton({ props });
-      wrapper.findComponent(FunctionButton).vm.$emit("focus");
-      await flushPromises();
-      expect(wrapper.findComponent(FlowVariableIcon).props().show).toBeTruthy();
-      wrapper.findComponent(FunctionButton).vm.$emit("blur");
-      await flushPromises();
-      expect(wrapper.findComponent(FlowVariableIcon).props().show).toBeFalsy();
-    });
-
-    it("shows icon when expanded", async () => {
-      const wrapper = mountFlowVariableButton({ props });
-      await wrapper.find(".function-button").trigger("mouseup");
-      expect(wrapper.findComponent(FlowVariableIcon).props().show).toBeTruthy();
-    });
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("inSet")).toBe(true);
+    expect(toggleButton.props("outSet")).toBe(false);
   });
 
-  it("sets tooltip prefix", async () => {
-    const wrapper = mountFlowVariableButton({ props });
-    const tooltipPrefix = "myTooltipPrefix";
-    await wrapper
-      .findComponent(FlowVariableIcon)
-      .vm.$emit("tooltip", tooltipPrefix);
-    expect(wrapper.findComponent(DialogPopover).props().tooltip).toBe(
-      "myTooltipPrefix Click to overwrite with or output as flow variable.",
-    );
+  it("passes outSet when exposed flow variable is set", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: null,
+        controllingFlowVariableAvailable: false,
+        controllingFlowVariableFlawed: false,
+        exposedFlowVariableName: "myExposedVar",
+      },
+    });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("inSet")).toBe(false);
+    expect(toggleButton.props("outSet")).toBe(true);
   });
 
-  it("opens FlowVariablePopover on button click", async () => {
-    const wrapper = mountFlowVariableButton({ props });
-    await wrapper.find(".function-button").trigger("mouseup");
-    const box = wrapper.find(".box");
-    const popover = box.findComponent(FlowVariablePopover);
+  it("sets hidden to false when hover is true", () => {
+    const wrapper = mountFlowVariableButton({ props: { hover: true } });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("hidden")).toBe(false);
+  });
+
+  it("sets hidden to false when inSet is true", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: "myVar",
+        controllingFlowVariableAvailable: true,
+        controllingFlowVariableFlawed: false,
+        exposedFlowVariableName: null,
+      },
+    });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("hidden")).toBe(false);
+  });
+
+  it("renders FlowVariablePopover in the slot after clicking the button", async () => {
+    const wrapper = mountFlowVariableButton();
+    // Click the toggle button to open the popover
+    await wrapper.find("button").trigger("click");
+    const popover = wrapper.findComponent(FlowVariablePopover);
     expect(popover.exists()).toBeTruthy();
+  });
+
+  it("emits controllingFlowVariableSet when FlowVariablePopover emits", async () => {
+    const wrapper = mountFlowVariableButton();
+    // Click the toggle button to open the popover
+    await wrapper.find("button").trigger("click");
+    const popover = wrapper.findComponent(FlowVariablePopover);
+    popover.vm.$emit(
+      "controllingFlowVariableSet",
+      "path",
+      "value",
+      "flowVarName",
+    );
+    expect(wrapper.emitted("controllingFlowVariableSet")).toStrictEqual([
+      ["path", "value", "flowVarName"],
+    ]);
   });
 });

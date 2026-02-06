@@ -22,7 +22,7 @@ describe("deprecated flow variables", () => {
 
   const expandFlowVariablesPopover = async () => {
     flowVarButton = wrapper.findComponent(FlowVariableButton);
-    await flowVarButton.find("button").trigger("mouseup");
+    await flowVarButton.find("button").trigger("click");
     await flushPromises();
   };
 

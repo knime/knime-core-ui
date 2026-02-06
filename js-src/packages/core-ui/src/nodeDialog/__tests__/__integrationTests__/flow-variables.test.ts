@@ -74,7 +74,7 @@ describe("flow variables", () => {
 
   const expandFlowVariablesPopover = async () => {
     flowVarButton = wrapper.findComponent(FlowVariableButton);
-    await flowVarButton.find("button").trigger("mouseup");
+    await flowVarButton.find("button").trigger("click");
     await flushPromises();
     const dropdown = flowVarButton.findComponent(Dropdown);
     exposedVariableInput = flowVarButton

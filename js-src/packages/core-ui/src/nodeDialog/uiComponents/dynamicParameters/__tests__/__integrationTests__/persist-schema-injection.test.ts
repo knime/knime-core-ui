@@ -106,7 +106,7 @@ describe("dynamic parameters - persist schema injection", () => {
       const dynamicFieldFlowVarButton = flowVarButtons[0];
 
       // Click to open the flow variable popover
-      await dynamicFieldFlowVarButton.find("button").trigger("mouseup");
+      await dynamicFieldFlowVarButton.find("button").trigger("click");
       await flushPromises();
 
       const flowVarCalls = dataServiceCallHistory.filter(

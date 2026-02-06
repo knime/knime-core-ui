@@ -247,7 +247,7 @@ describe("updates in array layouts", () => {
 
     return {
       toggleNthCheckbox: async (wrapper: Wrapper, n: number) => {
-        wrapper.findAll(".array .checkbox").at(n)?.trigger("click");
+        wrapper.findAll('.array [role="checkbox"]').at(n)?.trigger("click");
         await flushPromises();
       },
     };
