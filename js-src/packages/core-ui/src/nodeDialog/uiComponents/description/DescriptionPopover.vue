@@ -15,7 +15,11 @@ const activatorEl = ref<HTMLButtonElement | null>(null);
 </script>
 
 <template>
-  <KdsInfoToggleButton ref="activatorEl" v-model="open" :hidden="!hover" />
+  <KdsInfoToggleButton
+    ref="activatorEl"
+    v-model="open"
+    :hidden="!hover && !open"
+  />
   <KdsPopover
     v-model="open"
     :activator-el="activatorEl"

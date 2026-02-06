@@ -38,7 +38,7 @@ const activatorEl = ref<HTMLButtonElement | null>(null);
       :in-set="inSet"
       :out-set="outSet"
       :error="error"
-      :hidden="!hover && !inSet && !outSet && !error"
+      :hidden="!hover && !open && !inSet && !outSet && !error"
     />
     <KdsPopover
       v-model="open"
