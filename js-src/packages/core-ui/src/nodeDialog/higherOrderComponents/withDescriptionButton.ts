@@ -31,7 +31,6 @@ export const withDescriptionButton = <D>(
                   h(DescriptionPopover, {
                     html: description.value,
                     hover: slotProps.hover,
-                    ignoredClickOutsideTarget: slotProps.controlHTMLElement,
                   }),
                 ]
               : []),
