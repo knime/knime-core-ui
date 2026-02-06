@@ -28,12 +28,13 @@ try {
         }
     ]
 
-    
     node('maven && java21 && large') {
         parallel buildConfigs
 
         stage('Sonarqube analysis') {
-            workflowTests.runSonar(withOutNode: true)
+            withEnv(["SKIP_JS_BUILD=true"]) {
+               workflowTests.runSonar(withOutNode: true)
+            }
         }
         owasp.sendNodeJSSBOMs(readMavenPom(file: 'pom.xml').properties['revision'])
     }
