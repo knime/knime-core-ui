@@ -21,8 +21,9 @@ const inSet = computed(() =>
 const outSet = computed(() =>
   Boolean(flowSettings.value?.exposedFlowVariableName),
 );
-const err = computed(() =>
-  Boolean(flowSettings.value?.controllingFlowVariableFlawed),
+const error = computed(
+  () => Boolean(flowSettings.value?.controllingFlowVariableFlawed),
+  // what about invalid values of flow variables?
 );
 
 const open = ref(false);
@@ -36,8 +37,8 @@ const activatorEl = ref<HTMLButtonElement | null>(null);
       v-model="open"
       :in-set="inSet"
       :out-set="outSet"
-      :error="err"
-      :hidden="!hover && !inSet && !outSet && !err"
+      :error="error"
+      :hidden="!hover && !inSet && !outSet && !error"
     />
     <KdsPopover
       v-model="open"
