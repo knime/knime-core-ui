@@ -27,7 +27,25 @@
 		<sonar.eslint.reportPaths>test-results/eslint.json</sonar.eslint.reportPaths>
 		<node.version>v24.10.0</node.version>
 		<corepack.version>0.34.1</corepack.version>
+		<skip.corepack>false</skip.corepack>
+		<skip.installnodecorepack>false</skip.installnodecorepack>
 	</properties>
+
+	<profiles>
+		<profile>
+			<!-- Skip JavaScript build when the environment variable SKIP_JS_BUILD is set, this is done during SONAR analysis to avoid unnecessary build steps and oom errors -->
+			<id>skip-js-when-env-set</id>
+			<activation>
+				<property>
+					<name>env.SKIP_JS_BUILD</name>
+				</property>
+			</activation>
+			<properties>
+				<skip.corepack>${env.SKIP_JS_BUILD}</skip.corepack>
+				<skip.installnodecorepack>${env.SKIP_JS_BUILD}</skip.installnodecorepack>
+			</properties>
+		</profile>
+	</profiles>
 
 	<build>
 		<resources>
