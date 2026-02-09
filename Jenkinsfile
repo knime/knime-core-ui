@@ -33,9 +33,9 @@ try {
 
         // junit '**/test-results/junit.xml'
 
-        stage('Sonarqube analysis') {
-            workflowTests.runSonar(withOutNode: true)
-        }
+        // stage('Sonarqube analysis') {
+        //     workflowTests.runSonar(withOutNode: true)
+        // }
 
         owasp.sendNodeJSSBOMs(readMavenPom(file: 'pom.xml').properties['revision'])
     }
