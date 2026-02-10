@@ -59,8 +59,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
+import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -562,6 +564,14 @@ public final class LegacyAuthenticationTypeSelection implements NodeParameters {
 
         @Override
         public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
+            // can't just use 'context.getAvailableInputFlowVariables(VariableType.CredentialsType.INSTANCE)'
+            // as this will not provide workflow variables (deprecated concept but still supported in migrations)
+            if (context instanceof NodeParametersInputImpl impl) {
+                return impl.getCredentialsProvider() //
+                    .map(CredentialsProvider::listVariables) //
+                    .map(List::copyOf) //
+                    .orElse(List.of());
+            }
             return context.getAvailableInputFlowVariables(VariableType.CredentialsType.INSTANCE)
                     .values().stream().toList();
         }
