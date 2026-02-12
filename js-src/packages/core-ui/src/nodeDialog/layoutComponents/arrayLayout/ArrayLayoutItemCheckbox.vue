@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { VueControlProps } from "@knime/jsonforms";
-import { KdsCheckbox, type KdsCheckboxProps } from "@knime/kds-components";
-
-type CheckboxValue = KdsCheckboxProps["modelValue"];
+import { KdsCheckbox } from "@knime/kds-components";
 
 defineProps<VueControlProps<boolean>>();
 </script>
@@ -12,9 +10,7 @@ defineProps<VueControlProps<boolean>>();
     :model-value="control.data"
     :title="control.label"
     class="checkbox"
-    @update:model-value="
-      (value: CheckboxValue) => changeValue(value as boolean)
-    "
+    @update:model-value="(value: boolean) => changeValue(value)"
   />
 </template>
 
