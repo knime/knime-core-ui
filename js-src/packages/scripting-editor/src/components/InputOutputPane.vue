@@ -148,7 +148,7 @@ const handleOnClick = (
     v-if="inputOutputItems.length > 0"
     class="in-out-container"
     tabindex="0"
-    aria-role="menu"
+    role="menu"
     @keydown="handleKeyDown"
   >
     <InputOutputItem
