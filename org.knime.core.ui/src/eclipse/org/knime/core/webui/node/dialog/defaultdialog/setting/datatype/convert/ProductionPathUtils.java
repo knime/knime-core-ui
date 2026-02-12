@@ -104,7 +104,7 @@ public class ProductionPathUtils {
     public static ProductionPath fromPathIdentifier(final String pathIdentifier,
         final ProductionPathSerializer serializer) throws InvalidSettingsException {
         final var settings = fromPathIdentifier(pathIdentifier);
-        return serializer.loadProductionPath(settings, "");
+        return serializer.loadProductionPath(patchMissingEmptyConfigs(settings), "");
     }
 
     /**
@@ -133,6 +133,21 @@ public class ProductionPathUtils {
             throw new IllegalStateException("Could not de-serialize path identifier", e);
         }
         return settings;
+    }
+
+    private static NodeSettingsRO patchMissingEmptyConfigs(final NodeSettingsRO settings) {
+        // TODO temporary hack to validate some workflow tests
+        final String PRODUCER_CONFIG_KEY = "_producer_config";
+        final String CONVERTER_CONFIG_KEY = "_converter_config";
+        final var newSettings = new NodeSettings("");
+        settings.copyTo(newSettings);
+        if (!newSettings.containsKey(PRODUCER_CONFIG_KEY)) {
+            newSettings.addConfig(PRODUCER_CONFIG_KEY);
+        }
+        if (!newSettings.containsKey(CONVERTER_CONFIG_KEY)) {
+            newSettings.addConfig(CONVERTER_CONFIG_KEY);
+        }
+        return newSettings;
     }
 
     /**
