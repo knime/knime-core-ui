@@ -2,7 +2,7 @@ packages:
   - packages/*
 
 catalog:
-  '@knime/kds-components': 0.5.9
+  '@knime/kds-components': 0.6.6
   '@knime/kds-styles': 0.5.9
   vue: 3.5.18
 

@@ -42,6 +42,7 @@ export type GenericInitialData = {
   inputObjects: InputOutputModel[];
   flowVariables: InputOutputModel;
   inputConnectionInfo: InputConnectionInfo[];
+  viewObjects?: InputOutputModel[];
   outputObjects?: InputOutputModel[];
   kAiConfig: KAIConfig;
   mainScriptConfigKey?: string;
