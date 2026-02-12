@@ -48,21 +48,25 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert;
 
-import org.knime.core.data.convert.map.ProducerRegistry;
+import java.io.IOException;
+import java.io.StringReader;
+
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultProductionPathSerializer;
+import org.knime.core.node.config.base.JSONConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Utilities for showing choices and storing a {@link ProductionPath} in WebUI dialogs.
  *
- * Use a string field, initializer it from a {@link ProductionPath} by calling
- * {@link #getPathIdentifier(ProductionPath)} and store the resulting and use a custom persistor extending
- * {@link ProductionPathPersistor} to save/load the value as a pair of producer and converter factory identifiers.
+ * Use a string field, initialize it from a {@link ProductionPath} by calling
+ * {@link #getPathIdentifier(ProductionPath, ProductionPathSerializer)} and store the resulting and use a custom
+ * persistor extending {@link ProductionPathPersistor} to save/load the value as a pair of producer and converter
+ * factory identifiers.
  *
  * TODO: UIEXT-3273: Instead of providing utilities how to use a String field to store a ProductionPath, we should
  * provide a proper ProductionPathParameter implementation that can be used in the WebUI dialog framework.
@@ -75,67 +79,65 @@ public class ProductionPathUtils {
         // prevent instantiation
     }
 
-    private static final String PRODUCER_CFG_KEY = "_producer";
-
-    private static final String CONVERTER_CFG_KEY = "_converter";
-
     /**
-     * Some delimiter that is assumed to not appear in factory identifiers. We use it to concatenate producer and
-     * converter identifiers into a single string to use it as a key in the frontend.
-     */
-    static final String DELIMITER = "\0";
-
-    /**
-     * Gets a unique string identifier for the given production path by concatenating producer and converter factory
-     * This is the identifier by the {@link ProductionPathPersistor}.
+     * Gets a unique string identifier for the given production path by serializing the production path settings to
+     * JSON. This is the identifier handled by the {@link ProductionPathPersistor}.
      *
      * @param productionPath the production path
+     * @param serializer the serializer to use to serialize the production path settings
      * @return the unique string identifier
      */
-    public static String getPathIdentifier(final ProductionPath productionPath) {
-        final var converterId = productionPath.getConverterFactory().getIdentifier();
-        final var producerId = productionPath.getProducerFactory().getIdentifier();
-        return getPathIdentifier(producerId, converterId);
-    }
-
-    private static String getPathIdentifier(final String producerId, final String converterId) {
-        return producerId + DELIMITER + converterId;
+    public static String getPathIdentifier(final ProductionPath productionPath,
+        final ProductionPathSerializer serializer) {
+        final var settings = new NodeSettings("");
+        serializer.saveProductionPath(productionPath, settings, "");
+        return getPathIdentifier(settings);
     }
 
     /**
-     * Checks whether the given string is a valid path identifier (which implicitly means that it contains the
-     * delimiter).
+     * The reversal of {@link #getPathIdentifier(ProductionPath, ProductionPathSerializer)}.
+     *
+     * @param pathIdentifier the path identifier
+     * @param serializer the serializer to use for loading the production path
+     * @return the production path
+     * @throws InvalidSettingsException if loading the production path failed
+     */
+    public static ProductionPath fromPathIdentifier(final String pathIdentifier,
+        final ProductionPathSerializer serializer) throws InvalidSettingsException {
+        final var settings = fromPathIdentifier(pathIdentifier);
+        return serializer.loadProductionPath(settings, "");
+    }
+
+    /**
+     * Checks whether the given string is a valid path identifier (which implicitly means that it is a node settings
+     * JSON). Note: This method only is a basic heuristic check trying to identify JSON strings.
      *
      * @param pathIdentifier the path identifier
      * @return true if valid, false otherwise
      */
     public static boolean isPathIdentifier(final String pathIdentifier) {
-        return pathIdentifier != null && pathIdentifier.contains(DELIMITER);
+        return pathIdentifier != null && pathIdentifier.startsWith("{") && pathIdentifier.endsWith("}");
+    }
+
+    private static String getPathIdentifier(final NodeSettingsRO productionPathSettings) {
+        final var settingsWithoutKey = new NodeSettings("");
+        productionPathSettings.copyTo(settingsWithoutKey);
+        return JSONConfig.toJSONString(settingsWithoutKey, JSONConfig.WriterConfig.DEFAULT);
+    }
+
+    private static NodeSettingsRO fromPathIdentifier(final String pathIdentifier) {
+        final var settings = new NodeSettings("");
+        try {
+            JSONConfig.readJSON(settings, new StringReader(pathIdentifier));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not deserialize path identifier", e);
+        }
+        return settings;
     }
 
     /**
-     * The reversal of {@link #getPathIdentifier(ProductionPath)}.
-     *
-     * @param pathIdentifier the path identifier
-     * @param producerRegistry the producer registry to use
-     * @return the production path
-     * @throws InvalidSettingsException if loading the production path failed
-     */
-    public static ProductionPath fromPathIdentifier(final String pathIdentifier,
-        final ProducerRegistry<?, ?> producerRegistry) throws InvalidSettingsException {
-        final var serializer = new DefaultProductionPathSerializer(producerRegistry);
-        final var nodeSettings = new NodeSettings("does_not_matter");
-        final var parts = pathIdentifier.split(DELIMITER, 2);
-        final var converterId = parts[1];
-        final var producerId = parts[0];
-        nodeSettings.addString(CONVERTER_CFG_KEY, converterId);
-        nodeSettings.addString(PRODUCER_CFG_KEY, producerId);
-        nodeSettings.addConfig(PRODUCER_CFG_KEY + "_config");
-        return serializer.loadProductionPath(nodeSettings, "");
-    }
-
-    /**
-     * A persistor that saves and loads a production path as a pair of producer and converter factory identifiers
+     * A persistor that saves and loads a production path serialized to a single (JSON) string as mapped by
+     * {@link #getPathIdentifier(ProductionPath, ProductionPathSerializer)} and {@link #fromPathIdentifier(String)}.
      */
     public abstract static class ProductionPathPersistor implements NodeParametersPersistor<String> {
 
@@ -153,19 +155,13 @@ public class ProductionPathUtils {
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
             final NodeSettingsRO pathSettings = settings.getNodeSettings(m_configKey);
-            final var converterId = pathSettings.getString(CONVERTER_CFG_KEY);
-            final var producerId = pathSettings.getString(PRODUCER_CFG_KEY);
-            return producerId + DELIMITER + converterId;
+            return getPathIdentifier(pathSettings);
         }
 
         @Override
         public void save(final String param, final NodeSettingsWO settings) {
             final NodeSettingsWO pathSettings = settings.addNodeSettings(m_configKey);
-            final var parts = param.split(DELIMITER, 2);
-            final var converterId = parts[1];
-            final var producerId = parts[0];
-            pathSettings.addString(CONVERTER_CFG_KEY, converterId);
-            pathSettings.addString(PRODUCER_CFG_KEY, producerId);
+            fromPathIdentifier(param).copyTo(pathSettings);
         }
 
         @Override
