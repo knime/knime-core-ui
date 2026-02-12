@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable max-lines */
 export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
 export const COLUMN_INSERTION_EVENT = "columnInsertion";
 </script>
@@ -438,7 +439,7 @@ const fallbackType = computed(() => {
       </div>
     </transition>
   </div>
-  <div v-else class="top-card bottom-border">
+  <div v-else class="top-card">
     <div class="title">
       <div class="port-icon-container">
         <KdsIcon
@@ -529,6 +530,14 @@ const fallbackType = computed(() => {
   display: inline-block;
   overflow: hidden;
   position: relative;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 }
 
 .sub-item-left {
@@ -673,45 +682,5 @@ const fallbackType = computed(() => {
   background-color: var(--kds-color-background-selected-initial);
   color: var(--kds-color-text-and-icon-selected);
   font: var(--kds-font-base-code-xsmall);
-}
-
-.collapser {
-  & :deep(.dropdown) {
-    width: var(--kds-dimension-component-width-0-75x);
-    height: var(--kds-dimension-component-height-0-75x);
-
-    & .dropdown-icon {
-      color: var(--kds-color-text-and-icon-neutral);
-      width: var(--kds-dimension-icon-0-56x);
-      height: var(--kds-dimension-icon-0-56x);
-      transition: transform 0.2s ease;
-    }
-  }
-
-  & :deep(.panel) {
-    &:hover {
-      overflow: visible;
-    }
-  }
-}
-
-.collapser-expand-enter-active,
-.collapser-expand-leave-active {
-  transition:
-    max-height 0.2s ease,
-    opacity 0.2s ease;
-  overflow: hidden;
-}
-
-.collapser-expand-enter-from,
-.collapser-expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-
-.collapser-expand-enter-to,
-.collapser-expand-leave-from {
-  max-height: 800px;
-  opacity: 1;
 }
 </style>
