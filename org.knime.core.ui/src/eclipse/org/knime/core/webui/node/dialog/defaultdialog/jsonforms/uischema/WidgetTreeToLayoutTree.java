@@ -63,6 +63,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
@@ -171,7 +172,7 @@ final class WidgetTreeToLayoutTree {
     }
 
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
-        List.of(TextMessage.class, DynamicSettingsWidget.class, DynamicParameters.class);
+        List.of(TextMessage.class, DirtyTracker.class, DynamicSettingsWidget.class, DynamicParameters.class);
 
     private static boolean isHidden(final TreeNode<WidgetGroup> node) {
         if (node instanceof Tree<WidgetGroup>) {

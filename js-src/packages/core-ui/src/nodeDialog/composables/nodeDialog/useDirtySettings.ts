@@ -90,17 +90,17 @@ export const injectionKey: InjectionKey<{
     configPaths: string[],
     flowVariablesMap: Record<string, FlowSettings>,
   ) => FlowVariablesForSettings;
+  registerNonControlState: typeof DialogService.prototype.registerSettings;
 }> = Symbol("providedByUseDirtySettings");
 
+export const getModelOrView = (persistPath: string) => {
+  const firstPathSegment = persistPath.split(".")[0] as
+    | "model"
+    | "view"
+    | "job-manager";
+  return firstPathSegment === "job-manager" ? "model" : firstPathSegment;
+};
 export const provideAndGetSetupMethodForDirtySettings = () => {
-  const getModelOrView = (persistPath: string) => {
-    const firstPathSegment = persistPath.split(".")[0] as
-      | "model"
-      | "view"
-      | "job-manager";
-    return firstPathSegment === "job-manager" ? "model" : firstPathSegment;
-  };
-
   /**
    * Maps data path to setting
    */
@@ -162,6 +162,8 @@ export const provideAndGetSetupMethodForDirtySettings = () => {
     getSettingState,
     getFlowVariableDirtyState,
     constructFlowVariableDirtyState,
+    registerNonControlState: (modelOrView: "model" | "view") =>
+      _registerSettings(modelOrView),
   });
 
   return { setRegisterSettingsMethod };

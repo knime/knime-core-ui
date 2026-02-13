@@ -10,6 +10,7 @@ export const inputFormats = {
   dynamicValue: "dynamicValue",
   dynamicInput: "dynamicInput",
   custom: "custom",
+  dirtyTracker: "dirtyTracker",
 } as const;
 
 // union type of the values of the inputFormats object:
