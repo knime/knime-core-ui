@@ -52,6 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.ParametersLoader;
 
@@ -95,12 +96,18 @@ public interface NodeParametersPersistor<T> extends ParametersSaver<T>, Paramete
      *
      * <h5>Special cases</h5>
      * <ul>
-     * <li>One can omit paths here in order to prevent controlling or exposing them via flow variable.</li>
+     * <li>One can omit paths here in order to prevent controlling or exposing them via flow variable. However, keep in
+     * mind that the config paths listed here also influence what being "absent" means for a field that is annotated
+     * with {@link Migrate @Migrate} and omitting config paths here might require a more manual treatment using
+     * {@link Migration @Migration} instead.</li>
      * <li>One can even return an empty array, i.e. String[0][] to prevent any flow variables for this setting.</li>
      * <li>If next to this persistor, a {@link Migration} is defined on the same field and defines a migration without a
      * custom matcher and without deprecated config paths, the inferred matcher checks for the config paths here to not
      * be present. I.e., an error will be thrown in that case if the array returned here is empty.</li>
      * </ul>
+     *
+     * Paths that contain a key that ends with "_Internals" are considered internal and are not exposed to the user. It
+     * might still make sense to set them (see the first special case above).
      *
      * @return an array of all config paths that are used to save the settings to the node settings.
      */

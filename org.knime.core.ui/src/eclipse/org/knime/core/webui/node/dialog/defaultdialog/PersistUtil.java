@@ -263,9 +263,10 @@ public final class PersistUtil {
             if (configPaths == null) {
                 return node;
             }
-            final var filteredValidatedConfigPaths =
-                Arrays.stream(configPaths).map(path -> Arrays.stream(path).filter(PersistSchemaFactory::isNonInternal)
-                    .map(DotSubstitutionUtil::substituteDots).toList()).filter(path -> !path.isEmpty()).toList();
+            final var filteredValidatedConfigPaths = Arrays.stream(configPaths)
+                .filter(path -> Arrays.stream(path).allMatch(PersistSchemaFactory::isNonInternal))
+                .map(path -> Arrays.stream(path).map(DotSubstitutionUtil::substituteDots).toList())
+                .filter(path -> !path.isEmpty()).toList();
             add2DStingArray(node, configPathsTag, filteredValidatedConfigPaths);
             return node;
         }
