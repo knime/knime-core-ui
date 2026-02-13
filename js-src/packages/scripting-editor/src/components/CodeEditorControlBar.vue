@@ -40,11 +40,12 @@ const props = defineProps({
   flex-wrap: wrap;
   place-content: center space-between;
   align-items: center;
-  padding: var(--space-4) var(--space-8);
-  background-color: var(--knime-gray-light-semi);
-  border-top: 1px solid var(--knime-silver-sand);
-  height: var(--controls-height);
   width: 100%;
+  height: var(--kds-dimension-component-height-2-25x);
+  padding-right: var(--kds-spacing-container-1x);
+  padding-left: var(--kds-spacing-container-1x);
+  background-color: var(--kds-color-surface-default);
+  border-top: var(--kds-border-base-subtle);
 }
 
 .button-controls {
