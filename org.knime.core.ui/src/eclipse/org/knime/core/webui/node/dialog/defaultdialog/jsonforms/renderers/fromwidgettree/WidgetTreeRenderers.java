@@ -63,6 +63,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -179,6 +180,8 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(TextRenderer::new, //
             node -> String.class.equals(node.getRawClass())
                 || ClassUtils.primitiveToWrapper(node.getRawClass()).equals(Character.class)), //
+        new WidgetTreeNodeTester(node -> new DirtyTrackerRenderer(getPresentAnnotation(node, DirtyTracker.class)),
+            hasAnnotationAssertingTypes(DirtyTracker.class, Void.class)),
         new WidgetTreeNodeTester(node -> new TextMessageRenderer(getPresentAnnotation(node, TextMessage.class)),
             hasAnnotationAssertingTypes(TextMessage.class, Void.class))};
 

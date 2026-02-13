@@ -30,6 +30,7 @@ import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSup
 import { controlWithSubParametersRenderer } from "./controlWithSubParametersRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
 import { customWidgetRenderer } from "./customWidgetRenderer";
+import { dirtyTrackerRenderer } from "./dirtyTrackerRenderer";
 import { dynamicInputRenderer } from "./dynamicInputRenderer";
 import { editResetButtonRenderer } from "./editResetButtonRenderer";
 import { elementCheckboxRenderer } from "./elementCheckboxRenderer";
@@ -54,6 +55,7 @@ const coreUIControls: Record<string, VueControlRenderer> = {
   credentialsRenderer, // since it contains flowSettings logic (that a flow variable is set is important for the backend to resolve the value properly, since we do not load the password in the frontend in this case)
   legacyCredentialsRenderer,
   elementCheckboxRenderer,
+  dirtyTrackerRenderer, // rare cases where the framework-dirty-handling does not suffice
 };
 
 const coreUILayouts: Record<string, VueLayoutRenderer> = {
