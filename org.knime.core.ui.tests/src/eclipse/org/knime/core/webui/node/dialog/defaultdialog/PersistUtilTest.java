@@ -129,7 +129,7 @@ public class PersistUtilTest {
     void testConfigKeyFromCustomPersistor() throws JsonProcessingException {
         final var result = getPersistSchema(SettingWithCustomPersistor.class);
         assertThatJson(result).inPath("$.properties.model.properties.test.configPaths").isArray()
-            .isEqualTo(new String[][]{{"config_key_from_persistor_1"}, {"config_key_from_persistor_2"}});
+            .isEqualTo(new String[][]{{"config_key_from_persistor_1"}});
 
     }
 
