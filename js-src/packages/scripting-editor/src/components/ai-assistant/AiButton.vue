@@ -9,8 +9,7 @@ export default {};
 import { type Ref, computed, defineProps, onMounted, ref } from "vue";
 import { type MaybeElement, onClickOutside } from "@vueuse/core";
 
-import { Button } from "@knime/components";
-import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
+import { KdsToggleButton } from "@knime/kds-components";
 
 import { getInitialData } from "../../init";
 import type { PaneSizes } from "../utils/paneSizes";
@@ -78,21 +77,16 @@ onMounted(() => {
         <div class="arrow" />
       </div>
     </div>
-    <Button
+    <KdsToggleButton
       v-if="showAiButton"
       ref="aiButtonRef"
+      :label="showButtonText ? 'Ask K-AI' : ''"
+      leading-icon="ai-general"
       :disabled="!enableAiButton"
+      :model-value="showAiPopup"
       compact
-      :with-border="true"
-      class="ai-button"
-      :class="{
-        'button-active': showAiPopup,
-        'hide-button-text': !showButtonText,
-      }"
       @click="showAiPopup = !showAiPopup"
-    >
-      <AiCodeIcon viewBox="0 0 32 32" /> {{ showButtonText ? "Ask K-AI" : "" }}
-    </Button>
+    />
   </div>
 </template>
 
