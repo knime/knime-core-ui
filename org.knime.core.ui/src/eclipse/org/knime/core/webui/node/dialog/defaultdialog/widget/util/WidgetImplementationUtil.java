@@ -93,7 +93,6 @@ import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 import org.knime.node.parameters.widget.credentials.PasswordWidget;
 import org.knime.node.parameters.widget.credentials.UsernameWidget;
-import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.text.RichTextInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
@@ -188,7 +187,6 @@ public final class WidgetImplementationUtil {
 
         new WidgetAnnotation(List.of(String.class, Character.class, char.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
-        new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
     };
 

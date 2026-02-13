@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.IncrementAndApplyOnClick;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.extension.DefaultNodeDialogWidget;
@@ -178,6 +179,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         TextAreaWidget.class, //
         TextInputWidget.class, //
         TextMessage.class, //
+        DirtyTracker.class, //
         TwinlistWidget.class, //
         TypedStringFilterWidgetInternal.class, //
         UsernameWidget.class, //
