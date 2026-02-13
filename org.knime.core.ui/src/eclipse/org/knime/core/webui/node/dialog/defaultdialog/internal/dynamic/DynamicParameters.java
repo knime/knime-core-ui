@@ -65,6 +65,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.PersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
@@ -88,6 +89,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * to provide concrete implementations of that type within the dialog.
  *
  * This is mandatory, as there will be a runtime exception if such fields are not annotated with this annotation.
+ *
+ * <b>Known issue:</b> using {@link ButtonWidget} inside dynamic parameters is not supported (UIEXT-3212).
  *
  * @author Paul Bärnreuther
  */
@@ -270,6 +273,8 @@ public @interface DynamicParameters {
     /**
      * Extend this interface and use the sub-interface as field in {@link NodeParameters} together with a
      * {@link DynamicParameters} annotation for non-concrete dynamic parts of dialogs.
+     *
+     * <b>Known issue:</b> using {@link ButtonWidget} inside dynamic parameters is not supported (UIEXT-3212).
      */
     interface DynamicNodeParameters extends NodeParameters {
 
