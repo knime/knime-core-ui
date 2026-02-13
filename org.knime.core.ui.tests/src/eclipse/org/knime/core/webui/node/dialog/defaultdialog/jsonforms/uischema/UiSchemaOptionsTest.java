@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpda
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
@@ -320,8 +321,7 @@ class UiSchemaOptionsTest {
 
         var response = buildTestUiSchema(SortListWidgetSettings.class);
 
-        assertThatJson(response).inPath("$.elements[0].options.unknownElementId").isString()
-            .isEqualTo("myUnknownId");
+        assertThatJson(response).inPath("$.elements[0].options.unknownElementId").isString().isEqualTo("myUnknownId");
         assertThatJson(response).inPath("$.elements[0].options.unknownElementLabel").isString()
             .isEqualTo("My Unknown Label");
         assertThatJson(response).inPath("$.elements[0].options.resetSortButtonLabel").isString()
@@ -1572,6 +1572,38 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].id").isString().contains("textMessage");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("textMessage");
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("message");
+
+    }
+
+    @Test
+    void testDirtyTracker() {
+
+        class TestSettings implements NodeParameters {
+
+            @DirtyTracker(SomeDirtyTracker.class)
+            Void m_trackedField;
+
+            static final class SomeDirtyTracker implements StateProvider<Boolean> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    throw new UnsupportedOperationException("This method should never be called");
+                }
+
+                @Override
+                public Boolean computeState(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    throw new UnsupportedOperationException("This method should never be called");
+                }
+
+            }
+
+        }
+
+        var response = buildTestUiSchema(TestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].id").isString().contains("trackedField");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dirtyTracker");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("makeDirty");
 
     }
 
