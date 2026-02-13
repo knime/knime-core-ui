@@ -2,8 +2,8 @@ packages:
   - packages/*
 
 catalog:
-  '@knime/kds-components': 0.5.9
-  '@knime/kds-styles': 0.5.9
+  '@knime/kds-components': 0.6.4
+  '@knime/kds-styles': 0.6.4
   vue: 3.5.18
 
 minimumReleaseAge: 1440
@@ -12,5 +12,6 @@ minimumReleaseAgeExclude:
   - '@knime/*'
 
 overrides:
+  '@knime/knime-ui-table': link:../../../../../../../Library/pnpm/global/5/node_modules/@knime/knime-ui-table
   lodash-es@>=4.0.0 <=4.17.22: '>=4.17.23'
   lodash@>=4.0.0 <=4.17.22: '>=4.17.23'

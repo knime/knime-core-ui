@@ -113,7 +113,7 @@ public final class DataTypeSerializationUtil {
          * @param type the to-be-serialized {@link DataType}
          * @return the serialized string
          */
-        private static String typeToString(final DataType type) {
+        public static String typeToString(final DataType type) {
             final var settings = new NodeSettings("serialized_data_type_settings");
             settings.addDataType(TYPE_CFG_KEY, type);
             return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
