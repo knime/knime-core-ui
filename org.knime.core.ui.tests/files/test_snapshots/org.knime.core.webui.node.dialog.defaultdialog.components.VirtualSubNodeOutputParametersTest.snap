@@ -1,0 +1,177 @@
+{
+  "data" : {
+    "model" : {
+      "variableFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        }
+      },
+      "portNames" : [ ],
+      "portDescriptions" : [ ],
+      "allowOutputNodeToCompleteBeforeContent" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "allowOutputNodeToCompleteBeforeContent" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "portDescriptions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "default" : [ ]
+          },
+          "portNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "default" : [ ]
+          },
+          "variableFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              }
+            },
+            "title" : "Output variables",
+            "description" : "Choose variables from workflow to be visible outside the Component. Note that the selection is applied to all output ports.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              }
+            }
+          },
+          "variablePrefix" : {
+            "type" : "string"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableFilter",
+      "options" : {
+        "format" : "nameFilter"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "variableFilter" : {
+            "configPaths" : [ [ "variable-filter", "filter-type" ], [ "variable-filter", "included_names" ], [ "variable-filter", "excluded_names" ], [ "variable-filter", "enforce_option" ], [ "variable-filter", "name_pattern", "pattern" ], [ "variable-filter", "name_pattern", "type" ], [ "variable-filter", "name_pattern", "caseSensitive" ], [ "variable-filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "variablePrefix" : {
+            "configKey" : "variable-prefix"
+          },
+          "portNames" : {
+            "configKey" : "port-names"
+          },
+          "portDescriptions" : {
+            "configKey" : "port-descriptions"
+          },
+          "allowOutputNodeToCompleteBeforeContent" : {
+            "configKey" : "allowOutputNodeToCompleteBeforeContent"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/variableFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  } ]
+}

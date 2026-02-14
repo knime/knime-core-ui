@@ -65,6 +65,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.wizard.WizardNode;
 import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeInPort;
@@ -138,6 +139,7 @@ public final class NodeParametersUtil {
         PortsConfiguration portConfig = null;
         URLConfiguration urlConfig = null;
         CredentialsProvider credentialsProvider = null;
+        FlowObjectStack flowStack = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
             final var nodeModel = nnc.getNode().getNodeModel();
@@ -150,6 +152,9 @@ public final class NodeParametersUtil {
             final var creationConfig = nnc.getNode().getCopyOfCreationConfig();
             portConfig = creationConfig.flatMap(ModifiableNodeCreationConfiguration::getPortConfig).orElse(null);
             urlConfig = creationConfig.flatMap(ModifiableNodeCreationConfiguration::getURLConfig).orElse(null);
+            flowStack = nnc.getFlowObjectStackForDialog();
+        } else {
+            flowStack = nc.getFlowObjectStack();
         }
 
         final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
@@ -161,7 +166,7 @@ public final class NodeParametersUtil {
             portConfig = portsConfiguration;
         }
 
-        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
+        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, flowStack,
             credentialsProvider, inPortObjects, dialogNode, portConfig, urlConfig, wizardNode);
     }
 
