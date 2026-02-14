@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -82,6 +83,13 @@ public final class NodeDialogManager {
 
     private static NodeDialogManager instance;
 
+    /**
+     * Registry mapping node factory class names to dialog factories. Used to provide WebUI dialogs for nodes whose
+     * factories are in bundles that cannot depend on knime-core-ui (e.g. knime-core). Registration happens from
+     * GatewayImplPlugin to avoid early class loading.
+     */
+    private static final Map<String, NodeDialogFactory> REGISTERED_DIALOG_FACTORIES = new HashMap<>();
+
     private final Map<NodeContainer, DialogUIExtension> m_nodeDialogAdapterMap = new WeakHashMap<>();
 
     private final PageResourceManager<NodeWrapper> m_pageResourceManager = new PageResourceManager<>(PageType.DIALOG,
@@ -108,6 +116,19 @@ public final class NodeDialogManager {
     }
 
     /**
+     * Registers a {@link NodeDialogFactory} for a node factory identified by its class name. This is used to provide
+     * WebUI dialogs for node factories that cannot implement {@link NodeDialogFactory} directly (e.g. because they
+     * reside in a bundle that cannot depend on knime-core-ui).
+     *
+     * @param factoryClassName the fully qualified class name of the node factory
+     * @param dialogFactory the dialog factory to use for nodes created by that factory
+     */
+    public static synchronized void registerNodeDialogFactory(final String factoryClassName,
+        final NodeDialogFactory dialogFactory) {
+        REGISTERED_DIALOG_FACTORIES.put(factoryClassName, dialogFactory);
+    }
+
+    /**
      * @param nc the node to check
      * @return whether the node provides a node dialog
      */
@@ -118,8 +139,13 @@ public final class NodeDialogManager {
                 return true;
             }
             var nodeFactory = node.getFactory();
-            return (nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog())
-                || JobManagerParametersUtil.hasJobManagerSettings(nc.getNodeSettings());
+            if (nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog()) {
+                return true;
+            }
+            if (REGISTERED_DIALOG_FACTORIES.containsKey(nodeFactory.getClass().getName())) {
+                return true;
+            }
+            return JobManagerParametersUtil.hasJobManagerSettings(nc.getNodeSettings());
         } else if (nc instanceof SubNodeContainer snc) {
             return new SubNodeContainerDialogFactory(snc).hasNodeDialog();
         } else {
@@ -210,10 +236,15 @@ public final class NodeDialogManager {
             NodeDialog nodeDialog;
             if (fac instanceof NodeDialogFactory df) {
                 nodeDialog = df.createNodeDialog();
-            } else if (FallbackDialogFactory.isFallbackDialogEnabled() && node.hasDialog()) {
-                nodeDialog = new FallbackDialogFactory(nnc).createNodeDialog();
             } else {
-                nodeDialog = new DefaultNodeDialog();
+                var registeredFactory = REGISTERED_DIALOG_FACTORIES.get(fac.getClass().getName());
+                if (registeredFactory != null) {
+                    nodeDialog = registeredFactory.createNodeDialog();
+                } else if (FallbackDialogFactory.isFallbackDialogEnabled() && node.hasDialog()) {
+                    nodeDialog = new FallbackDialogFactory(nnc).createNodeDialog();
+                } else {
+                    nodeDialog = new DefaultNodeDialog();
+                }
             }
             return new NodeContainerNodeDialogAdapter(nnc, nodeDialog);
         } finally {
