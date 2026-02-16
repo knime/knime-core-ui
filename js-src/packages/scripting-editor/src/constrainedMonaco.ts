@@ -6,6 +6,7 @@
  * like the Java Snippet node where users edit specific parts of a larger code structure.
  */
 
+import ConstrainedEditor from "constrained-editor-plugin";
 import * as monaco from "monaco-editor";
 
 /**
@@ -17,6 +18,16 @@ export interface ConstrainedRange {
   endLineNumber: number;
   endColumn: number;
   isReadOnly: boolean;
+}
+
+/**
+ * Restriction format for the constrained-editor-plugin.
+ * Restrictions define the EDITABLE regions (inverted from read-only).
+ */
+interface EditorRestriction {
+  range: [number, number, number, number]; // [startLine, startCol, endLine, endCol]
+  allowMultiline?: boolean;
+  label?: string;
 }
 
 /**
@@ -35,8 +46,27 @@ export function applyConstrainedEditing(
     throw new Error("Editor model not found");
   }
 
-  // Apply decorations to visually distinguish read-only regions
-  const decorations = model.deltaDecorations(
+  // Convert our ConstrainedRange format to the plugin's restriction format
+  // Note: The plugin uses restrictions to define EDITABLE regions,
+  // so we only include ranges where isReadOnly = false
+  const restrictions: EditorRestriction[] = constrainedRanges
+    .filter((range) => !range.isReadOnly) // Only editable regions become restrictions
+    .map((range) => ({
+      range: [
+        range.startLineNumber,
+        range.startColumn,
+        range.endLineNumber,
+        range.endColumn,
+      ] as [number, number, number, number],
+      allowMultiline: true,
+    }));
+
+  // Create the constrained editor instance
+  const constrainedEditor = new ConstrainedEditor(editor);
+  constrainedEditor.addRestrictionsTo(model, restrictions);
+
+  // Apply visual decorations to read-only regions
+  const readOnlyDecorations = model.deltaDecorations(
     [],
     constrainedRanges
       .filter((range) => range.isReadOnly)
@@ -57,53 +87,11 @@ export function applyConstrainedEditing(
       })),
   );
 
-  // Prevent editing in read-only regions
-  const disposable = editor.onDidChangeModelContent((e) => {
-    const changes = e.changes;
-    let hasInvalidEdit = false;
-
-    for (const change of changes) {
-      const changeRange = change.range;
-
-      // Check if the change overlaps with any read-only region
-      for (const constrainedRange of constrainedRanges) {
-        if (!constrainedRange.isReadOnly) {
-          continue;
-        }
-
-        const readOnlyRange = new monaco.Range(
-          constrainedRange.startLineNumber,
-          constrainedRange.startColumn,
-          constrainedRange.endLineNumber,
-          constrainedRange.endColumn,
-        );
-
-        // Check if ranges intersect
-        if (
-          changeRange.startLineNumber <= readOnlyRange.endLineNumber &&
-          changeRange.endLineNumber >= readOnlyRange.startLineNumber
-        ) {
-          hasInvalidEdit = true;
-          break;
-        }
-      }
-
-      if (hasInvalidEdit) {
-        break;
-      }
-    }
-
-    // If there was an invalid edit, undo it
-    if (hasInvalidEdit) {
-      editor.trigger("constrained-editor", "undo", {});
-    }
-  });
-
   return {
     dispose: () => {
-      disposable.dispose();
+      constrainedEditor.dispose();
       if (model) {
-        model.deltaDecorations(decorations, []);
+        model.deltaDecorations(readOnlyDecorations, []);
       }
     },
   };
