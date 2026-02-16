@@ -44,76 +44,82 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 19, 2023 (Paul Bärnreuther): created
+ *   Feb 16, 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.holder;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
- * Since we do not want to send passwords to the frontend when serializing {@link Credentials}, we need to store them
- * temporarily in order to receive passwords again when deserializing. When passwords are no longer needed, because the
- * associated node dialog has been deactivated, they should be removed from the map here again. This is why we also
- * remember the node id for every stored password.
- *
  * @author Paul Bärnreuther
  */
-public final class PasswordHolder {
+@SuppressWarnings("java:S2698") // we accept assertions without messages
+class CustomObjectHolderTest {
 
-    private PasswordHolder() {
-        // Cannot be instantiated
+    private static final NodeID NODE_ID_1 = new NodeID(1);
+
+    private static final NodeID NODE_ID_2 = new NodeID(2);
+
+    @AfterEach
+    void cleanup() {
+        CustomObjectHolder.removeAllObjectsOfDialog(NODE_ID_1);
+        CustomObjectHolder.removeAllObjectsOfDialog(NODE_ID_2);
     }
 
-    private static final Map<String, String> PASSWORDS = new HashMap<>();
-
-    private static final Map<NodeID, Set<String>> PASSWORD_IDS_PER_NODE_ID = new HashMap<>();
-
-    static synchronized void addPassword(final NodeID nodeID, final String passwordId, final String password) {
-        final var combinedId = combineNodeIdAndPasswordId(nodeID, passwordId);
-        accociatePasswordIdToNode(combinedId, nodeID);
-        PASSWORDS.put(combinedId, password);
+    @Test
+    void testAddAndGet() {
+        final var obj = new Object();
+        CustomObjectHolder.addObject(NODE_ID_1, "field", obj);
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "field")).isSameAs(obj);
     }
 
-    private static String combineNodeIdAndPasswordId(final NodeID nodeId, final String passwordId) {
-        return String.format("%s:%s", nodeId, passwordId);
+    @Test
+    void testGetReturnsNullForUnknownKey() {
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "nonexistent")).isNull();
     }
 
-    static synchronized String get(final NodeID nodeID, final String passwordId) {
-        final var combinedId = combineNodeIdAndPasswordId(nodeID, passwordId);
-        return PASSWORDS.get(combinedId);
+    @Test
+    void testGetReturnsNullForWrongNodeId() {
+        CustomObjectHolder.addObject(NODE_ID_1, "field", "value");
+        assertThat(CustomObjectHolder.get(NODE_ID_2, "field")).isNull();
     }
 
-    private static void accociatePasswordIdToNode(final String passwordId, final NodeID nodeId) {
-        PASSWORD_IDS_PER_NODE_ID.compute(nodeId, (k, v) -> {
-            if (v == null) {
-                v = new HashSet<>();
-            }
-            v.add(passwordId);
-            return v;
-        });
+    @Test
+    void testRemoveAllObjectsOfDialog() {
+        CustomObjectHolder.addObject(NODE_ID_1, "a", "objA");
+        CustomObjectHolder.addObject(NODE_ID_1, "b", "objB");
+        CustomObjectHolder.addObject(NODE_ID_2, "a", "objC");
+
+        CustomObjectHolder.removeAllObjectsOfDialog(NODE_ID_1);
+
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "a")).isNull();
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "b")).isNull();
+        assertThat(CustomObjectHolder.get(NODE_ID_2, "a")).isEqualTo("objC");
     }
 
-    /**
-     * Tear down method to remove all passwords from the global map when they are not necessary anymore.
-     *
-     * @param nodeId the id of node container associated to the dialog.
-     */
-    public static synchronized void removeAllPasswordsOfDialog(final NodeID nodeId) {
-        final var passwordIds = PASSWORD_IDS_PER_NODE_ID.remove(nodeId);
-        if (passwordIds == null) {
-            return;
-        }
-        passwordIds.stream().forEach(PasswordHolder::remove);
+    @Test
+    void testRemoveAllObjectsOfDialogWithNoObjects() {
+        // should not throw
+        CustomObjectHolder.removeAllObjectsOfDialog(NODE_ID_1);
     }
 
-    private static void remove(final String combinedId) {
-        PASSWORDS.remove(combinedId);
+    @Test
+    void testOverwriteExistingObject() {
+        CustomObjectHolder.addObject(NODE_ID_1, "field", "first");
+        CustomObjectHolder.addObject(NODE_ID_1, "field", "second");
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "field")).isEqualTo("second");
     }
 
+    @Test
+    void testMultipleNodeIdsIndependent() {
+        CustomObjectHolder.addObject(NODE_ID_1, "field", "obj1");
+        CustomObjectHolder.addObject(NODE_ID_2, "field", "obj2");
+
+        assertThat(CustomObjectHolder.get(NODE_ID_1, "field")).isEqualTo("obj1");
+        assertThat(CustomObjectHolder.get(NODE_ID_2, "field")).isEqualTo("obj2");
+    }
 }

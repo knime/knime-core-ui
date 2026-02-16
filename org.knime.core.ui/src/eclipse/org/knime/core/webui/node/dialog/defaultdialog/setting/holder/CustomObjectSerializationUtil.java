@@ -44,76 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 25, 2024 (Paul Bärnreuther): created
+ *   Feb 16, 2026 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.holder;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.holder.FieldLocationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * A utility class for converting untyped objects to resolved objects of the correct type by using
- * {@link ObjectMapper#convertValue}.
+ * Utility for serializing internal data that are not to be sent to the client. Note that when attaching serializers to
+ * a field it is not possible to use a {@link ValueReference} or {@link ValueProvider} on that same field. One can work
+ * around this by nesting the field in another field with those annotations attached.
  *
  * @author Paul Bärnreuther
  */
-public final class ConvertValueUtil {
-    static final NodeLogger LOGGER = NodeLogger.getLogger(ConvertValueUtil.class);
+public class CustomObjectSerializationUtil {
 
-    private ConvertValueUtil() {
-        // Utility
+    private CustomObjectSerializationUtil() {
+        // Cannot be instantiated
     }
 
     /**
+     * Serializes an arbitrary object to boolean {@code true} (non-null, object stored server-side in
+     * {@link CustomObjectHolder}) or {@code false} (null).
      *
-     * @param objectSettings
-     * @param handler
-     * @return an object of the generic type of the {@link DependencyHandler}
+     * @param <T> the type of the object to serialize
      */
-    public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler) {
-        final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
-        return convertValue(objectSettings, settingsType, null, null);
+    public abstract static class CustomObjectSerializer<T> extends JsonSerializer<T> {
+
+        @Override
+        public void serialize(final T value, final JsonGenerator gen, final SerializerProvider serializers)
+            throws IOException {
+            if (value == null) {
+                gen.writeBoolean(false);
+                return;
+            }
+            final var fieldId = FieldLocationUtil.toFieldId(gen.getOutputContext());
+            final var nodeId = FieldLocationUtil.getNodeId();
+            CustomObjectHolder.addObject(nodeId, fieldId, value);
+            gen.writeBoolean(true);
+        }
     }
 
     /**
-     * @param <T>
-     * @param objectSettings
-     * @param settingsType
-     * @param location to be used to resolve password ids
-     * @param specialDeserializer
-     * @return an object of the given settings type
+     * Deserializes a boolean back to an object. If {@code true}, retrieves the actual object from
+     * {@link CustomObjectHolder}. If {@code false}, returns {@code null}.
+     *
+     * @param <T> the type of the object to deserialize
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T convertValue(final Object objectSettings, final Type settingsType, final Location location,
-        final JsonDeserializer<?> specialDeserializer) {
-        if (specialDeserializer != null) {
-            try {
-                return (T)JacksonSerializationUtil.deserialize(objectSettings, specialDeserializer);
-            } catch (IOException ex) {
-                LOGGER.error("Error during manual deserialization of dependency", ex);
+    public abstract static class CustomObjectDeserializer<T> extends JsonDeserializer<T> {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
+            final boolean hasValue = p.getBooleanValue();
+            if (!hasValue) {
+                return null;
             }
+            final var fieldId = FieldLocationUtil.toFieldId(p.getParsingContext());
+            final var nodeId = FieldLocationUtil.getNodeId();
+            return (T)CustomObjectHolder.get(nodeId, fieldId);
         }
-
-        if (location != null) {
-            FieldLocationUtil.setCurrentLocation(location);
-        }
-
-        final var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.convertValue(objectSettings, mapper.constructType(settingsType));
-        } finally {
-            FieldLocationUtil.removeCurrentLocation();
-        }
-
     }
+
 }

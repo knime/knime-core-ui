@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.holder.CustomObjectHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
@@ -191,6 +192,7 @@ public final class DefaultNodeSettingsService implements NodeSettingsService {
     public void deactivate() {
         final var nodeId = NodeContext.getContext().getNodeContainer().getID();
         PasswordHolder.removeAllPasswordsOfDialog(nodeId);
+        CustomObjectHolder.removeAllObjectsOfDialog(nodeId);
         FallbackDialogNodeParameters.clearNodeSettingsCache(nodeId);
         if (m_customAdditionalDeactivation != null) {
             m_customAdditionalDeactivation.accept(nodeId);

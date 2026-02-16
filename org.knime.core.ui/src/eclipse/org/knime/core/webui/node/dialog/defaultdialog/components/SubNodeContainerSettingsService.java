@@ -97,6 +97,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.holder.CustomObjectHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.node.parameters.NodeParametersInput;
 
@@ -349,8 +350,10 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
      */
     @Override
     public void deactivate() {
-        m_orderedDialogNodes.get().stream().map(DialogSubNode::nc).map(NodeContainer::getID)
-            .forEach(PasswordHolder::removeAllPasswordsOfDialog);
+        m_orderedDialogNodes.get().stream().map(DialogSubNode::nc).map(NodeContainer::getID).forEach(nodeId -> {
+            PasswordHolder.removeAllPasswordsOfDialog(nodeId);
+            CustomObjectHolder.removeAllObjectsOfDialog(nodeId);
+        });
     }
 
 }

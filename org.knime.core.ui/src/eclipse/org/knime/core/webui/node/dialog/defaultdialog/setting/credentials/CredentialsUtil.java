@@ -55,23 +55,20 @@ import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRAN
 import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRANSIENT_SECOND_FACTOR;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.holder.FieldLocationUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.widget.credentials.Credentials;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -113,8 +110,8 @@ public final class CredentialsUtil {
         @Override
         public void serialize(final Credentials value, final JsonGenerator gen, final SerializerProvider serializers)
             throws IOException {
-            final var fieldId = toFieldId(gen.getOutputContext());
-            final var nodeID = getNodeId();
+            final var fieldId = FieldLocationUtil.toFieldId(gen.getOutputContext());
+            final var nodeID = FieldLocationUtil.getNodeId();
             gen.writeStartObject();
             final var password = value.getPassword();
             addPassword(gen, IS_HIDDEN_PASSWORD_KEY, password, fieldId + "." + PASSWORD_KEY, nodeID);
@@ -122,35 +119,6 @@ public final class CredentialsUtil {
             addPassword(gen, IS_HIDDEN_SECOND_FACTOR_KEY, secondFactor, fieldId + "." + SECOND_FACTOR_KEY, nodeID);
             serializers.defaultSerializeField(USERNAME_KEY, value.getUsername(), gen);
             gen.writeEndObject();
-        }
-
-        private static NodeID getNodeId() {
-            return NodeContext.getContext().getNodeContainer().getID();
-        }
-
-        private static String toFieldId(final JsonStreamContext context) {
-            return String.join(".", getFieldLocation(context).toList());
-        }
-
-        private static Stream<String> getFieldLocation(final JsonStreamContext context) {
-            final var parent = context.getParent();
-            if (parent == null) {
-                return getSuppliedParentLocation();
-            }
-            Stream<String> parentFieldLocation;
-            if (parent.inRoot() && context.getCurrentValue() != null) {
-                parentFieldLocation = getSuppliedParentLocation();
-            } else {
-                parentFieldLocation = getFieldLocation(parent);
-            }
-            if (context.hasCurrentName()) {
-                return Stream.concat(parentFieldLocation, Stream.of(context.getCurrentName()));
-            }
-            return parentFieldLocation;
-        }
-
-        private static Stream<String> getSuppliedParentLocation() {
-            return PasswordHolder.getSuppliedLocation().stream().flatMap(List::stream);
         }
 
         private static void addPassword(final JsonGenerator gen, final String hiddenPasswordKey, final String password,
@@ -169,10 +137,10 @@ public final class CredentialsUtil {
         @Override
         public Credentials deserialize(final JsonParser p, final DeserializationContext ctxt)
             throws IOException, JacksonException {
-            final var fieldId = CredentialsSerializer.toFieldId(p.getParsingContext());
+            final var fieldId = FieldLocationUtil.toFieldId(p.getParsingContext());
             final var node = (JsonNode)p.getCodec().readTree(p);
             final var username = extractString(node, USERNAME_KEY);
-            final var nodeID = CredentialsSerializer.getNodeId();
+            final var nodeID = FieldLocationUtil.getNodeId();
             final String password =
                 getPassword(node, IS_HIDDEN_PASSWORD_KEY, PASSWORD_KEY, fieldId + "." + PASSWORD_KEY, nodeID);
             final String secondFactor = getPassword(node, IS_HIDDEN_SECOND_FACTOR_KEY, SECOND_FACTOR_KEY,
