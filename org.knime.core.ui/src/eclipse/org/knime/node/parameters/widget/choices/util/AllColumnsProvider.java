@@ -64,7 +64,7 @@ import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 public class AllColumnsProvider implements ColumnChoicesProvider, InputTableIndexHolder {
     @Override
     public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-        return context.getInTableSpec(getInputTableIndex()) //
+        return context.getInTableSpec(getInputTableIndex(context)) //
             .map(DataTableSpec::stream) //
             .orElseGet(Stream::empty) //
             .toList();

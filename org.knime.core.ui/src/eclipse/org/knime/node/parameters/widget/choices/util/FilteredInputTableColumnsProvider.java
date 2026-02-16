@@ -64,7 +64,7 @@ public interface FilteredInputTableColumnsProvider extends InputTableIndexHolder
 
     @Override
     default List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-        return context.getInTableSpec(getInputTableIndex()) //
+        return context.getInTableSpec(getInputTableIndex(context)) //
             .map(spec -> spec.stream().filter(this::isIncluded)) //
             .orElseGet(Stream::empty) //
             .toList();

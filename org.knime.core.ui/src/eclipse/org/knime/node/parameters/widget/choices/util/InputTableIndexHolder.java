@@ -49,6 +49,7 @@
 package org.knime.node.parameters.widget.choices.util;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Convenience interface for providing columns from a single input table.
@@ -60,8 +61,18 @@ public interface InputTableIndexHolder {
     /**
      * @return the index of the to be used input port (which has to be a port with a {@link DataTableSpec}).
      */
+    @Deprecated(since = "5.11") // use the method with NodeParametersInput instead, which allows to determine the index based on other settings or the number/type of input ports
     default int getInputTableIndex() {
         return 0;
+    }
+
+    /**
+     * @param parametersInput the parameters input to retrieve the table spec from. This is needed for cases where the
+     *            index of the input port to be used depends on other settings or the number/type of input ports.
+     * @return the index of the to be used input port (which has to be a port with a {@link DataTableSpec}).
+     */
+    default int getInputTableIndex(final NodeParametersInput parametersInput) {
+        return getInputTableIndex();
     }
 
 }
