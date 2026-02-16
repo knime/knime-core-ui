@@ -47,8 +47,8 @@ if (initialData.staticCompletionItems?.length) {
       :to-settings="toSettings"
       :initial-pane-sizes="{
         bottom: 0,
-        left: 0,
-        right: 360,
+        left: 280,
+        right: 380,
       }"
       :show-control-bar="false"
     >

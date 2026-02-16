@@ -11,7 +11,7 @@ import { nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import Handlebars from "handlebars";
 
-import { Collapser, useMultiSelection } from "@knime/components";
+import { useMultiSelection } from "@knime/components";
 import { KdsDataType } from "@knime/kds-components";
 
 import { useInputOutputSelectionStore } from "../../store/io-selection";
@@ -108,7 +108,7 @@ describe("InputOutputItem", () => {
   describe("with collapser", () => {
     it("renders collapser if item contains rows / columnInfo", () => {
       const wrapper = doMount();
-      expect(wrapper.findComponent(Collapser).exists()).toBeTruthy();
+      expect(wrapper.find(".collapser").exists()).toBeTruthy();
       wrapper.unmount();
     });
 
@@ -126,7 +126,7 @@ describe("InputOutputItem", () => {
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
         elements: [{ dragGhostContent: expect.any(HTMLElement) }],
-        font: "monospace",
+        font: "var(--kds-font-base-code-xsmall)",
         numSelectedItems: 1,
       });
       expect(
@@ -269,13 +269,13 @@ describe("InputOutputItem", () => {
   describe("no collapser", () => {
     it("does not render collapser if item contains no subitems", () => {
       const wrapper = doMount(inputOutputItemMinimal);
-      expect(wrapper.findComponent(Collapser).exists()).toBeFalsy();
+      expect(wrapper.find(".collapser").exists()).toBeFalsy();
       wrapper.unmount();
     });
 
     it("does not render collapser if subItems is array of length 0", () => {
       const wrapper = doMount({ ...inputOutputItemMinimal, subItems: [] });
-      expect(wrapper.findComponent(Collapser).exists()).toBeFalsy();
+      expect(wrapper.find(".collapser").exists()).toBeFalsy();
       wrapper.unmount();
     });
 
@@ -294,7 +294,7 @@ describe("InputOutputItem", () => {
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
         elements: [{ dragGhostContent: expect.any(HTMLElement) }],
-        font: "monospace",
+        font: "var(--kds-font-base-code-xsmall)",
         numSelectedItems: 1,
       });
       expect(
