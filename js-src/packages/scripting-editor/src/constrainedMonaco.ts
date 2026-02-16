@@ -67,7 +67,9 @@ export function applyConstrainedEditing(
 
       // Check if the change overlaps with any read-only region
       for (const constrainedRange of constrainedRanges) {
-        if (!constrainedRange.isReadOnly) continue;
+        if (!constrainedRange.isReadOnly) {
+          continue;
+        }
 
         const readOnlyRange = new monaco.Range(
           constrainedRange.startLineNumber,
@@ -86,7 +88,9 @@ export function applyConstrainedEditing(
         }
       }
 
-      if (hasInvalidEdit) break;
+      if (hasInvalidEdit) {
+        break;
+      }
     }
 
     // If there was an invalid edit, undo it
