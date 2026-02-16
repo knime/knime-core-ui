@@ -76,7 +76,7 @@ import org.knime.node.parameters.updates.StateProvider;
  *
  * @author Paul Bärnreuther
  */
-final class WorkflowContextInfoProvider {
+public final class WorkflowContextInfoProvider {
 
     private final NodeParametersInput m_nodeParametersInput;
 
@@ -89,17 +89,17 @@ final class WorkflowContextInfoProvider {
     private final boolean m_hasNoConnectedFSOptionsProvider;
 
     WorkflowContextInfoProvider( //
-            final NodeParametersInput nodeParametersInput, //
-            final FileSystemOption[] fileSystemOptions, //
-            final Class<? extends StateProvider<Optional<ConnectedFSOptions>>> connectedFSOptionsProvider //
-            ) {
+        final NodeParametersInput nodeParametersInput, //
+        final FileSystemOption[] fileSystemOptions, //
+        final Class<? extends StateProvider<Optional<ConnectedFSOptions>>> connectedFSOptionsProvider //
+    ) {
         m_nodeParametersInput = nodeParametersInput;
         m_allowsConnectedFS =
             fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.CONNECTED);
         m_allowsSpaceFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.SPACE);
         m_allowsLocalFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.LOCAL);
         m_hasNoConnectedFSOptionsProvider = connectedFSOptionsProvider == null //
-                || ConnectedFSOptionsProvider.class.equals(connectedFSOptionsProvider);
+            || ConnectedFSOptionsProvider.class.equals(connectedFSOptionsProvider);
     }
 
     /**
@@ -109,13 +109,23 @@ final class WorkflowContextInfoProvider {
         if (!m_allowsLocalFS) {
             return Optional.empty();
         }
+        return isLocal();
+    }
+
+    /**
+     * Whether the local file system is supported in the current workflow context.
+     *
+     * @return true if the local file system is supported, false if it is not supported, or empty if it is unknown (e.g.
+     *         because there is no workflow context)
+     */
+    public static Optional<Boolean> isLocal() {
         return WorkflowContextUtil.getWorkflowContextV2Optional()
             .map(context -> context.getExecutorType() == ExecutorType.ANALYTICS_PLATFORM);
     }
 
     /**
-     * @return options for connected file system. Required if file system option CONNECTED is used
-     * but can be superseded if the options are provided by a state provider.
+     * @return options for connected file system. Required if file system option CONNECTED is used but can be superseded
+     *         if the options are provided by a state provider.
      */
     Optional<FileChooserRendererOptions.ConnectedFSOptions> getConnectedFSOptions() {
         if (m_allowsConnectedFS && m_hasNoConnectedFSOptionsProvider) {
@@ -136,11 +146,27 @@ final class WorkflowContextInfoProvider {
             .flatMap(WorkflowContextInfoProvider::createSpaceFSOptions);
     }
 
-    private Optional<Integer> getFirstFileSystemPortIndex() {
-        final var inPortTypes = m_nodeParametersInput.getInPortTypes();
+    /**
+     * @param nodeParametersInput the node parameters input
+     * @return whether any input port is a file system port
+     */
+    public static boolean hasConnectedFileSystemPort(final NodeParametersInput nodeParametersInput) {
+        return getFirstFileSystemPortIndex(nodeParametersInput).isPresent();
+    }
+
+    /**
+     * @param nodeParametersInput the node parameters input
+     * @return the index of the first file system port, if any
+     */
+    public static Optional<Integer> getFirstFileSystemPortIndex(final NodeParametersInput nodeParametersInput) {
+        final var inPortTypes = nodeParametersInput.getInPortTypes();
         return IntStream.range(0, inPortTypes.length)
             .filter(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass())).boxed()
             .findFirst();
+    }
+
+    private Optional<Integer> getFirstFileSystemPortIndex() {
+        return getFirstFileSystemPortIndex(m_nodeParametersInput);
     }
 
     private static Optional<FileChooserRendererOptions.SpaceFSOptions>
@@ -203,14 +229,30 @@ final class WorkflowContextInfoProvider {
 
                 @Override
                 public Optional<String> getRelativeWorkflowPath() {
-                    return getRestCurrentWorkflowPath(server)
-                        .map(IPath::forPosix) //
+                    return getRestCurrentWorkflowPath(server).map(IPath::forPosix) //
                         .map(IPath::makeRelative) //
                         .map(IPath::toString);
                 }
             });
         }
         return Optional.empty();
+    }
+
+    /**
+     * @return the display name for the current space based on the workflow context, or "Current space" as fallback
+     */
+    public static String getSpaceName() {
+        return WorkflowContextUtil.getWorkflowContextV2Optional().map(context -> {
+            final var locationInfo = context.getLocationInfo();
+            if (locationInfo instanceof LocalLocationInfo) {
+                return "Local space";
+            } else if (locationInfo instanceof HubSpaceLocationInfo hubSpace) {
+                return hubSpace.getDefaultMountId();
+            } else if (locationInfo instanceof ServerLocationInfo server) {
+                return server.getDefaultMountId();
+            }
+            return "Current space";
+        }).orElse("Current space");
     }
 
     /**

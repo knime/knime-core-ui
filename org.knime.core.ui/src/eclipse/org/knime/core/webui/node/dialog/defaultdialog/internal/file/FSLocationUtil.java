@@ -81,7 +81,14 @@ public final class FSLocationUtil {
         return new FSLocation(FSCategory.LOCAL, "");
     }
 
-    static boolean isRemoteWorkflowContext() {
+    /**
+     * Use this to determine whether the current workflow is running in a remote context. This can be used to decide on
+     * default fs location spec.
+     *
+     * @return {@code true} if the workflow is running in a remote context, {@code false} otherwise. If no workflow
+     *         context is available, {@code true} is returned.
+     */
+    public static boolean isRemoteWorkflowContext() {
         return WorkflowContextUtil.getWorkflowContextV2Optional()//
             .map(WorkflowContextV2::getLocationType)//
             .map(locType -> LocationType.LOCAL != locType).orElse(true);
