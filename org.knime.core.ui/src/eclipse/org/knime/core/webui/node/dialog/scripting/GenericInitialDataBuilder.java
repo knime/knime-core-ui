@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -66,6 +67,18 @@ import org.knime.core.node.workflow.NodeContext;
  */
 public final class GenericInitialDataBuilder {
 
+    /**
+     * Represents a section in a multi-section script editor. A section can be either editable (linked to a settings
+     * config key) or read-only (containing template text).
+     *
+     * @param isEditable whether this section is editable by the user
+     * @param contentOrConfigKey if editable, the config key to load/save the content; if read-only, the template text
+     *            to display
+     * @since 5.4
+     */
+    public record ScriptSection(boolean isEditable, String contentOrConfigKey) {
+    }
+
     private Map<String, Supplier<Object>> m_dataSuppliers = new HashMap<>();
 
     /**
@@ -81,6 +94,24 @@ public final class GenericInitialDataBuilder {
         }
 
         m_dataSuppliers.put(key, supplier);
+        return this;
+    }
+
+    /**
+     * Add script section data for multi-section script editors. This allows editors to have multiple editable
+     * sections separated by read-only template text (e.g., Java class structure with editable imports, fields, and
+     * body).
+     *
+     * @param sections list of script sections, alternating between editable and read-only sections
+     * @return this, for builder-style chaining
+     * @since 5.4
+     */
+    public GenericInitialDataBuilder addScriptSectionData(final List<ScriptSection> sections) {
+        if (m_dataSuppliers.containsKey("scriptSections")) {
+            throw new IllegalArgumentException("Script sections have already been added.");
+        }
+        
+        m_dataSuppliers.put("scriptSections", () -> sections);
         return this;
     }
 
