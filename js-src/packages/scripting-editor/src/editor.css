@@ -31,3 +31,22 @@
     margin-top: 0;
   }
 }
+
+/* Read-only section styling for constrained Monaco editor */
+.monaco-editor .read-only-section {
+  background-color: rgba(128, 128, 128, 0.08);
+  opacity: 0.7;
+}
+
+.monaco-editor .read-only-glyph-margin {
+  background-color: rgba(128, 128, 128, 0.15);
+}
+
+/* Dark theme support */
+.monaco-editor.vs-dark .read-only-section {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.monaco-editor.vs-dark .read-only-glyph-margin {
+  background-color: rgba(255, 255, 255, 0.08);
+}
