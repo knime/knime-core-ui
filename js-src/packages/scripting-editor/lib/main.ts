@@ -24,6 +24,11 @@ import {
   registerStaticCompletionProvider,
   useStaticCompletionProvider,
 } from "../src/components/utils/useStaticCompletionProvider";
+import {
+  applyConstrainedEditing,
+  calculateConstrainedRanges,
+  type ConstrainedRange,
+} from "../src/constrainedMonaco";
 import { consoleHandler, setConsoleHandler } from "../src/consoleHandler";
 import { displayMode } from "../src/display-mode";
 import type {
@@ -58,6 +63,8 @@ import { setActiveEditorStoreForAi } from "../src/store/ai-bar";
 import { useReadonlyStore } from "../src/store/readOnly";
 
 export {
+  applyConstrainedEditing,
+  calculateConstrainedRanges,
   COLUMN_INSERTION_EVENT,
   CompactTabBar,
   consoleHandler,
@@ -85,6 +92,7 @@ export {
 export type {
   ConsoleHandler,
   ConsoleText,
+  ConstrainedRange,
   GenericInitialData,
   GenericNodeSettings,
   InitMockData,
