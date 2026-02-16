@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 19, 2023 (Paul Bärnreuther): created
+ *   Feb 16, 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.holder;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,66 +54,74 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.workflow.NodeID;
-import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
- * Since we do not want to send passwords to the frontend when serializing {@link Credentials}, we need to store them
- * temporarily in order to receive passwords again when deserializing. When passwords are no longer needed, because the
- * associated node dialog has been deactivated, they should be removed from the map here again. This is why we also
- * remember the node id for every stored password.
+ * Holds arbitrary objects server-side during dialog serialization, analogous to how
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder} holds passwords. Objects
+ * stored here are not sent to the frontend and can be retrieved during deserialization. When the associated node dialog
+ * is deactivated, all objects for that node should be removed.
  *
  * @author Paul Bärnreuther
  */
-public final class PasswordHolder {
+public final class CustomObjectHolder {
 
-    private PasswordHolder() {
+    private CustomObjectHolder() {
         // Cannot be instantiated
     }
 
-    private static final Map<String, String> PASSWORDS = new HashMap<>();
+    private static final Map<String, Object> OBJECTS = new HashMap<>();
 
-    private static final Map<NodeID, Set<String>> PASSWORD_IDS_PER_NODE_ID = new HashMap<>();
+    private static final Map<NodeID, Set<String>> OBJECT_IDS_PER_NODE_ID = new HashMap<>();
 
-    static synchronized void addPassword(final NodeID nodeID, final String passwordId, final String password) {
-        final var combinedId = combineNodeIdAndPasswordId(nodeID, passwordId);
-        accociatePasswordIdToNode(combinedId, nodeID);
-        PASSWORDS.put(combinedId, password);
+    /**
+     * Store an object for the given node and object ID.
+     *
+     * @param nodeID the node ID
+     * @param objectId the object identifier (typically the field path)
+     * @param object the object to store
+     */
+    public static synchronized void addObject(final NodeID nodeID, final String objectId, final Object object) {
+        final var combinedId = combineNodeIdAndObjectId(nodeID, objectId);
+        associateObjectIdToNode(combinedId, nodeID);
+        OBJECTS.put(combinedId, object);
     }
 
-    private static String combineNodeIdAndPasswordId(final NodeID nodeId, final String passwordId) {
-        return String.format("%s:%s", nodeId, passwordId);
+    private static String combineNodeIdAndObjectId(final NodeID nodeId, final String objectId) {
+        return String.format("%s:%s", nodeId, objectId);
     }
 
-    static synchronized String get(final NodeID nodeID, final String passwordId) {
-        final var combinedId = combineNodeIdAndPasswordId(nodeID, passwordId);
-        return PASSWORDS.get(combinedId);
+    /**
+     * Retrieve a previously stored object.
+     *
+     * @param nodeID the node ID
+     * @param objectId the object identifier
+     * @return the stored object, or {@code null} if not found
+     */
+    public static synchronized Object get(final NodeID nodeID, final String objectId) {
+        final var combinedId = combineNodeIdAndObjectId(nodeID, objectId);
+        return OBJECTS.get(combinedId);
     }
 
-    private static void accociatePasswordIdToNode(final String passwordId, final NodeID nodeId) {
-        PASSWORD_IDS_PER_NODE_ID.compute(nodeId, (k, v) -> {
+    private static void associateObjectIdToNode(final String objectId, final NodeID nodeId) {
+        OBJECT_IDS_PER_NODE_ID.compute(nodeId, (k, v) -> {
             if (v == null) {
                 v = new HashSet<>();
             }
-            v.add(passwordId);
+            v.add(objectId);
             return v;
         });
     }
 
     /**
-     * Tear down method to remove all passwords from the global map when they are not necessary anymore.
+     * Remove all objects associated with the given node dialog.
      *
      * @param nodeId the id of node container associated to the dialog.
      */
-    public static synchronized void removeAllPasswordsOfDialog(final NodeID nodeId) {
-        final var passwordIds = PASSWORD_IDS_PER_NODE_ID.remove(nodeId);
-        if (passwordIds == null) {
+    public static synchronized void removeAllObjectsOfDialog(final NodeID nodeId) {
+        final var objectIds = OBJECT_IDS_PER_NODE_ID.remove(nodeId);
+        if (objectIds == null) {
             return;
         }
-        passwordIds.stream().forEach(PasswordHolder::remove);
+        objectIds.forEach(OBJECTS::remove);
     }
-
-    private static void remove(final String combinedId) {
-        PASSWORDS.remove(combinedId);
-    }
-
 }
