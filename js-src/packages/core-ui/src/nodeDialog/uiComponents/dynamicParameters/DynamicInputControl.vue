@@ -1,3 +1,32 @@
+<script lang="ts">
+export const DYNAMIC_SETTINGS_KEY = "dynamicSettings";
+export type DynamicSettings =
+  | ({
+      data: unknown;
+      uiSchema: string;
+      schema: string;
+    } & (
+      | {
+          updates: null;
+          persist: null;
+          settingsId: null;
+        }
+      | {
+          updates: string;
+          persist: string;
+          settingsId: string;
+        }
+    ))
+  | null;
+
+type DynamicInputUiSchema = {
+  scope: string;
+  options: {
+    dynamicSettings?: DynamicSettings;
+  };
+};
+</script>
+
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import { DispatchRenderer } from "@jsonforms/vue";
@@ -16,47 +45,10 @@ import {
   addSettingsIdToTriggers,
 } from "./composables";
 
-type DynamicInputUiSchema = {
-  scope: string;
-  options: {
-    dynamicSettings?:
-      | ({
-          data: unknown;
-          uiSchema: string;
-          schema: string;
-        } & (
-          | {
-              updates: null;
-              persist: null;
-              settingsId: null;
-            }
-          | {
-              updates: string;
-              persist: string;
-              settingsId: string;
-            }
-        ))
-      | null
-      /* initial value */
-      | {
-          data?: unknown;
-          uiSchema?: string;
-          schema?: string;
-          updates?: null;
-          persist?: null;
-          settingsId?: null;
-        };
-  };
-};
-
 const props = defineProps<VueControlProps<object | null>>();
 const uischema = computed(() => props.control.uischema as DynamicInputUiSchema);
 
-const dynamicSettings = useProvidedState(
-  uischema,
-  "dynamicSettings",
-  {} as DynamicInputUiSchema["options"]["dynamicSettings"],
-);
+const dynamicSettings = useProvidedState(uischema, DYNAMIC_SETTINGS_KEY);
 const providedUiSchema = computed(() =>
   JSON.parse(dynamicSettings.value?.uiSchema || "{}"),
 );
@@ -149,18 +141,6 @@ watch(
 
 addSettingsIdToStateProviders(settingsIdContext);
 addSettingsIdToTriggers(settingsIdContext);
-
-/**
- * No immediate watch since we don't want the value to be set to null on initial load just to be updated once the first
- * dynamic settings arrive. This is why we use {} as a default value for the dynamicSettings state which is a state that
- * can not be provided (unlike null) and thus the first update will trigger this watcher.
- */
-watch(dynamicSettings, (newDynamicSettings) => {
-  const newData = newDynamicSettings?.data ?? null;
-  if (JSON.stringify(newData) !== JSON.stringify(props.control.data)) {
-    props.changeValue(newData);
-  }
-});
 </script>
 
 <template>
