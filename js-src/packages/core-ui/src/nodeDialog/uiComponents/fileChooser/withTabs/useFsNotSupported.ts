@@ -101,8 +101,8 @@ export default ({
             },
           },
           [
-            clearToConfigureButtonComponent,
             getNotSupportedMessageComponent(data.value),
+            clearToConfigureButtonComponent,
           ],
         )
       : null,
