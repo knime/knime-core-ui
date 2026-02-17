@@ -5,6 +5,10 @@ import { get } from "lodash-es";
 
 import { type AlertParams } from "@knime/ui-extension-service";
 
+import {
+  DYNAMIC_SETTINGS_KEY,
+  type DynamicSettings,
+} from "@/nodeDialog/uiComponents/dynamicParameters/DynamicInputControl.vue";
 import type { Result } from "../../api/types/Result";
 import {
   type IndexIdsValuePairs,
@@ -12,7 +16,9 @@ import {
   type Trigger,
   type Update,
   type UpdateResult,
+  type ValueUpdateResult,
   isLocationBased,
+  isLocationUiStateUpdateResult,
   isValueTrigger,
   isValueUpdateResult,
 } from "../../types/Update";
@@ -230,6 +236,53 @@ export default ({
   globalArrayIdsRecord: ArrayRecord;
   callDataService: SettingsUpdate2 & SettingsUpdate2WithSettingsId;
 }) => {
+  const resolveValueUpdateResult = ({
+    updateResult,
+    onValueUpdate,
+    indices,
+    newSettings,
+    settingsIdContext,
+    skipIfEqual = false,
+  }: {
+    updateResult: ValueUpdateResult;
+    onValueUpdate: (path: string, setValuePromise: Promise<void>) => void;
+    indices: number[];
+    newSettings: DialogSettings;
+    settingsIdContext?: SettingsIdContext;
+    skipIfEqual?: boolean;
+  }) => {
+    const { scope, values } = updateResult;
+    const indicesValuePairs = isIndexIdsAndValuePairs(values)
+      ? toIndicesValuePairs(values, getIndex)
+      : values;
+    const { toBeAdjustedByLastPathSegment, lastPathSegment } =
+      getToBeAdjustedSegments(
+        scope,
+        indices,
+        indicesValuePairs.map(({ indices, value }) => [indices, value]),
+        newSettings,
+        settingsIdContext ? settingsIdContext.currentParentPathSegments : [],
+      );
+    toBeAdjustedByLastPathSegment.forEach(
+      ({ path, settings: currentSettings, values: [[, value]] }) => {
+        const fullToBeUpdatedPath = composePaths(path, lastPathSegment);
+        if (!pathIsControlledByFlowVariable(fullToBeUpdatedPath)) {
+          if (
+            skipIfEqual &&
+            JSON.stringify(get(currentSettings, lastPathSegment)) ===
+              JSON.stringify(value)
+          ) {
+            return;
+          }
+          onValueUpdate(
+            fullToBeUpdatedPath,
+            setValueAtPath(fullToBeUpdatedPath, value),
+          );
+        }
+      },
+    );
+  };
+
   const resolveUpdateResult =
     (
       updateResult: UpdateResult,
@@ -239,37 +292,38 @@ export default ({
     ) =>
     (newSettings: DialogSettings) => {
       const indices = resolveToIndices(indexIds);
-
       if (!indicesAreDefined(indices)) {
         return;
       }
       if (isValueUpdateResult(updateResult)) {
-        const { scope, values } = updateResult;
-        const indicesValuePairs = isIndexIdsAndValuePairs(values)
-          ? toIndicesValuePairs(values, getIndex)
-          : values;
-        const { toBeAdjustedByLastPathSegment, lastPathSegment } =
-          getToBeAdjustedSegments(
-            scope,
-            indices,
-            indicesValuePairs.map(({ indices, value }) => [indices, value]),
-            newSettings,
-            settingsIdContext
-              ? settingsIdContext.currentParentPathSegments
-              : [],
-          );
-        toBeAdjustedByLastPathSegment.forEach(
-          ({ path, values: [[, value]] }) => {
-            const fullToBeUpdatedPath = composePaths(path, lastPathSegment);
-            if (!pathIsControlledByFlowVariable(fullToBeUpdatedPath)) {
-              onValueUpdate(
-                fullToBeUpdatedPath,
-                setValueAtPath(fullToBeUpdatedPath, value),
-              );
-            }
-          },
-        );
+        resolveValueUpdateResult({
+          updateResult,
+          onValueUpdate,
+          indices,
+          newSettings,
+          settingsIdContext,
+        });
       } else {
+        if (
+          isLocationUiStateUpdateResult(updateResult) &&
+          updateResult.providedOptionName === DYNAMIC_SETTINGS_KEY
+        ) {
+          const derivedValueUpdateResult: ValueUpdateResult = {
+            scope: updateResult.scope,
+            values: updateResult.values.map(({ indices, value }) => ({
+              indices,
+              value: (value as DynamicSettings)?.data ?? null,
+            })),
+          };
+          resolveValueUpdateResult({
+            updateResult: derivedValueUpdateResult,
+            onValueUpdate,
+            indices,
+            newSettings,
+            settingsIdContext,
+            skipIfEqual: true,
+          });
+        }
         const toLocation = <T>(indexLocation: T): T & StateProviderLocation => {
           if (isLocationBased(updateResult)) {
             return {

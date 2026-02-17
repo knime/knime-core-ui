@@ -64,6 +64,11 @@ export const isValueUpdateResult = (
 ): result is ValueUpdateResult =>
   "scope" in result && !("providedOptionName" in result);
 
+export const isLocationUiStateUpdateResult = (
+  result: UpdateResult,
+): result is LocationUiStateUpdateResult =>
+  "scope" in result && "providedOptionName" in result;
+
 export const isLocationBased = (
   result: LocationUiStateUpdateResult | IdUiStateUpdateResult,
 ): result is LocationUiStateUpdateResult => "scope" in result;
