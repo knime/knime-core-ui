@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { KdsDataType } from "@knime/kds-components";
-
 import type { DataType } from "../types";
+
+import SubHeaderTypeRendererBase from "./SubHeaderTypeRendererBase.vue";
 
 const props = defineProps<{
   dataTypes: Record<string, DataType>;
@@ -17,14 +17,10 @@ const dataTypeName = computed(() => dataType.value?.name ?? "Unknown datatype");
 </script>
 
 <template>
-  <div class="data-type-sub-header">
-    <KdsDataType
-      :icon-name="dataTypeId"
-      :icon-title="dataTypeName"
-      size="small"
-    />
-    <span>{{ dataTypeName }}</span>
-  </div>
+  <SubHeaderTypeRendererBase
+    :icon-name="dataTypeId"
+    :data-type-name="dataTypeName"
+  />
 </template>
 
 <style lang="postcss" scoped>
