@@ -4,6 +4,7 @@ import { shallowMount } from "@vue/test-utils";
 import { KdsDataType } from "@knime/kds-components";
 
 import SubHeaderTypeRenderer from "../components/SubHeaderTypeRenderer.vue";
+import SubHeaderTypeRendererBase from "../components/SubHeaderTypeRendererBase.vue";
 
 const dataTypes = {
   datatype1: {
@@ -44,6 +45,11 @@ describe("SubHeaderTypeRenderer", () => {
       props: {
         dataTypes,
         subHeader: "datatype1",
+      },
+      global: {
+        stubs: {
+          SubHeaderTypeRendererBase,
+        },
       },
     });
     expect(wrapper.findComponent(KdsDataType).exists()).toBeTruthy();

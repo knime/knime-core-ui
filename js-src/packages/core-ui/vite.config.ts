@@ -25,6 +25,7 @@ const COMPONENTS = [
   "TextView",
   "FlowVariableView",
   "ImageView",
+  "TableCreatorDialog",
 ] as const;
 
 type ComponentLibraries = (typeof COMPONENTS)[number];
@@ -46,6 +47,7 @@ const libraries: Record<ComponentLibraries, LibraryOptions> = {
   TextView: getComponentLibraryOptions("TextView"),
   FlowVariableView: getComponentLibraryOptions("FlowVariableView"),
   ImageView: getComponentLibraryOptions("ImageView"),
+  TableCreatorDialog: getComponentLibraryOptions("TableCreatorDialog"),
 };
 
 const getCurrentLibrary = (mode: ComponentLibraries) => {
