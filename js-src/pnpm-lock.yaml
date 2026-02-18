@@ -20,6 +20,7 @@ overrides:
   lodash-es@>=4.0.0 <=4.17.22: '>=4.17.23'
   lodash@>=4.0.0 <=4.17.22: '>=4.17.23'
   markdown-it@>=13.0.0 <14.1.1: '>=14.1.1'
+  ajv@>=8.0.0 <8.18.0: '>=8.18.0'
 
 importers:
 
@@ -103,7 +104,7 @@ importers:
     devDependencies:
       '@cyclonedx/cyclonedx-library':
         specifier: ^9.2.0
-        version: 9.2.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)
+        version: 9.2.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)
       '@cyclonedx/cyclonedx-npm':
         specifier: 1.16.1
         version: 1.16.1
@@ -181,7 +182,7 @@ importers:
         version: 3.0.0
       rollup-plugin-sbom:
         specifier: ^3.0.0
-        version: 3.0.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(rollup@4.52.5)(vite@5.4.11(@types/node@24.10.0)(sugarss@4.0.1(postcss@8.5.6)))(xmlbuilder2@3.1.1)
+        version: 3.0.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(rollup@4.52.5)(vite@5.4.11(@types/node@24.10.0)(sugarss@4.0.1(postcss@8.5.6)))(xmlbuilder2@3.1.1)
       stylelint:
         specifier: 16.25.0
         version: 16.25.0(typescript@5.4.5)
@@ -694,7 +695,7 @@ packages:
     resolution: {integrity: sha512-KO4z803vEpaIXajyd5f8bDYbqapngUm+tKWrLDn1JNkzlh54jiFc80g7Cm0RYgOTKDtdUy1MF1QiEloUX9N5tw==}
     engines: {node: '>=20.18.0'}
     peerDependencies:
-      ajv: ^8.12.0
+      ajv: '>=8.18.0'
       ajv-formats: ^3.0.1
       ajv-formats-draft2019: ^1.6.1
       libxmljs2: ^0.35||^0.37
@@ -715,7 +716,7 @@ packages:
     resolution: {integrity: sha512-ylwMFPjuOVKaRuQtEKFwPiJaygPZhkjvzDcSrtH8oZl2oCUTWwH2dEu692W4MjKLu5QgsnITLSDPc6149inyvg==}
     engines: {node: '>=20.18.0'}
     peerDependencies:
-      ajv: ^8.12.0
+      ajv: '>=8.18.0'
       ajv-formats: ^3.0.1
       ajv-formats-draft2019: ^1.6.1
       libxmljs2: ^0.35||^0.37
@@ -2512,7 +2513,7 @@ packages:
   ajv-draft-04@1.0.0:
     resolution: {integrity: sha512-mv00Te6nmYbRp5DCwclxtt7yV/joXJPGS7nM+97GdxvuttCOfgI3K4U25zboyeX0O+myI8ERluxQe5wljMmVIw==}
     peerDependencies:
-      ajv: ^8.5.0
+      ajv: '>=8.18.0'
     peerDependenciesMeta:
       ajv:
         optional: true
@@ -2520,12 +2521,12 @@ packages:
   ajv-formats-draft2019@1.6.1:
     resolution: {integrity: sha512-JQPvavpkWDvIsBp2Z33UkYCtXCSpW4HD3tAZ+oL4iEFOk9obQZffx0yANwECt6vzr6ET+7HN5czRyqXbnq/u0Q==}
     peerDependencies:
-      ajv: '*'
+      ajv: '>=8.18.0'
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
     peerDependencies:
-      ajv: ^8.0.0
+      ajv: '>=8.18.0'
     peerDependenciesMeta:
       ajv:
         optional: true
@@ -2533,7 +2534,7 @@ packages:
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
     peerDependencies:
-      ajv: ^8.0.0
+      ajv: '>=8.18.0'
     peerDependenciesMeta:
       ajv:
         optional: true
@@ -2541,14 +2542,8 @@ packages:
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
-  ajv@8.12.0:
-    resolution: {integrity: sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==}
-
-  ajv@8.13.0:
-    resolution: {integrity: sha512-PRA911Blj99jR5RMeTunVbNXMF6Lp4vZXnk5GQjcnUWUTsrXtekg/pnmFFI2u/I36Y/2bITGS30GZCXei6uNkA==}
-
-  ajv@8.17.1:
-    resolution: {integrity: sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==}
+  ajv@8.18.0:
+    resolution: {integrity: sha512-PlXPeEWMXMZ7sPYOHqmDyCJzcfNrUr3fGNKtezX14ykXOEIvyK81d+qydx89KY5O71FKMPaQ2vBfBFI5NHR63A==}
 
   alien-signals@0.2.2:
     resolution: {integrity: sha512-cZIRkbERILsBOXTQmMrxc9hgpxglstn69zm+F1ARf4aPAzdAFYd6sBq87ErO0Fj3DV94tglcyHG5kQz9nDC/8A==}
@@ -6568,33 +6563,33 @@ snapshots:
       packageurl-js: 1.2.1
       spdx-expression-parse: 4.0.0
     optionalDependencies:
-      ajv: 8.17.1
-      ajv-formats: 3.0.1(ajv@8.17.1)
-      ajv-formats-draft2019: 1.6.1(ajv@8.17.1)
+      ajv: 8.18.0
+      ajv-formats: 3.0.1(ajv@8.18.0)
+      ajv-formats-draft2019: 1.6.1(ajv@8.18.0)
       libxmljs2: 0.35.0
       xmlbuilder2: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
-  '@cyclonedx/cyclonedx-library@9.0.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)':
+  '@cyclonedx/cyclonedx-library@9.0.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)':
     dependencies:
       packageurl-js: 2.0.1
       spdx-expression-parse: 4.0.0
     optionalDependencies:
-      ajv: 8.17.1
-      ajv-formats: 3.0.1(ajv@8.17.1)
-      ajv-formats-draft2019: 1.6.1(ajv@8.17.1)
+      ajv: 8.18.0
+      ajv-formats: 3.0.1(ajv@8.18.0)
+      ajv-formats-draft2019: 1.6.1(ajv@8.18.0)
       libxmljs2: 0.35.0
       xmlbuilder2: 3.1.1
 
-  '@cyclonedx/cyclonedx-library@9.2.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)':
+  '@cyclonedx/cyclonedx-library@9.2.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)':
     dependencies:
       packageurl-js: 2.0.1
       spdx-expression-parse: 4.0.0
     optionalDependencies:
-      ajv: 8.17.1
-      ajv-formats: 3.0.1(ajv@8.17.1)
-      ajv-formats-draft2019: 1.6.1(ajv@8.17.1)
+      ajv: 8.18.0
+      ajv-formats: 3.0.1(ajv@8.18.0)
+      ajv-formats-draft2019: 1.6.1(ajv@8.18.0)
       libxmljs2: 0.35.0
       xmlbuilder2: 3.1.1
 
@@ -6954,8 +6949,8 @@ snapshots:
   '@jsonforms/core@3.4.0':
     dependencies:
       '@types/json-schema': 7.0.15
-      ajv: 8.17.1
-      ajv-formats: 2.1.1(ajv@8.17.1)
+      ajv: 8.18.0
+      ajv-formats: 2.1.1(ajv@8.18.0)
       lodash: 4.17.23
 
   '@jsonforms/vue-vanilla@3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
@@ -7213,7 +7208,7 @@ snapshots:
       '@knime/rich-text-editor': 1.8.9(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/utils': 1.9.2(consola@3.2.3)
-      ajv: 8.13.0
+      ajv: 8.18.0
       consola: 3.2.3
       date-fns: 2.30.0
       focus-trap-vue: 4.0.3(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -7508,7 +7503,7 @@ snapshots:
   '@microsoft/tsdoc-config@0.17.1':
     dependencies:
       '@microsoft/tsdoc': 0.15.1
-      ajv: 8.12.0
+      ajv: 8.18.0
       jju: 1.4.0
       resolve: 1.22.11
 
@@ -7738,9 +7733,9 @@ snapshots:
 
   '@rushstack/node-core-library@5.18.0(@types/node@24.10.0)':
     dependencies:
-      ajv: 8.13.0
-      ajv-draft-04: 1.0.0(ajv@8.13.0)
-      ajv-formats: 3.0.1(ajv@8.13.0)
+      ajv: 8.18.0
+      ajv-draft-04: 1.0.0(ajv@8.18.0)
+      ajv-formats: 3.0.1(ajv@8.18.0)
       fs-extra: 11.3.2
       import-lazy: 4.0.0
       jju: 1.4.0
@@ -8908,31 +8903,26 @@ snapshots:
       indent-string: 4.0.0
     optional: true
 
-  ajv-draft-04@1.0.0(ajv@8.13.0):
+  ajv-draft-04@1.0.0(ajv@8.18.0):
     optionalDependencies:
-      ajv: 8.13.0
+      ajv: 8.18.0
 
-  ajv-formats-draft2019@1.6.1(ajv@8.17.1):
+  ajv-formats-draft2019@1.6.1(ajv@8.18.0):
     dependencies:
-      ajv: 8.17.1
+      ajv: 8.18.0
       punycode: 2.3.1
       schemes: 1.4.0
       smtp-address-parser: 1.1.0
       uri-js: 4.4.1
     optional: true
 
-  ajv-formats@2.1.1(ajv@8.17.1):
+  ajv-formats@2.1.1(ajv@8.18.0):
     optionalDependencies:
-      ajv: 8.17.1
+      ajv: 8.18.0
 
-  ajv-formats@3.0.1(ajv@8.13.0):
+  ajv-formats@3.0.1(ajv@8.18.0):
     optionalDependencies:
-      ajv: 8.13.0
-
-  ajv-formats@3.0.1(ajv@8.17.1):
-    optionalDependencies:
-      ajv: 8.17.1
-    optional: true
+      ajv: 8.18.0
 
   ajv@6.12.6:
     dependencies:
@@ -8941,21 +8931,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  ajv@8.12.0:
-    dependencies:
-      fast-deep-equal: 3.1.3
-      json-schema-traverse: 1.0.0
-      require-from-string: 2.0.2
-      uri-js: 4.4.1
-
-  ajv@8.13.0:
-    dependencies:
-      fast-deep-equal: 3.1.3
-      json-schema-traverse: 1.0.0
-      require-from-string: 2.0.2
-      uri-js: 4.4.1
-
-  ajv@8.17.1:
+  ajv@8.18.0:
     dependencies:
       fast-deep-equal: 3.1.3
       fast-uri: 3.1.0
@@ -12228,9 +12204,9 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
-  rollup-plugin-sbom@3.0.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(rollup@4.52.5)(vite@5.4.11(@types/node@24.10.0)(sugarss@4.0.1(postcss@8.5.6)))(xmlbuilder2@3.1.1):
+  rollup-plugin-sbom@3.0.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(rollup@4.52.5)(vite@5.4.11(@types/node@24.10.0)(sugarss@4.0.1(postcss@8.5.6)))(xmlbuilder2@3.1.1):
     dependencies:
-      '@cyclonedx/cyclonedx-library': 9.0.0(ajv-formats-draft2019@1.6.1(ajv@8.17.1))(ajv-formats@3.0.1(ajv@8.17.1))(ajv@8.17.1)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)
+      '@cyclonedx/cyclonedx-library': 9.0.0(ajv-formats-draft2019@1.6.1(ajv@8.18.0))(ajv-formats@3.0.1(ajv@8.18.0))(ajv@8.18.0)(libxmljs2@0.35.0)(xmlbuilder2@3.1.1)
       normalize-package-data: 8.0.0
     optionalDependencies:
       rollup: 4.52.5
@@ -12775,7 +12751,7 @@ snapshots:
 
   table@6.9.0:
     dependencies:
-      ajv: 8.17.1
+      ajv: 8.18.0
       lodash.truncate: 4.4.2
       slice-ansi: 4.0.0
       string-width: 4.2.3
