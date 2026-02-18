@@ -21,7 +21,7 @@ defineProps<VueControlProps<boolean>>();
 <style lang="postcss" scoped>
 .checkbox {
   /** These styles ensure that the checkbox fits into the array layout items header */
-  transform: translate(0, -1px);
-  margin-right: var(--kds-spacing-container-0-5x);
+  transform: translate(0, -2px);
+  margin-right: var(--kds-spacing-container-0-5x) !important;
 }
 </style>
