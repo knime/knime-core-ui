@@ -12,10 +12,10 @@ import ResetIcon from "@knime/styles/img/icons/reset-all.svg";
 import EditResetButton from "../EditResetButton.vue";
 
 describe("EditResetButton.vue", () => {
-  let props, wrapper, handleChange;
+  let props, wrapper, handleChange, control;
 
   beforeEach(() => {
-    const control = ref({
+    control = ref({
       ...getControlBase("_edit"),
       data: false,
       schema: {
@@ -62,9 +62,19 @@ describe("EditResetButton.vue", () => {
     expect(wrapper.findComponent(ResetIcon).exists()).toBe(false);
   });
 
-  it("calls handleChange when edit button is clicked", () => {
+  it("calls handleChange when edit button is clicked", async () => {
     wrapper.findComponent(FunctionButton).vm.$emit("click");
+    await flushPromises();
     expect(handleChange).toHaveBeenCalledWith("_edit", true);
+  });
+
+  it("sets _edit again when the data become undefined", async () => {
+    wrapper.findComponent(FunctionButton).vm.$emit("click");
+    await flushPromises();
+    expect(handleChange).toHaveBeenNthCalledWith(1, "_edit", true);
+    control.value.data = undefined;
+    await flushPromises();
+    expect(handleChange).toHaveBeenNthCalledWith(2, "_edit", true);
   });
 
   describe("initially active reset button", () => {

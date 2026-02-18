@@ -4,7 +4,7 @@ export const ELEMENT_RESET_BUTTON_ID = "ElementResetButton";
 </script>
 
 <script setup lang="ts">
-import { watch } from "vue";
+import { ref, watchEffect } from "vue";
 import { rendererProps, useJsonFormsControl } from "@jsonforms/vue";
 
 import { FunctionButton, LoadingIcon } from "@knime/components";
@@ -28,20 +28,35 @@ const props = defineProps({
 const trigger = inject("trigger");
 
 const { control, handleChange } = useJsonFormsControl(props as any);
-const setEditing = () => handleChange(control.value.path, true);
-const reset = async () => {
-  await handleChange(control.value.path, false);
+
+const isEditing = ref(false);
+
+const onStartEditingClick = () => {
+  isEditing.value = true;
+};
+
+const onResetClick = () => {
+  isEditing.value = false;
   trigger({ id: ELEMENT_RESET_BUTTON_ID });
 };
 
-watch(
-  () => props.initialIsEdited,
-  (initialIsEdited) => {
-    if (initialIsEdited && !control.value.data) {
-      setEditing();
-    }
-  },
-);
+/**
+ * sync isEditing with initial value per prop.
+ */
+watchEffect(() => {
+  isEditing.value = props.initialIsEdited;
+});
+
+/**
+ * sync data with isEditing
+ */
+watchEffect(() => {
+  if (isEditing.value && !control.value.data) {
+    handleChange(control.value.path, true);
+  } else if (!isEditing.value && control.value.data) {
+    handleChange(control.value.path, false);
+  }
+});
 </script>
 
 <template>
@@ -49,10 +64,10 @@ watch(
     <LoadingIcon class="loading-icon" />
   </FunctionButton>
   <template v-else>
-    <FunctionButton v-if="!control.data" title="Edit" @click="setEditing">
+    <FunctionButton v-if="!isEditing" title="Edit" @click="onStartEditingClick">
       <EditIcon />
     </FunctionButton>
-    <FunctionButton v-else title="Reset to default" @click="reset">
+    <FunctionButton v-else title="Reset to default" @click="onResetClick">
       <ResetIcon />
     </FunctionButton>
   </template>
