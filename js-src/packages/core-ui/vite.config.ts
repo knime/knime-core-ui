@@ -21,6 +21,7 @@ const camelCase = (input: string) => {
 const COMPONENTS = [
   "NodeDialog",
   "TableView",
+  "TileView",
   "DeferredTableView",
   "TextView",
   "FlowVariableView",
@@ -47,6 +48,7 @@ const libraries: Record<ComponentLibraries, LibraryOptions> = {
   TextView: getComponentLibraryOptions("TextView"),
   FlowVariableView: getComponentLibraryOptions("FlowVariableView"),
   ImageView: getComponentLibraryOptions("ImageView"),
+  TileView: getComponentLibraryOptions("TileView"),
   TableCreatorDialog: getComponentLibraryOptions("TableCreatorDialog"),
 };
 
@@ -99,9 +101,20 @@ const suppressWarnings =
 export default defineConfig(({ mode }) => {
   const testMode = mode === "integration" ? "integration" : "unit";
 
-  const conditionalRollupOptions = { external: [], output: {} };
-
   const isHTMLBuildMode = mode.startsWith(htmlModePrefix);
+  const conditionalRollupOptions = {
+    external: [],
+    output: {
+      // Prevent Vite from cleaning up chunks when running dev for a specific view
+      // by making chunk names include the view name to avoid conflicts
+      ...(!isHTMLBuildMode && mode
+        ? {
+            chunkFileNames: `${mode}-[name]-[hash].js`,
+          }
+        : {}),
+    },
+  };
+
   return {
     define: {
       "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar
