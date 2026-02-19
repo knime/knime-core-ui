@@ -184,6 +184,11 @@ export default defineConfig(({ mode }) => {
           },
     },
     test: {
+      poolOptions: {
+        forks: {
+          execArgv: ["--max-old-space-size=4096"],
+        },
+      },
       include: getIncludedTestFiles(testMode),
       exclude: getExcludedTestFiles(testMode),
       environment: "jsdom",
