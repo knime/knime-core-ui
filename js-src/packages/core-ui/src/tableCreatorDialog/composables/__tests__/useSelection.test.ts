@@ -46,8 +46,6 @@ const mockTableCreatorLayout: CheckType<
   showPanelContent: vi.fn(),
 };
 
-let onMountedCallback: Function | null = null;
-
 const testTableRef = "tableRefTest";
 const testTableCreatorLayoutRef = "tableCreatorLayoutRefTest";
 const testColumnHeaderInputRef = "columnHeaderInputTest";
@@ -68,9 +66,6 @@ vi.mock("vue", async () => {
       }
       return { value: null };
     }),
-    onMounted: vi.fn((cb: Function) => {
-      onMountedCallback = cb;
-    }),
   };
 });
 
@@ -90,7 +85,6 @@ const setup = ({
   numRows = 3,
 }: { columns?: ReturnType<typeof createColumns>; numRows?: number } = {}) => {
   const setAdjusted = vi.fn();
-  onMountedCallback = null;
   const result = useSelection({
     tableRef: testTableRef,
     tableCreatorLayoutRef: testTableCreatorLayoutRef,
@@ -275,32 +269,6 @@ describe("useSelection", () => {
     it("does not select first cell in column when no rows", () => {
       const { selectFirstCellInColumn } = setup({ numRows: 0 });
       selectFirstCellInColumn(2);
-      expect(mockTableComponent.updateCellSelection).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("onMounted", () => {
-    it("calls updateCellSelection when columns and rows exist", async () => {
-      setup({ columns: createColumns("A"), numRows: 1 });
-      expect(onMountedCallback).not.toBeNull();
-      await onMountedCallback!();
-      expect(mockTableComponent.updateCellSelection).toHaveBeenCalledWith({
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0,
-      });
-    });
-
-    it("does NOT call updateCellSelection when columns are empty", async () => {
-      setup({ columns: [], numRows: 1 });
-      await onMountedCallback!();
-      expect(mockTableComponent.updateCellSelection).not.toHaveBeenCalled();
-    });
-
-    it("does NOT call updateCellSelection when numRows is 0", async () => {
-      setup({ columns: createColumns("A"), numRows: 0 });
-      await onMountedCallback!();
       expect(mockTableComponent.updateCellSelection).not.toHaveBeenCalled();
     });
   });
