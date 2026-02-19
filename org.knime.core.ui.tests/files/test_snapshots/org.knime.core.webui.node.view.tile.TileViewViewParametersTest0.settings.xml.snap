@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="displayedColumns">
+        <entry key="mode" type="xstring" value="MANUAL"/>
+        <config key="patternFilter">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="isCaseSensitive" type="xboolean" value="false"/>
+            <entry key="isInverted" type="xboolean" value="false"/>
+        </config>
+        <config key="manualFilter">
+            <config key="manuallySelected">
+                <entry key="array-size" type="xint" value="4"/>
+                <entry key="0" type="xstring" value="URI"/>
+                <entry key="1" type="xstring" value="Path_Arr[0]"/>
+                <entry key="2" type="xstring" value="Path_Arr[1]"/>
+                <entry key="3" type="xstring" value="Path_Arr[5]"/>
+            </config>
+            <config key="manuallyDeselected">
+                <entry key="array-size" type="xint" value="4"/>
+                <entry key="0" type="xstring" value="Path_Arr[2]"/>
+                <entry key="1" type="xstring" value="Path_Arr[3]"/>
+                <entry key="2" type="xstring" value="Path_Arr[4]"/>
+                <entry key="3" type="xstring" value="Path_Arr[6]"/>
+            </config>
+            <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+        </config>
+        <config key="typeFilter">
+            <config key="selectedTypes">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+        </config>
+    </config>
+    <entry key="title" type="xstring" value="TileView"/>
+    <config key="titleColumn">
+        <entry key="regularChoice" type="xstring" value="Path_Arr[3]"/>
+        <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
+    </config>
+    <config key="colorColumn">
+        <entry key="regularChoice" type="xstring" value="Path_Arr[5]"/>
+        <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
+    </config>
+    <entry key="tilesPerRow" type="xint" value="5"/>
+    <entry key="displayColumnHeaders" type="xboolean" value="true"/>
+    <entry key="textAlignment" type="xstring" value="CENTER"/>
+    <entry key="pageSize" type="xint" value="13"/>
+    <entry key="selectionMode" type="xstring" value="SHOW"/>
+    <entry key="showOnlySelectedRows" type="xboolean" value="false"/>
+    <entry key="showOnlySelectedRowsConfigurable" type="xboolean" value="false"/>
+</config>

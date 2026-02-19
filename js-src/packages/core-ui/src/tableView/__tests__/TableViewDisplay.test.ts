@@ -3,10 +3,9 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, unref } from "vue";
 import { VueWrapper } from "@vue/test-utils";
 
-// @ts-ignore
-import { LoadingIcon } from "@knime/components";
 import { TableUIWithAutoSizeCalculation } from "@knime/knime-ui-table";
 
+import EmptyDataState from "@/common/EmptyDataState.vue";
 import TableViewDisplay from "../TableViewDisplay.vue";
 import useAutoSizes from "../composables/useAutoSizes";
 import useColumnSizes from "../composables/useColumnSizes";
@@ -547,17 +546,18 @@ describe("TableViewDisplay.vue", () => {
     expect(tableViewDisplay.emitted()).toHaveProperty("tableIsReady");
   });
 
-  it("shows loading animation after timeout", () => {
+  it("shows loading animation after timeout", async () => {
     props.rows.loaded = false;
     vi.useFakeTimers();
     const wrapper = shallowMountDisplay({ props });
     expect(
-      wrapper.find(".center").findComponent(LoadingIcon).exists(),
+      wrapper.findComponent(EmptyDataState).props("loadingAnimationEnabled"),
     ).toBeFalsy();
     vi.runAllTimers();
+    await wrapper.vm.$nextTick();
     expect(
-      wrapper.find(".center").findComponent(LoadingIcon).exists(),
-    ).toBeFalsy();
+      wrapper.findComponent(EmptyDataState).props("loadingAnimationEnabled"),
+    ).toBeTruthy();
     vi.useRealTimers();
   });
 
