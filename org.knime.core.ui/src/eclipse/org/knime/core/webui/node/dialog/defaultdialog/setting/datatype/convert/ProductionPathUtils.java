@@ -110,13 +110,24 @@ public class ProductionPathUtils {
 
     /**
      * Checks whether the given string is a valid path identifier (which implicitly means that it is a node settings
-     * JSON). Note: This method only is a basic heuristic check trying to identify JSON strings.
+     * JSON). Note: This method only is a basic heuristic check trying to identify JSON-serialized production paths.
      *
      * @param pathIdentifier the path identifier
      * @return true if valid, false otherwise
      */
     public static boolean isPathIdentifier(final String pathIdentifier) {
-        return pathIdentifier != null && pathIdentifier.startsWith("{") && pathIdentifier.endsWith("}");
+        var settings = new NodeSettings("");
+        try {
+            JSONConfig.readJSON(settings, new StringReader(pathIdentifier));
+            if (settings.containsKey("_producer") && settings.containsKey("_converter")) {
+                // seems to be a valid production path settings JSON
+                return true;
+            }
+        } catch (IOException e) {
+            // not even JSON
+            return false;
+        }
+        return false;
     }
 
     private static String getPathIdentifier(final NodeSettingsRO productionPathSettings) {
