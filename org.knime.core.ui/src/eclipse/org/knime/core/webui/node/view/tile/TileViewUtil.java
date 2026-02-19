@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   31 Oct 2022 (marcbux): created
+ *   Feb 20, 2026 (gerling): created
  */
-package org.knime.core.webui.node.view.table;
+package org.knime.core.webui.node.view.tile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -56,55 +56,55 @@ import java.util.function.Supplier;
 
 import org.knime.core.data.RowKey;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.workflow.NodeID;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsSerializer;
 import org.knime.core.webui.node.view.table.data.TableViewDataService;
 import org.knime.core.webui.node.view.table.data.TableViewDataServiceImpl;
-import org.knime.core.webui.node.view.table.data.TableViewInitialData;
-import org.knime.core.webui.node.view.table.data.TableViewInitialDataImpl;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
 import org.knime.core.webui.node.view.table.data.render.SwingBasedRendererFactory;
+import org.knime.core.webui.node.view.tile.data.TileViewDataService;
+import org.knime.core.webui.node.view.tile.data.TileViewDataServiceImpl;
+import org.knime.core.webui.node.view.tile.data.TileViewInitialData;
+import org.knime.core.webui.node.view.tile.data.TileViewInitialDataImpl;
 import org.knime.core.webui.page.Page;
 import org.knime.core.webui.page.ReusablePage;
 
 /**
- * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
- * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * Utility class for the Tile View.
+ *
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
-public final class TableViewUtil {
+public final class TileViewUtil {
 
-    // Note on the 'static' page id: the entire TableView-page can be considered 'completely static'
+    // Note on the 'static' page id: the entire TileView-page can be considered 'completely static'
     // because the page, represented by a vue component, is just a file (won't change at runtime)
-    // And the image resources associated with a page of an individual table view instance are
+    // And the image resources associated with a page of an individual tile view instance are
     // served with a globally unique 'table id' in the path.
-    private static final String TABLEVIEW_PAGE_ID = "tableview";
+    private static final String TILEVIEW_PAGE_ID = "tileview";
 
     /**
-     * The page representing the table view.
+     * The page representing the tile view.
      */
-    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TableViewUtil.class).basePath("js-src")
-        .relativeFilePath("dist/TableView.js").addResourceDirectory("dist") //
-        .addResources(createTableCellImageResourceSupplier(),
+    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TileViewUtil.class).basePath("js-src")
+        .relativeFilePath("dist/TileView.js").addResourceDirectory("dist") //
+        .addResources(createTileImageResourceSupplier(),
             DataValueImageRendererRegistry.RENDERED_CELL_IMAGES_PATH_PREFIX, true) //
-        .getReusablePage(TABLEVIEW_PAGE_ID);
+        .getReusablePage(TILEVIEW_PAGE_ID);
 
     // This is workaround/hack for the lack of proper random-access functionality for a (BufferedData)Table.
     // For more details see the class' javadoc.
     // It's static because it's registered and kept with the page which in turn is assumed to be static
     // (i.e. doesn't change between node instances and, hence, won't be re-created for each node instance).
     static final DataValueImageRendererRegistry RENDERER_REGISTRY =
-        new DataValueImageRendererRegistry(() -> TABLEVIEW_PAGE_ID);
+        new DataValueImageRendererRegistry(() -> TILEVIEW_PAGE_ID);
 
-    private TableViewUtil() {
+    private TileViewUtil() {
         // utility class
     }
 
-    private static Function<String, InputStream> createTableCellImageResourceSupplier() {
+    private static Function<String, InputStream> createTileImageResourceSupplier() {
         return relativePath -> {
             var bytes = RENDERER_REGISTRY.renderImage(relativePath);
             return new ByteArrayInputStream(bytes);
@@ -112,27 +112,27 @@ public final class TableViewUtil {
     }
 
     /**
-     * @param tableViewDataService
+     * @param tileViewDataService
      * @param tableId
-     * @return a new table view data service instance
+     * @return a new tile view data service instance
      */
-    public static RpcDataService createRpcDataService(final TableViewDataService tableViewDataService,
+    public static RpcDataService createRpcDataService(final TileViewDataService tileViewDataService,
         final String tableId) {
 
-        Runnable clearCache = () -> TableViewUtil.deactivateTableViewDataService(tableViewDataService, tableId);
-        return RpcDataService.builder(tableViewDataService).onDeactivate(clearCache).onDispose(clearCache).build();
+        Runnable clearCache = () -> TileViewUtil.deactivateTileViewDataService(tileViewDataService, tableId);
+        return RpcDataService.builder(tileViewDataService).onDeactivate(clearCache).onDispose(clearCache).build();
     }
 
     /**
-     * Deactivate the table view data service and clear the cache.
+     * Deactivate the tile view data service and clear the cache.
      *
-     * @param tableViewDataService the table view data service to deactivate
+     * @param tileViewDataService the table view data service to deactivate
      * @param tableId the table id
      */
-    public static void deactivateTableViewDataService(final TableViewDataService tableViewDataService,
+    public static void deactivateTileViewDataService(final TileViewDataService tileViewDataService,
         final String tableId) {
-        tableViewDataService.clearCache();
-        TableViewUtil.RENDERER_REGISTRY.clearImageDataCache(tableId);
+        tileViewDataService.clearCache();
+        TileViewUtil.RENDERER_REGISTRY.clearImageDataCache(tableId);
     }
 
     /**
@@ -140,29 +140,30 @@ public final class TableViewUtil {
      * @param selectionSupplier supplying the currently selected row keys (for update of totalSelected when filtering);
      *            or {@code null} if no selecting is shown
      * @param tableId
-     * @return the {@link TableViewDataService} associated to the node
+     * @return the {@link TileViewDataService} associated to the node
      */
-    public static TableViewDataService createTableViewDataService(final Supplier<BufferedDataTable> tableSupplier,
+    public static TileViewDataService createTileViewDataService(final Supplier<BufferedDataTable> tableSupplier,
         final Supplier<Set<RowKey>> selectionSupplier, final String tableId) {
-        return new TableViewDataServiceImpl(tableSupplier, selectionSupplier, tableId, new SwingBasedRendererFactory(),
-            RENDERER_REGISTRY);
+        final var delegate = new TableViewDataServiceImpl(tableSupplier, selectionSupplier, tableId,
+            new SwingBasedRendererFactory(), RENDERER_REGISTRY);
+        return new TileViewDataServiceImpl(delegate);
     }
 
     /**
-     * @param settings table view view settings
+     * @param settings tile view view settings
      * @param table the table to create the initial data for
      * @param tableId a globally unique id to be able to uniquely identify the images belonging to the table used here
-     * @return the table view's initial data object
+     * @return the tile view's initial data object
      */
-    static TableViewInitialData createInitialData(final TableViewViewSettings settings, final BufferedDataTable table,
+    static TileViewInitialData createInitialData(final TileViewViewParameters settings, final BufferedDataTable table,
         final Supplier<Set<RowKey>> selectionSupplier, final String tableId) {
-        return new TableViewInitialDataImpl(settings, () -> table, selectionSupplier, tableId,
+        return new TileViewInitialDataImpl(settings, () -> table, selectionSupplier, tableId,
             new SwingBasedRendererFactory(), RENDERER_REGISTRY);
     }
 
-    static TableViewInitialData createInitialData(final TableViewViewSettings settings, final BufferedDataTable table,
-        final TableViewDataService dataService) {
-        return new TableViewInitialDataImpl(settings, () -> table, dataService);
+    static TileViewInitialData createInitialData(final TileViewViewParameters settings, final BufferedDataTable table,
+        final TileViewDataService dataService) {
+        return new TileViewInitialDataImpl(settings, () -> table, dataService);
     }
 
     /**
@@ -170,10 +171,10 @@ public final class TableViewUtil {
      * @param tableSupplier
      * @param selectionSupplier
      * @param tableId
-     * @return the table view initial data service
+     * @return the tile view initial data service
      */
-    public static InitialDataService<TableViewInitialData> createInitialDataService(
-        final Supplier<TableViewViewSettings> settingsSupplier, final Supplier<BufferedDataTable> tableSupplier,
+    public static InitialDataService<TileViewInitialData> createInitialDataService(
+        final Supplier<TileViewViewParameters> settingsSupplier, final Supplier<BufferedDataTable> tableSupplier,
         final Supplier<Set<RowKey>> selectionSupplier, final String tableId) {
         return createInitialDataService(settingsSupplier, tableSupplier, selectionSupplier, tableId, null, null);
     }
@@ -185,13 +186,13 @@ public final class TableViewUtil {
      * @param tableId
      * @param onDeactivate
      * @param onDispose
-     * @return the table view initial data service
+     * @return the tile view initial data service
      */
-    public static InitialDataService<TableViewInitialData> createInitialDataService(
-        final Supplier<TableViewViewSettings> settingsSupplier, final Supplier<BufferedDataTable> tableSupplier,
+    public static InitialDataService<TileViewInitialData> createInitialDataService(
+        final Supplier<TileViewViewParameters> settingsSupplier, final Supplier<BufferedDataTable> tableSupplier,
         final Supplier<Set<RowKey>> selectionSupplier, final String tableId, final Runnable onDeactivate,
         final Runnable onDispose) {
-        final Supplier<TableViewInitialData> initialDataSupplier =
+        final Supplier<TileViewInitialData> initialDataSupplier =
             () -> createInitialData(settingsSupplier.get(), tableSupplier.get(), selectionSupplier, tableId);
         return createInitialDataService(initialDataSupplier, tableId, onDeactivate, onDispose);
     }
@@ -201,7 +202,7 @@ public final class TableViewUtil {
      * This method must be used instead of constructing the initial data service and the RPC data service individually
      * if there are settings which influence what tables are cached within the {@link TableViewDataService}. E.g. the
      * first of such settings is "showSelectedRowsOnly". The returned pair uses the same instance of
-     * {@link TableViewDataServiceImpl} so that the RPC data service caches stay in sync with the initial data supplied
+     * {@link TileViewDataServiceImpl} so that the RPC data service caches stay in sync with the initial data supplied
      * to the front-end. Otherwise methods which rely on these caches like {@link TableViewDataService#getCopyContent}
      * and {@link TableViewDataService#getCurrentRowKeys} can return wrong data.
      *
@@ -211,23 +212,23 @@ public final class TableViewUtil {
      * @param tableId
      * @param onDeactivate
      * @param onDispose
-     * @return the table view initial data service
+     * @return the tile view initial data service
      */
-    public static Pair<InitialDataService<TableViewInitialData>, Supplier<RpcDataService>>
-        createInitialDataServiceWithRPCDataService(final Supplier<TableViewViewSettings> settingsSupplier,
+    public static Pair<InitialDataService<TileViewInitialData>, Supplier<RpcDataService>>
+        createInitialDataServiceWithRPCDataService(final Supplier<TileViewViewParameters> settingsSupplier,
             final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
             final String tableId, final Runnable onDeactivate, final Runnable onDispose) {
 
-        DataServiceCache<TableViewDataService> dataServiceCache = new DataServiceCache<>() {
+        DataServiceCache<TileViewDataService> dataServiceCache = new DataServiceCache<>() {
             @Override
-            protected TableViewDataService initialize() {
-                return createTableViewDataService(tableSupplier, selectionSupplier, tableId);
+            protected TileViewDataService initialize() {
+                return createTileViewDataService(tableSupplier, selectionSupplier, tableId);
             }
         };
 
         final Supplier<RpcDataService> rpcDataServiceSupplier =
             () -> createRpcDataService(dataServiceCache.get(), tableId);
-        final Supplier<TableViewInitialData> initialDataSupplier =
+        final Supplier<TileViewInitialData> initialDataSupplier =
             () -> createInitialData(settingsSupplier.get(), tableSupplier.get(), dataServiceCache.get());
         final var initialDataService = createInitialDataService(initialDataSupplier, tableId, onDeactivate, onDispose);
         return new Pair<>(initialDataService, rpcDataServiceSupplier);
@@ -248,10 +249,10 @@ public final class TableViewUtil {
 
     }
 
-    private static InitialDataService<TableViewInitialData> createInitialDataService(
-        final Supplier<TableViewInitialData> initialDataSupplier, final String tableId, final Runnable onDeactivate,
+    private static InitialDataService<TileViewInitialData> createInitialDataService(
+        final Supplier<TileViewInitialData> initialDataSupplier, final String tableId, final Runnable onDeactivate,
         final Runnable onDispose) {
-        Runnable clearImageData = () -> TableViewUtil.RENDERER_REGISTRY.clearImageDataCache(tableId);
+        Runnable clearImageData = () -> TileViewUtil.RENDERER_REGISTRY.clearImageDataCache(tableId);
         return InitialDataService.builder(initialDataSupplier::get) //
             .onDeactivate(() -> {
                 clearImageData.run();
@@ -267,16 +268,6 @@ public final class TableViewUtil {
             }) //
             .serializer(new DefaultNodeSettingsSerializer<>()) //
             .build();
-    }
-
-    /**
-     * Helper to return a proper table id from a node id.
-     *
-     * @param nodeID
-     * @return a table id (which is globally unique, because the node id is)
-     */
-    public static String toTableId(final NodeID nodeID) {
-        return nodeID.toString().replace(":", "_");
     }
 
 }

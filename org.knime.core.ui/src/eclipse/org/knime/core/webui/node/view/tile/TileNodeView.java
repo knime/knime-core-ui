@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   3 Nov 2022 (marcbux): created
+ *   Feb 20, 2026 (gerling): created
  */
-package org.knime.core.webui.node.view.table;
+package org.knime.core.webui.node.view.tile;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -61,14 +61,15 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 import org.knime.core.webui.node.view.AbstractTableNodeView;
 import org.knime.core.webui.node.view.NodeView;
+import org.knime.core.webui.node.view.table.TableViewUtil;
 import org.knime.core.webui.page.Page;
 
 /**
- * A {@link NodeView} implementation for displaying tables.
+ * A {@link NodeView} implementation for displaying tiles.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
-public final class TableNodeView extends AbstractTableNodeView<TableViewViewSettings> {
+public final class TileNodeView extends AbstractTableNodeView<TileViewViewParameters> {
 
     /**
      * @param tableSupplier supplier of the table which this view visualizes
@@ -78,7 +79,7 @@ public final class TableNodeView extends AbstractTableNodeView<TableViewViewSett
      * @param inputPortIndex the index of the input port this table node view is created for; index starts at '0'
      *            ignoring the flow variable port
      */
-    public TableNodeView(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
+    public TileNodeView(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
         final NodeContainer nc, final int inputPortIndex) {
         this(TableViewUtil.toTableId(nc.getID()), tableSupplier, selectionSupplier, inputPortIndex);
     }
@@ -90,7 +91,7 @@ public final class TableNodeView extends AbstractTableNodeView<TableViewViewSett
      * @param inputPortIndex the index of the input port this table node view is created for; index starts at '0'
      *            ignoring the flow variable port
      */
-    public TableNodeView(final Supplier<BufferedDataTable> tableSupplier, final NodeContainer nc,
+    public TileNodeView(final Supplier<BufferedDataTable> tableSupplier, final NodeContainer nc,
         final int inputPortIndex) {
         this(tableSupplier, null, nc, inputPortIndex);
     }
@@ -101,44 +102,44 @@ public final class TableNodeView extends AbstractTableNodeView<TableViewViewSett
      *            {@link NodeCleanUpCallback} to free resources (caches) in case the node is, e.g., deleted
      * @param inputPortIndex the index of the input port this table node view is created for; index starts at '0'
      *            ignoring the flow variable port
-     * @param settingsClass to be used instead of {@link TableViewViewSettings} for the view settings
+     * @param settingsClass to be used instead of {@link TileViewViewParameters} for the view settings
      */
-    public TableNodeView(final Supplier<BufferedDataTable> tableSupplier, final NodeContainer nc,
-        final int inputPortIndex, final Class<? extends TableViewViewSettings> settingsClass) {
+    public TileNodeView(final Supplier<BufferedDataTable> tableSupplier, final NodeContainer nc,
+        final int inputPortIndex, final Class<TileViewViewParameters> settingsClass) {
         this(tableSupplier, null, nc, inputPortIndex);
         m_settingsClass = settingsClass;
     }
 
-    TableNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier, final int inputPortIndex) {
+    TileNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier, final int inputPortIndex) {
         this(tableId, tableSupplier, null, inputPortIndex);
     }
 
-    TableNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier,
+    TileNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier,
         final Supplier<Set<RowKey>> selectionSupplier, final int inputPortIndex) {
-        super(tableId, tableSupplier, selectionSupplier, inputPortIndex, TableViewViewSettings.class);
+        super(tableId, tableSupplier, selectionSupplier, inputPortIndex, TileViewViewParameters.class);
     }
 
     @Override
     public Page getPage() {
-        return TableViewUtil.PAGE;
+        return TileViewUtil.PAGE;
     }
 
     @Override
-    protected TableViewViewSettings createDefaultSettings(final DataTableSpec spec) {
-        return new TableViewViewSettings(spec);
+    protected TileViewViewParameters createDefaultSettings(final DataTableSpec spec) {
+        return new TileViewViewParameters(spec);
     }
 
     @Override
     protected Pair<? extends InitialDataService<?>, Supplier<RpcDataService>>
         buildInitialDataServiceWithRpcDataService() {
-        return TableViewUtil.createInitialDataServiceWithRPCDataService(() -> m_settings, m_tableSupplier,
+        return TileViewUtil.createInitialDataServiceWithRPCDataService(() -> m_settings, m_tableSupplier,
             m_selectionSupplier, m_tableId, null, null);
     }
 
     @Override
     protected RpcDataService buildFallbackRpcDataService() {
-        return TableViewUtil.createRpcDataService(
-            TableViewUtil.createTableViewDataService(m_tableSupplier, m_selectionSupplier, m_tableId), m_tableId);
+        return TileViewUtil.createRpcDataService(
+            TileViewUtil.createTileViewDataService(m_tableSupplier, m_selectionSupplier, m_tableId), m_tableId);
     }
 
 }

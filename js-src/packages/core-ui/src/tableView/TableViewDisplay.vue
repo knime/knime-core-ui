@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { type Ref, computed, onMounted, reactive, ref, toRefs } from "vue";
 
-import { LoadingIcon } from "@knime/components";
 import {
   type ColumnConfig,
   type Rect,
   TableUIWithAutoSizeCalculation,
 } from "@knime/knime-ui-table";
 import type { DataValueViewConfig } from "@knime/ui-extension-service/internal";
+
+import EmptyDataState from "@/common/EmptyDataState.vue";
+import ViewTitle from "@/common/ViewTitle.vue";
 
 import SubHeaderTypeRenderer from "./components/SubHeaderTypeRenderer.vue";
 import useAutoSizes from "./composables/useAutoSizes";
@@ -277,9 +279,7 @@ const useCodeRenderer = (index: number) =>
 
 <template>
   <div ref="root" class="table-view-wrapper">
-    <h4 v-if="settings?.title" class="table-title">
-      {{ settings.title }}
-    </h4>
+    <ViewTitle :title="settings?.title" />
     <TableUIWithAutoSizeCalculation
       v-if="rows.loaded && numberOfDisplayedColumns > 0"
       ref="table"
@@ -383,55 +383,15 @@ const useCodeRenderer = (index: number) =>
         />
       </template>
     </TableUIWithAutoSizeCalculation>
-    <div v-else class="center">
-      <h4 v-if="rows.loaded">No data to display</h4>
-      <span v-else-if="loadingAnimationEnabled">
-        <LoadingIcon class="loading-icon" />
-        Loading data
-      </span>
-    </div>
+    <EmptyDataState
+      v-else
+      :is-data-loaded="rows.loaded"
+      :loading-animation-enabled
+    />
   </div>
 </template>
 
 <style lang="postcss" scoped>
-.table-title {
-  margin: 0;
-  padding: 10px 0 5px;
-  color: rgb(70 70 70);
-  font-size: 16px;
-  line-height: 20px;
-}
-
-.center {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  & h4 {
-    color: rgb(70 70 70);
-    font-size: 16px;
-  }
-
-  & span {
-    font-size: 16px;
-    text-align: center;
-    font-style: italic;
-    color: var(--knime-masala);
-
-    & .loading-icon {
-      width: 24px;
-      height: 24px;
-      stroke-width: 1px;
-      margin: auto;
-      stroke: var(--knime-masala);
-      vertical-align: -6px;
-      margin-right: 10px;
-    }
-  }
-}
-
 .table-view-wrapper {
   display: flex;
   flex-direction: column;

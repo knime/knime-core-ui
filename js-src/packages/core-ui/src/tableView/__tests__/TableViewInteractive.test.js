@@ -16,6 +16,8 @@ import {
 } from "@knime/ui-extension-service";
 import { DataValueViewService } from "@knime/ui-extension-service/internal";
 
+import EmptyDataState from "@/common/EmptyDataState.vue";
+import ViewTitle from "@/common/ViewTitle.vue";
 import TableViewDisplay from "../TableViewDisplay.vue";
 import { MAX_NUM_PXL_BROWSER_LIMITATION } from "../TableViewInteractive.vue";
 import {
@@ -300,7 +302,12 @@ describe("TableViewInteractive.vue", () => {
       initialDataMock.table.columnCount = 0;
       const wrapper = await shallowMountInteractive(context);
       expect(findTableComponent(wrapper).exists()).toBeFalsy();
-      expect(wrapper.find(".center").find("h4").exists()).toBeTruthy();
+      expect(
+        wrapper
+          .findComponent(TableViewDisplay)
+          .findComponent(EmptyDataState)
+          .exists(),
+      ).toBeTruthy();
     });
 
     it("renders the TableUIWithAutoSizeCalculation and passes the correct props", async () => {
@@ -1471,12 +1478,22 @@ describe("TableViewInteractive.vue", () => {
     });
 
     it("hides title", async () => {
-      expect(wrapper.find(".table-title").exists()).toBeTruthy();
+      expect(
+        wrapper
+          .findComponent(TableViewDisplay)
+          .findComponent(ViewTitle)
+          .props("title"),
+      ).toBeTruthy();
 
       changeViewSetting(wrapper, "title", "");
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.find(".table-title").exists()).toBeFalsy();
+      expect(
+        wrapper
+          .findComponent(TableViewDisplay)
+          .findComponent(ViewTitle)
+          .props("title"),
+      ).toBeFalsy();
     });
 
     it("updates displayed columns on displayed columns change", async () => {

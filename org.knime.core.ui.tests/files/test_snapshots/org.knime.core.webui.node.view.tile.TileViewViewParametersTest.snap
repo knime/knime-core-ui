@@ -1,0 +1,590 @@
+{
+  "data" : {
+    "view" : {
+      "displayedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "String1", "String2", "Double1", "Double2", "BinaryObject1", "NominalDistribution1", "List1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "title" : "Tile View",
+      "titleColumn" : {
+        "specialChoice" : "ROW_ID"
+      },
+      "colorColumn" : {
+        "specialChoice" : "NONE"
+      },
+      "tilesPerRow" : 1,
+      "displayColumnHeaders" : true,
+      "textAlignment" : "LEFT",
+      "pageSize" : 10,
+      "selectionMode" : "EDIT",
+      "showOnlySelectedRows" : false,
+      "showOnlySelectedRowsConfigurable" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "view" : {
+        "type" : "object",
+        "properties" : {
+          "colorColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE",
+                  "title" : "None"
+                } ]
+              }
+            },
+            "title" : "Color column",
+            "description" : "Defines the column used to color the data by. Only columns which have a color scheme associated can be selected. You might need to use a Color Designer node before this node to add color schemes to specific columns.",
+            "default" : {
+              "specialChoice" : "NONE"
+            }
+          },
+          "displayColumnHeaders" : {
+            "type" : "boolean",
+            "title" : "Display column headers",
+            "description" : "Enable or disable the display of column headers. The column headers will be shown along with the cell entries in each tile.",
+            "default" : true
+          },
+          "displayedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Displayed columns",
+            "description" : "Select the columns that should be displayed in the tiles.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "String1", "String2", "Double1", "Double2", "BinaryObject1", "NominalDistribution1", "List1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Page size",
+            "description" : "Select the amount of tiles shown per page.",
+            "default" : 10
+          },
+          "selectionMode" : {
+            "oneOf" : [ {
+              "const" : "EDIT",
+              "title" : "Edit"
+            }, {
+              "const" : "SHOW",
+              "title" : "Show"
+            }, {
+              "const" : "OFF",
+              "title" : "Off"
+            } ],
+            "title" : "Selection",
+            "description" : "“Show” makes this view receive notifications about changes of the selection. “Edit” also allows you to change the selection and propagate any changes you make here to other views that show the selection.",
+            "default" : "EDIT"
+          },
+          "showOnlySelectedRows" : {
+            "type" : "boolean",
+            "title" : "Show only selected rows",
+            "description" : "When checked, only the selected rows are shown in the tile view.",
+            "default" : false
+          },
+          "showOnlySelectedRowsConfigurable" : {
+            "type" : "boolean",
+            "title" : "Enable toggle 'Show only selected rows'",
+            "description" : "When checked, it is possible to configure from within the view whether only the selected rows are shown.",
+            "default" : true
+          },
+          "textAlignment" : {
+            "oneOf" : [ {
+              "const" : "LEFT",
+              "title" : "Left"
+            }, {
+              "const" : "CENTER",
+              "title" : "Center"
+            }, {
+              "const" : "RIGHT",
+              "title" : "Right"
+            } ],
+            "title" : "Text alignment",
+            "description" : "The alignment of the text in the tiles.",
+            "default" : "LEFT"
+          },
+          "tilesPerRow" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Tiles per row",
+            "description" : "Number of tiles to display per row. The width of these tiles will change as the window size changes.",
+            "default" : 1
+          },
+          "title" : {
+            "type" : "string",
+            "title" : "Title",
+            "description" : "The title of the view.",
+            "default" : "Tile View"
+          },
+          "titleColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE",
+                  "title" : "None"
+                }, {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
+            "title" : "Tile title column",
+            "description" : "Defines the column used to display the title of each tile.",
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Data",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/displayedColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "View",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/title"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/titleColumn",
+        "options" : {
+          "format" : "singleSelection",
+          "specialChoices" : [ {
+            "id" : "NONE",
+            "text" : "None"
+          }, {
+            "id" : "ROW_ID",
+            "text" : "RowID"
+          } ]
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/colorColumn",
+        "options" : {
+          "format" : "singleSelection",
+          "specialChoices" : [ {
+            "id" : "NONE",
+            "text" : "None"
+          } ]
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/tilesPerRow",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/displayColumnHeaders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/textAlignment",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/pageSize",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
+              }
+            }
+          }
+        },
+        "providedOptions" : [ "validation.min" ]
+      } ]
+    }, {
+      "label" : "Interactivity",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/selectionMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/showOnlySelectedRows",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/showOnlySelectedRowsConfigurable",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "view" : {
+        "type" : "object",
+        "properties" : {
+          "displayedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "title" : { },
+          "titleColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            }
+          },
+          "colorColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            }
+          },
+          "tilesPerRow" : { },
+          "displayColumnHeaders" : { },
+          "textAlignment" : { },
+          "pageSize" : { },
+          "selectionMode" : { },
+          "showOnlySelectedRows" : { },
+          "showOnlySelectedRowsConfigurable" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/view/properties/colorColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "String1",
+        "text" : "String1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Double2",
+        "text" : "Double2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/view/properties/displayedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "String1",
+        "text" : "String1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "String2",
+        "text" : "String2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Double1",
+        "text" : "Double1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Double2",
+        "text" : "Double2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "BinaryObject1",
+        "text" : "BinaryObject1",
+        "type" : {
+          "id" : "org.knime.core.data.blob.BinaryObjectDataValue",
+          "text" : "Binary Object"
+        }
+      }, {
+        "id" : "NominalDistribution1",
+        "text" : "NominalDistribution1",
+        "type" : {
+          "id" : "org.knime.core.data.probability.nominal.NominalDistributionValue",
+          "text" : "Nominal Probability Distribution"
+        }
+      }, {
+        "id" : "List1",
+        "text" : "List1",
+        "type" : {
+          "id" : "org.knime.core.data.collection.ListDataValue",
+          "text" : "Collection (List)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/view/properties/pageSize",
+    "providedOptionName" : "validation.min",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "parameters" : {
+          "min" : 1.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "Page size cannot be smaller than the number of tiles per row (1)."
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/view/properties/titleColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "String1",
+        "text" : "String1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "String2",
+        "text" : "String2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Double1",
+        "text" : "Double1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Double2",
+        "text" : "Double2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/view/properties/tilesPerRow"
+    },
+    "dependencies" : [ "#/properties/view/properties/tilesPerRow" ]
+  } ]
+}
