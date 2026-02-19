@@ -2,6 +2,9 @@
 /**
  * Duplicated from @knime/jsonforms since we will introduce error messages as part of the
  * input fields themselves anyway in the future.
+ *
+ * Not easy to reuse the component from @knime/jsonforms since we would need to import the
+ * css for all jsonforms renderers as well.
  */
 export default {};
 </script>

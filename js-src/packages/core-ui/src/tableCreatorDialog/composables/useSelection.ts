@@ -1,4 +1,4 @@
-import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { computed, nextTick, ref, useTemplateRef } from "vue";
 
 import { TableUI } from "@knime/knime-ui-table";
 
@@ -80,18 +80,6 @@ export const useSelection = ({
       }
     }
   };
-
-  onMounted(async () => {
-    if (getColumns().length > 0 && getNumRows() > 0) {
-      await nextTick();
-      tableComponent.value?.updateCellSelection({
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0,
-      });
-    }
-  });
 
   const focusHeaderCell = (columnIndex: number) => {
     tableComponent.value?.focusHeaderCell(columnIndex);

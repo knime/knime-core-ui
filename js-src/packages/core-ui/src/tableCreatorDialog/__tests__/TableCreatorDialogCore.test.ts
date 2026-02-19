@@ -464,7 +464,7 @@ describe("TableCreatorDialogCore", () => {
       const { wrapper } = await mountTableCreatorDialogCore();
       const appendRowButton = wrapper
         .findAll("button")
-        .find((btn) => btn.text() === "Add row");
+        .filter((btn) => btn.text() === "Add")[1];
       expect(appendRowButton).toBeDefined();
       await appendRowButton!.trigger("click");
 
@@ -483,7 +483,7 @@ describe("TableCreatorDialogCore", () => {
       const { wrapper } = await mountTableCreatorDialogCore();
       const appendColumnButton = wrapper
         .findAll("button")
-        .find((btn) => btn.text() === "Add column");
+        .filter((btn) => btn.text() === "Add")[0];
       expect(appendColumnButton).toBeDefined();
       await appendColumnButton!.trigger("click");
       await flushPromises();

@@ -2,7 +2,8 @@
 import { computed, useTemplateRef } from "vue";
 
 import { InputField, Label } from "@knime/components";
-import { ErrorMessages } from "@knime/jsonforms";
+
+import ErrorMessages from "./errorMessage/ErrorMessages.vue";
 
 const props = defineProps<{
   otherColumnNames: Set<string>;
