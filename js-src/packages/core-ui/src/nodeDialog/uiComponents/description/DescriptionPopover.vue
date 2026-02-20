@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Description } from "@knime/components";
-import DescriptionIcon from "@knime/styles/img/icons/circle-help.svg";
+import { ref } from "vue";
 
-import DialogPopover from "../../popover/DialogPopover.vue";
+import { KdsInfoToggleButton, KdsPopover } from "@knime/kds-components";
 
 import type { DescriptionPopoverProps } from "./types/DescriptionPopoverProps";
 
@@ -10,38 +9,24 @@ withDefaults(defineProps<DescriptionPopoverProps>(), {
   hover: false,
   ignoredClickOutsideTarget: null,
 });
+
+const open = ref(false);
+const activatorEl = ref<HTMLButtonElement | null>(null);
 </script>
 
 <template>
-  <DialogPopover
-    tooltip="Click for more information"
-    popover-width="max-content"
+  <KdsInfoToggleButton
+    ref="activatorEl"
+    v-model="open"
+    :hidden="!hover && !open"
+  />
+  <KdsPopover
+    v-model="open"
+    :activator-el="activatorEl"
     :ignored-click-outside-target="ignoredClickOutsideTarget"
+    placement="top-left"
+    style="width: max-content; max-width: 400px"
   >
-    <template #icon="{ expanded, focused }">
-      <DescriptionIcon v-show="hover || expanded || focused" />
-    </template>
-    <template #popover>
-      <div class="description-wrapper">
-        <Description class="description" :text="html" render-as-html />
-      </div>
-    </template>
-  </DialogPopover>
+    <div v-html="html" />
+  </KdsPopover>
 </template>
-
-<style lang="postcss" scoped>
-/** A deep selector is necessary, since Description is a multi-root component
-* (see https://github.com/vuejs/core/issues/5446)
-*/
-.description-wrapper :deep(.description) {
-  max-height: 300px;
-  overflow: auto;
-  pointer-events: auto;
-  font-size: 13px;
-  font-weight: 300;
-  line-height: 18.78px;
-
-  /* Description component line-height-to-font-size-ratio of 26/18 times font size of 13 */
-  color: var(--knime-masala);
-}
-</style>
