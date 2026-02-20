@@ -90,6 +90,8 @@ import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.credentials.Credentials;
+import org.knime.node.parameters.widget.button.RestCallButton;
+import org.knime.node.parameters.widget.button.RestCallButtonWidget;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 import org.knime.node.parameters.widget.credentials.PasswordWidget;
 import org.knime.node.parameters.widget.credentials.UsernameWidget;
@@ -186,6 +188,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
 
         new WidgetAnnotation(List.of(String.class, Character.class, char.class), TextInputWidget.class), //
+        new WidgetAnnotation(List.of(RestCallButton.class), RestCallButtonWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
     };

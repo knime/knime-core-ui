@@ -171,6 +171,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         OverwriteDialogTitleInternal.class, //
         PasswordWidget.class, //
         RadioButtonsWidget.class, //
+        org.knime.node.parameters.widget.button.RestCallButtonWidget.class, //
         RichTextInputWidget.class, //
         RichTextInputWidgetInternal.class, //
         SimpleButtonWidget.class, //
