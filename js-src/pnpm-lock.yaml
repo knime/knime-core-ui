@@ -64,8 +64,8 @@ importers:
         specifier: 'catalog:'
         version: 0.5.9(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/knime-ui-table':
-        specifier: 0.7.1
-        version: 0.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
+        specifier: 0.7.2
+        version: 0.7.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/rich-text-editor':
         specifier: 1.8.0
         version: 1.8.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -1310,8 +1310,8 @@ packages:
     resolution: {integrity: sha512-U09VIoax+OmXe9hxWx5iRvZIZ7ByMvMGmza2wb9z6WXH5CwrrhtWSMG7NtEJDOSCb9+7LxLx/j8TWsCKJohVnw==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
 
-  '@knime/knime-ui-table@0.7.1':
-    resolution: {integrity: sha512-djbzW4UZOJHWBuraCKKaMNrWO3Fu6uw4GQ0o/aQai/esdegaIILs4wFuTg5pr6v+PEXNlF934+/0EUQkqgSvRg==}
+  '@knime/knime-ui-table@0.7.2':
+    resolution: {integrity: sha512-xl4TTGl0BA6InYlb2AZckmc/fCg1xFuY3V8LVGXYhgILP9ePqfpAe+/hQHxbye/7IAkUMq9c4eJqXimkfkwK4g==}
     engines: {node: 22.x}
     peerDependencies:
       vue: ~3.5.0
@@ -7350,7 +7350,7 @@ snapshots:
       '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 3.0.1
 
-  '@knime/knime-ui-table@0.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
+  '@knime/knime-ui-table@0.7.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.18(typescript@5.4.5))
       '@knime/components': 1.45.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))

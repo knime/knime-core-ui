@@ -195,6 +195,8 @@ describe("TableCreatorDialogCore", () => {
       const { wrapper } = await mountTableCreatorDialogCore();
       getTdWithText(wrapper, "a").trigger("pointerdown", { button: 0 });
       getTdWithText(wrapper, "a").trigger("pointerup", { button: 0 });
+      getTdWithText(wrapper, "a").trigger("pointerdown", { button: 0 });
+      getTdWithText(wrapper, "a").trigger("pointerup", { button: 0 });
 
       await flushPromises();
       const cellInputFloating = wrapper.findComponent(CellInputFloating);
@@ -233,6 +235,8 @@ describe("TableCreatorDialogCore", () => {
       const { wrapper } = await mountTableCreatorDialogCore();
       getTdWithText(wrapper, "1").trigger("pointerdown", { button: 0 });
       getTdWithText(wrapper, "1").trigger("pointerup", { button: 0 });
+      getTdWithText(wrapper, "1").trigger("pointerdown", { button: 0 });
+      getTdWithText(wrapper, "1").trigger("pointerup", { button: 0 });
 
       await flushPromises();
       const cellInputFloating = wrapper.findComponent(CellInputFloating);
@@ -258,6 +262,8 @@ describe("TableCreatorDialogCore", () => {
 
     it("sets and validates cell input from side panel editor", async () => {
       const { wrapper } = await mountTableCreatorDialogCore();
+      getTdWithText(wrapper, "1").trigger("pointerdown", { button: 0 });
+      getTdWithText(wrapper, "1").trigger("pointerup", { button: 0 });
       getTdWithText(wrapper, "1").trigger("pointerdown", { button: 0 });
       getTdWithText(wrapper, "1").trigger("pointerup", { button: 0 });
 
