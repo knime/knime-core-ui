@@ -41,11 +41,13 @@ import {
 import { labeledGroupRenderer } from "./labeledGroupRenderer";
 import { legacyCredentialsRenderer } from "./legacyCredentialsRenderer";
 import { multiFileChooserRenderer } from "./multiFileChooserRenderer";
+import { restCallButtonRenderer } from "./restCallButtonRenderer";
 import { stringFileChooserRenderer } from "./stringFileChooserRenderer";
 import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 
 const coreUIControls: Record<string, VueControlRenderer> = {
   buttonRenderer, // since it will be removed soon and is based on the old update mechanism
+  restCallButtonRenderer, // for REST API calls and remote actions
   stringFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
   multiFileChooserRenderer,
