@@ -314,6 +314,8 @@ public final class JsonFormsConsts {
 
             public static final String BUTTON = "button";
 
+            public static final String REST_CALL_BUTTON = "restCallButton";
+
             public static final String SIMPLE_BUTTON = "simpleButton";
 
             public static final String LOCAL_DATE = "localDate";

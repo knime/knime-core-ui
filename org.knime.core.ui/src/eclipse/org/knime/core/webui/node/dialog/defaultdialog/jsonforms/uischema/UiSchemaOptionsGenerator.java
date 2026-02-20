@@ -126,6 +126,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
+import org.knime.node.parameters.widget.button.RestCallButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
@@ -334,6 +335,18 @@ final class UiSchemaOptionsGenerator {
                 options.put("incrementAndApplyOnClick", true);
             }
         }
+        
+        if (annotatedWidgets.contains(RestCallButtonWidget.class)) {
+            final var restCallButtonWidget = m_node.getAnnotation(RestCallButtonWidget.class).orElseThrow();
+            final var handler = restCallButtonWidget.actionHandler();
+            options.put(TAG_ACTION_HANDLER, handler.getName());
+            options.put(TAG_FORMAT, Format.REST_CALL_BUTTON);
+            options.put("buttonText", restCallButtonWidget.buttonText());
+            options.put("showLoadingIndicator", restCallButtonWidget.showLoadingIndicator());
+            final var dependencies = options.putArray(TAG_DEPENDENCIES);
+            addDependencies(dependencies, restCallButtonWidget.actionHandler());
+        }
+        
         if (annotatedWidgets.contains(SimpleButtonWidget.class)) {
             options.put(TAG_FORMAT, Format.SIMPLE_BUTTON);
             final var simpleButtonWidget = m_node.getAnnotation(SimpleButtonWidget.class).orElseThrow();

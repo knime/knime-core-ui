@@ -77,14 +77,22 @@ class ButtonWidgetActionHandlerHolder extends HandlerHolder<ButtonActionHandler<
     @Override
     Optional<Class<? extends ButtonActionHandler<?, ?, ?>>> getHandlerClass(final TraversedField field) {
         final var buttonWidget = field.propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
-
+        if (buttonWidget != null) {
+            final var actionHandlerClass = buttonWidget.actionHandler();
+            validate(field.propertyWriter(), actionHandlerClass);
+            return Optional.of(actionHandlerClass);
         }
-        final var actionHandlerClass = buttonWidget.actionHandler();
-        validate(field.propertyWriter(), actionHandlerClass);
-        return Optional.of(actionHandlerClass);
 
+        // Also check for RestCallButtonWidget annotation
+        final var restCallButtonWidget = field.propertyWriter().getAnnotation(
+            org.knime.node.parameters.widget.button.RestCallButtonWidget.class);
+        if (restCallButtonWidget != null) {
+            final var actionHandlerClass = restCallButtonWidget.actionHandler();
+            validate(field.propertyWriter(), actionHandlerClass);
+            return Optional.of(actionHandlerClass);
+        }
+
+        return Optional.empty();
     }
 
     private static void validate(final PropertyWriter field,
