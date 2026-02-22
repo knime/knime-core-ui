@@ -37,7 +37,7 @@
     "@knime/styles": "1.15.0",
     "@knime/ui-extension-renderer": "2.4.0",
     "@knime/utils": "1.8.0",
-    "@vueuse/core": "13.8.0",
+    "@vueuse/core": "14.2.1",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-unicode11": "^0.8.0",
     "@xterm/xterm": "^5.5.0",
