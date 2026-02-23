@@ -54,6 +54,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
+ * Activator for the {@code org.knime.core.ui} plugin.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
