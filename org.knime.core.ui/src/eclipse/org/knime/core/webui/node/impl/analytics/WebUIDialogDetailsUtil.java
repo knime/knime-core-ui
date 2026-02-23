@@ -66,10 +66,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToInitialValueUpdates;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -104,15 +106,18 @@ public final class WebUIDialogDetailsUtil {
      *
      * @param schema the schema
      * @param uiSchema the UI schema
+     * @param initialValueUpdates JSON representation of value-based state provider updates triggered at dialog open
+     *            time (see {@link WidgetTreesToInitialValueUpdates})
      */
-    public record WebUISettings(String schema, String uiSchema) {
+    public record WebUISettings(String schema, String uiSchema, String initialValueUpdates) {
 
         static final ObjectMapper MAPPER = JsonFormsDataUtil.getMapper();
 
-        WebUISettings(final JsonFormsSettings settings) throws JsonProcessingException {
+        WebUISettings(final JsonFormsSettings settings, final String initialValueUpdates) throws JsonProcessingException {
             this(//
                 MAPPER.writeValueAsString(settings.getSchema()), //
-                MAPPER.writeValueAsString(settings.getUiSchema())//
+                MAPPER.writeValueAsString(settings.getUiSchema()), //
+                initialValueUpdates//
             );
         }
 
@@ -229,7 +234,16 @@ public final class WebUIDialogDetailsUtil {
             MapValuesUtil.mapValues(settingsClasses, NodeParametersUtil::createSettings);
         final var context = NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
         final var jsonFormsSettings = new JsonFormsSettingsImpl(settings, context);
-        return new WebUISettings(jsonFormsSettings);
+        final var initialValueUpdatesJson = computeInitialValueUpdatesJson(settingsClasses);
+        return new WebUISettings(jsonFormsSettings, initialValueUpdatesJson);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static String computeInitialValueUpdatesJson(
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) throws JsonProcessingException {
+        final var widgetGroupClasses = (Map<SettingsType, Class<? extends WidgetGroup>>) (Map) settingsClasses;
+        final var result = WidgetTreesToInitialValueUpdates.getInitialValueUpdates(widgetGroupClasses);
+        return WebUISettings.MAPPER.writeValueAsString(result);
     }
 
 }
