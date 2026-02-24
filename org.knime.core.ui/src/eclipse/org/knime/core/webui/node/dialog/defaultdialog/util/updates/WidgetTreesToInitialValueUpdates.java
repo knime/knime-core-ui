@@ -59,6 +59,7 @@ import java.util.Set;
 
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DYNAMIC_SETTINGS;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.WidgetGroup;
 
@@ -80,12 +81,13 @@ public final class WidgetTreesToInitialValueUpdates {
     }
 
     /**
-     * Information about a single value-based update triggered at dialog open time.
+     * Information about a single update triggered at dialog open time.
      *
      * @param stateProviderIdentifier identifies the state provider responsible for the update (its class name for
      *            class-based providers)
-     * @param targetScope the JSON Forms scope of the field whose value is updated (e.g.
+     * @param targetScope the JSON Forms scope of the field being updated (e.g.
      *            {@code #/properties/model/properties/someField})
+     * @param updatedOption the name of the UI-state option being updated, or absent if this is a plain value update
      * @param transitivelyTriggeredByScope if this update is triggered transitively by a value change on another field,
      *            this is the scope of that field; absent for direct (dialog-open) updates
      */
@@ -93,6 +95,7 @@ public final class WidgetTreesToInitialValueUpdates {
     public record ValueUpdateInfo(//
         @JsonProperty("stateProviderIdentifier") String stateProviderIdentifier, //
         @JsonProperty("targetScope") String targetScope, //
+        @JsonProperty("updatedOption") String updatedOption, //
         @JsonProperty("transitivelyTriggeredByScope") String transitivelyTriggeredByScope) {
     }
 
@@ -200,14 +203,20 @@ public final class WidgetTreesToInitialValueUpdates {
                 continue;
             }
             for (final var child : current.getChildren()) {
-                if (child instanceof LocationUpdateVertex luv && luv.getProvidedOption().isEmpty()) {
+                if (child instanceof LocationUpdateVertex luv && isRelevantUpdate(luv)) {
                     result.add(new ValueUpdateInfo(luv.getResolvedStateProvider().identifier().toString(),
-                        JsonFormsScopeUtil.getScopeFromLocation(luv.getLocation()), transitivelyTriggeredByScope));
+                        JsonFormsScopeUtil.getScopeFromLocation(luv.getLocation()),
+                        luv.getProvidedOption().orElse(null), transitivelyTriggeredByScope));
                 } else if (!(child instanceof UpdateVertex)) {
                     queue.add(child);
                 }
             }
         }
         return result;
+    }
+
+    private static boolean isRelevantUpdate(final LocationUpdateVertex luv) {
+        final var option = luv.getProvidedOption();
+        return option.isEmpty() || TAG_DYNAMIC_SETTINGS.equals(option.get());
     }
 }
