@@ -62,6 +62,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUt
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.WidgetGroup;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -84,10 +86,14 @@ public final class WidgetTreesToInitialValueUpdates {
      *            class-based providers)
      * @param targetScope the JSON Forms scope of the field whose value is updated (e.g.
      *            {@code #/properties/model/properties/someField})
+     * @param transitivelyTriggeredByScope if this update is triggered transitively by a value change on another field,
+     *            this is the scope of that field; absent for direct (dialog-open) updates
      */
+    @JsonInclude(Include.NON_NULL)
     public record ValueUpdateInfo(//
         @JsonProperty("stateProviderIdentifier") String stateProviderIdentifier, //
-        @JsonProperty("targetScope") String targetScope) {
+        @JsonProperty("targetScope") String targetScope, //
+        @JsonProperty("transitivelyTriggeredByScope") String transitivelyTriggeredByScope) {
     }
 
     /**
@@ -134,17 +140,56 @@ public final class WidgetTreesToInitialValueUpdates {
             .map(id -> triggerVertices.stream()
                 .filter(t -> t instanceof IdTriggerVertex idTrigger && id.equals(idTrigger.getId()))
                 .findFirst()
-                .map(WidgetTreesToInitialValueUpdates::collectValueUpdateInfos)
+                .map(trigger -> collectValueUpdateInfos(trigger, triggerVertices))
                 .orElse(List.of()))
             .toList();
         return new InitialValueUpdates(infos.get(0), infos.get(1));
     }
 
     /**
-     * Traverses the graph starting from the given trigger vertex, collecting all {@link LocationUpdateVertex} instances
-     * with no provided option. Those represent value updates (as opposed to UI-state updates).
+     * Collects direct and transitive value updates starting from an initial trigger. Transitive updates are those
+     * triggered by value-change triggers on the fields updated by the initial (or a prior transitive) update. Each
+     * scope is used as a trigger source at most once to handle cycles.
      */
-    private static List<ValueUpdateInfo> collectValueUpdateInfos(final TriggerVertex trigger) {
+    private static List<ValueUpdateInfo> collectValueUpdateInfos(final TriggerVertex initialTrigger,
+        final Collection<TriggerVertex> allTriggers) {
+        final List<ValueUpdateInfo> result = new ArrayList<>();
+        final Set<String> processedTriggerScopes = new HashSet<>();
+        final Queue<String> pendingScopes = new ArrayDeque<>();
+
+        for (var update : collectDirectValueUpdatesFromTrigger(initialTrigger, null)) {
+            result.add(update);
+            pendingScopes.add(update.targetScope());
+        }
+
+        while (!pendingScopes.isEmpty()) {
+            final var triggeringScope = pendingScopes.poll();
+            if (!processedTriggerScopes.add(triggeringScope)) {
+                continue;
+            }
+            allTriggers.stream()
+                .filter(t -> t instanceof ValueTriggerVertex vtv
+                    && triggeringScope.equals(JsonFormsScopeUtil.getScopeFromLocation(vtv.getLocation())))
+                .findFirst()
+                .ifPresent(valueTrigger -> {
+                    for (var update : collectDirectValueUpdatesFromTrigger(valueTrigger, triggeringScope)) {
+                        result.add(update);
+                        if (!processedTriggerScopes.contains(update.targetScope())) {
+                            pendingScopes.add(update.targetScope());
+                        }
+                    }
+                });
+        }
+
+        return result;
+    }
+
+    /**
+     * Traverses the graph from a single trigger vertex, collecting all {@link LocationUpdateVertex} instances with no
+     * provided option (value updates, not UI-state updates).
+     */
+    private static List<ValueUpdateInfo> collectDirectValueUpdatesFromTrigger(final TriggerVertex trigger,
+        final String transitivelyTriggeredByScope) {
         final List<ValueUpdateInfo> result = new ArrayList<>();
         final Set<Vertex> visited = new HashSet<>();
         final Queue<Vertex> queue = new ArrayDeque<>();
@@ -157,7 +202,7 @@ public final class WidgetTreesToInitialValueUpdates {
             for (final var child : current.getChildren()) {
                 if (child instanceof LocationUpdateVertex luv && luv.getProvidedOption().isEmpty()) {
                     result.add(new ValueUpdateInfo(luv.getResolvedStateProvider().identifier().toString(),
-                        JsonFormsScopeUtil.getScopeFromLocation(luv.getLocation())));
+                        JsonFormsScopeUtil.getScopeFromLocation(luv.getLocation()), transitivelyTriggeredByScope));
                 } else if (!(child instanceof UpdateVertex)) {
                     queue.add(child);
                 }
