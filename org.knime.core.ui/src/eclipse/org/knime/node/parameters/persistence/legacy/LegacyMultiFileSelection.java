@@ -336,7 +336,7 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
                 With type 'Regex', enter a Java regular expression.
                 """)
         @Layout(FolderFilterSection.class)
-        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.ENABLE)
+        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.SHOW)
         @Persist(configKey = FilterOptionsSettings.CFG_FOLDERS_NAME_EXPRESSION)
         String m_foldersNameExpression = "*";
 
@@ -344,13 +344,13 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
             description = "Choose how to interpret the folder name pattern: wildcard or regular expression.")
         @ValueSwitchWidget
         @Layout(FolderFilterSection.class)
-        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.ENABLE)
+        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.SHOW)
         @Persist(configKey = FilterOptionsSettings.CFG_FOLDERS_NAME_FILTER_TYPE)
         NameFilterType m_foldersNameFilterType = NameFilterType.WILDCARD;
 
         @Widget(title = "Case sensitive (folders)", description = "Make folder name filtering case sensitive.")
         @Layout(FolderFilterSection.class)
-        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.ENABLE)
+        @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.SHOW)
         @Persist(configKey = FilterOptionsSettings.CFG_FOLDERS_NAME_CASE_SENSITIVE)
         boolean m_foldersNameCaseSensitive;
 
