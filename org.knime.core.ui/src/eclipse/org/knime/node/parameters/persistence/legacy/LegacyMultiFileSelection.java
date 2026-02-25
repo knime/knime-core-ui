@@ -159,6 +159,27 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
         }
     }
 
+    static final class FilesExtensionCaseSensitivityPersistor extends EnumBooleanPersistor<CaseSensitivity> {
+        FilesExtensionCaseSensitivityPersistor() {
+            super(FilterOptionsSettings.CFG_FILES_EXTENSION_CASE_SENSITIVE, CaseSensitivity.class,
+                CaseSensitivity.CASE_SENSITIVE);
+        }
+    }
+
+    static final class FilesNameCaseSensitivityPersistor extends EnumBooleanPersistor<CaseSensitivity> {
+        FilesNameCaseSensitivityPersistor() {
+            super(FilterOptionsSettings.CFG_FILES_NAME_CASE_SENSITIVE, CaseSensitivity.class,
+                CaseSensitivity.CASE_SENSITIVE);
+        }
+    }
+
+    static final class FoldersNameCaseSensitivityPersistor extends EnumBooleanPersistor<CaseSensitivity> {
+        FoldersNameCaseSensitivityPersistor() {
+            super(FilterOptionsSettings.CFG_FOLDERS_NAME_CASE_SENSITIVE, CaseSensitivity.class,
+                CaseSensitivity.CASE_SENSITIVE);
+        }
+    }
+
     /**
      * Whether to include subfolders when selecting files. Only relevant when the selection mode is FOLDER.
      */
@@ -266,9 +287,10 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
         @Widget(title = "Case sensitive (extensions)",
             description = "Treat the entered extensions as case sensitive when matching.")
         @Layout(FileFilterSection.class)
+        @ValueSwitchWidget
         @Effect(predicate = FileExtensionFilterEnabled.class, type = EffectType.SHOW)
-        @Persist(configKey = FilterOptionsSettings.CFG_FILES_EXTENSION_CASE_SENSITIVE)
-        boolean m_filesExtensionCaseSensitive;
+        @Persistor(FilesExtensionCaseSensitivityPersistor.class)
+        CaseSensitivity m_filesExtensionCaseSensitive = CaseSensitivity.CASE_INSENSITIVE;
 
         @Widget(title = "Filter by file name",
             description = "Enable filtering by file name pattern with wildcards or regular expression.")
@@ -307,9 +329,10 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
 
         @Widget(title = "Case sensitive (names)", description = "Make file name filtering case sensitive.")
         @Layout(FileFilterSection.class)
+        @ValueSwitchWidget
         @Effect(predicate = FileNameFilterEnabled.class, type = EffectType.SHOW)
-        @Persist(configKey = FilterOptionsSettings.CFG_FILES_NAME_CASE_SENSITIVE)
-        boolean m_filesNameCaseSensitive;
+        @Persistor(FilesNameCaseSensitivityPersistor.class)
+        CaseSensitivity m_filesNameCaseSensitive = CaseSensitivity.CASE_INSENSITIVE;
 
         @Widget(title = "Include hidden files", description = "Include hidden files in the selection.")
         @Layout(FileFilterSection.class)
@@ -350,9 +373,10 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
 
         @Widget(title = "Case sensitive (folders)", description = "Make folder name filtering case sensitive.")
         @Layout(FolderFilterSection.class)
+        @ValueSwitchWidget
         @Effect(predicate = FolderNameFilterEnabled.class, type = EffectType.SHOW)
-        @Persist(configKey = FilterOptionsSettings.CFG_FOLDERS_NAME_CASE_SENSITIVE)
-        boolean m_foldersNameCaseSensitive;
+        @Persistor(FoldersNameCaseSensitivityPersistor.class)
+        CaseSensitivity m_foldersNameCaseSensitive = CaseSensitivity.CASE_INSENSITIVE;
 
         @Widget(title = "Include hidden folders",
             description = "Descend into folders that are hidden (if they otherwise pass filters).")
@@ -391,16 +415,17 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
             FilterOptionsSettings filterOptions = new FilterOptionsSettings();
 
             filterOptions.setFilterFilesByName(m_filterFilesName);
-            filterOptions.setFilesNameCaseSensitive(m_filesNameCaseSensitive);
+            filterOptions.setFilesNameCaseSensitive(m_filesNameCaseSensitive == CaseSensitivity.CASE_SENSITIVE);
             filterOptions.setFilesNameExpression(m_filesNameExpression);
             filterOptions.setFilesNameFilterType(m_filesNameFilterType.toLegacyType());
 
             filterOptions.setFilterFilesByExtension(m_filterFilesExtension);
-            filterOptions.setFilesExtensionCaseSensitive(m_filesExtensionCaseSensitive);
+            filterOptions
+                .setFilesExtensionCaseSensitive(m_filesExtensionCaseSensitive == CaseSensitivity.CASE_SENSITIVE);
             filterOptions.setFilesExtensionExpression(m_filesExtensionExpression);
 
             filterOptions.setFilterFoldersByName(m_filterFoldersName);
-            filterOptions.setFoldersNameCaseSensitive(m_foldersNameCaseSensitive);
+            filterOptions.setFoldersNameCaseSensitive(m_foldersNameCaseSensitive == CaseSensitivity.CASE_SENSITIVE);
             filterOptions.setFoldersNameExpression(m_foldersNameExpression);
             filterOptions.setFoldersNameFilterMode(m_foldersNameFilterType.toLegacyType());
 
@@ -421,17 +446,17 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
 
             defaultFilters.setValues(this.m_filterFilesExtension, //
                 this.m_filesExtensionExpression, //
-                this.m_filesExtensionCaseSensitive, //
+                this.m_filesExtensionCaseSensitive == CaseSensitivity.CASE_SENSITIVE, //
                 this.m_filterFilesName, //
                 this.m_filesNameExpression, //
                 toDefaultFileChooserNameFilterType(this.m_filesNameFilterType), //
-                this.m_filesNameCaseSensitive, //
+                this.m_filesNameCaseSensitive == CaseSensitivity.CASE_SENSITIVE, //
                 this.m_includeHiddenFiles, //
                 this.m_includeSpecialFiles, //
                 this.m_filterFoldersName, //
                 this.m_foldersNameExpression, //
                 toDefaultFileChooserNameFilterType(this.m_foldersNameFilterType), //
-                this.m_foldersNameCaseSensitive, //
+                this.m_foldersNameCaseSensitive == CaseSensitivity.CASE_SENSITIVE, //
                 this.m_includeHiddenFolders, //
                 this.m_followSymlinks //
             );
