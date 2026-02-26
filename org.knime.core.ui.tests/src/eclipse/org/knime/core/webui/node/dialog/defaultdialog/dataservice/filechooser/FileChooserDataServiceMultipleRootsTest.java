@@ -44,48 +44,73 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 22, 2025 (Paul Bärnreuther): created
+ *   Feb 27, 2026 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.mockito.ArgumentMatchers;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.FolderAndError;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 
 /**
- * Since e.g. {@link DefaultFSConnectionFactory} throws an error in case no local file system is registered, we should
- * make tests independent from such constructions and mock the file system.
+ * Tests for {@link FileChooserDataService} with multiple roots (e.g. on windows).
  *
  * @author Paul Bärnreuther
  */
-final class FileSystemTestMockingUtil {
+class FileChooserDataServiceMultipleRootsTest {
 
-    private FileSystemTestMockingUtil() {
-        // prevent instantiation
+    FileSystem m_fs;
+
+    Path m_subDir;
+
+    MockedConstruction<LocalFileChooserBackend> m_backendMock;
+
+    FileSystemConnector m_fsConnector;
+
+    FileChooserDataService m_service;
+
+    @BeforeEach
+    void setup() throws IOException {
+        m_fs = JimfsTestUtil.newWindowsFileSystem();
+        final var root = m_fs.getRootDirectories().iterator().next();
+        m_subDir = Files.createDirectory(root.resolve("subDir"));
+        m_backendMock = FileSystemTestMockingUtil.mockLocalFileChooserBackend(m_fs, true);
+        m_fsConnector = new FileSystemConnector();
+        m_service = new FileChooserDataService(m_fsConnector);
     }
 
-    /**
-     * Mocks the construction of a file chooser backend. Make sure to close this mock after usage.
-     *
-     * @param fileSystem the file system to be used
-     * @param isAbsolute whether the file system is absolute or not
-     *
-     * @return the mocked construction
-     */
-    static MockedConstruction<LocalFileChooserBackend> mockLocalFileChooserBackend(final FileSystem fileSystem,
-        final boolean isAbsolute) {
-        return Mockito.mockConstruction(LocalFileChooserBackend.class, (mock, context) -> {
-            when(mock.getFileSystem()).thenReturn(fileSystem);
-            when(mock.pathToObject(ArgumentMatchers.any())).thenCallRealMethod();
-            when(mock.directoryPathToObject(ArgumentMatchers.any())).thenCallRealMethod();
-            when(mock.isAbsoluteFileSystem()).thenReturn(isAbsolute);
-        });
-
+    @AfterEach
+    void tearDown() throws IOException {
+        m_backendMock.close();
+        m_fsConnector.clear();
+        m_fs.close();
     }
 
+    private FolderAndError listItems(final String path, final String nextFolder) throws IOException {
+        return m_service.listItems("local", path, nextFolder, FileChooserDataServiceListItemsTest.DEFAULT_CONFIG, null);
+    }
+
+    @Test
+    void testNullPath_multipleRoots_showsRootOfRootsWithNullPath() throws IOException {
+        final var result = listItems(null, null);
+
+        assertThat(result.errorMessage()).isEmpty();
+        assertThat(result.folder().isRootFolder()).isTrue();
+        assertThat(result.folder().path()).isNull();
+        assertThat(result.folder().items()).hasSize(2);
+        final var roots = m_fs.getRootDirectories().iterator();
+        final var backend = m_backendMock.constructed().get(0);
+        verify(backend).directoryPathToObject(roots.next());
+        verify(backend).directoryPathToObject(roots.next());
+    }
 }

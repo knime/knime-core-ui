@@ -44,48 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 22, 2025 (Paul Bärnreuther): created
+ *   Feb 27, 2026 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import static org.mockito.Mockito.when;
-
 import java.nio.file.FileSystem;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.mockito.ArgumentMatchers;
-import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 /**
- * Since e.g. {@link DefaultFSConnectionFactory} throws an error in case no local file system is registered, we should
- * make tests independent from such constructions and mock the file system.
+ * Utility for creating in-memory {@link Jimfs} file systems in tests.
  *
  * @author Paul Bärnreuther
  */
-final class FileSystemTestMockingUtil {
+final class JimfsTestUtil {
 
-    private FileSystemTestMockingUtil() {
+    static final String WORKING_DIRECTORY = "/work";
+
+    private JimfsTestUtil() {
         // prevent instantiation
     }
 
-    /**
-     * Mocks the construction of a file chooser backend. Make sure to close this mock after usage.
-     *
-     * @param fileSystem the file system to be used
-     * @param isAbsolute whether the file system is absolute or not
-     *
-     * @return the mocked construction
-     */
-    static MockedConstruction<LocalFileChooserBackend> mockLocalFileChooserBackend(final FileSystem fileSystem,
-        final boolean isAbsolute) {
-        return Mockito.mockConstruction(LocalFileChooserBackend.class, (mock, context) -> {
-            when(mock.getFileSystem()).thenReturn(fileSystem);
-            when(mock.pathToObject(ArgumentMatchers.any())).thenCallRealMethod();
-            when(mock.directoryPathToObject(ArgumentMatchers.any())).thenCallRealMethod();
-            when(mock.isAbsoluteFileSystem()).thenReturn(isAbsolute);
-        });
-
+    static FileSystem newUnixFileSystem() {
+        return Jimfs.newFileSystem(Configuration.unix().toBuilder().setWorkingDirectory(WORKING_DIRECTORY)
+            .setAttributeViews("basic", "posix").build());
     }
 
+    static FileSystem newWindowsFileSystem() {
+        return Jimfs.newFileSystem(
+            Configuration.windows().toBuilder().setRoots("C:\\", "D:\\").setWorkingDirectory("C:\\work").build());
+    }
 }
