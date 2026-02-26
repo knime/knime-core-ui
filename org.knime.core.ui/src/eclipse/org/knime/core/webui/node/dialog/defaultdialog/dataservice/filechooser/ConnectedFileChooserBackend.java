@@ -83,6 +83,6 @@ class ConnectedFileChooserBackend extends SimpleFileChooserBackend {
 
     @Override
     public boolean isAbsoluteFileSystem() {
-        return false;
+        return true;
     }
 }
