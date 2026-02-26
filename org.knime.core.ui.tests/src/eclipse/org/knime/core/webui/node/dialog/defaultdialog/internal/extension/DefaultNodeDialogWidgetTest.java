@@ -58,6 +58,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.awaitility.Awaitility;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -255,6 +257,65 @@ final class DefaultNodeDialogWidgetTest {
 
         final var uischema = buildTestUiSchema(RpcTestSettings.class);
         assertThatJson(uischema).inPath("$.elements[0].options.rpcServiceName").isString().isEqualTo(serviceName);
+    }
+
+    private static TestDefaultNodeDialogWidget getRegisteredTestWidget() {
+        return DefaultNodeDialog.getAdditionalWidgets().stream() //
+            .filter(w -> w instanceof TestDefaultNodeDialogWidget) //
+            .map(w -> (TestDefaultNodeDialogWidget)w) //
+            .findFirst() //
+            .orElseThrow(() -> new AssertionError("TestDefaultNodeDialogWidget not found in extension registry"));
+    }
+
+    /**
+     * Tests that the onDeactivate callback from CustomWidgetRpcService is called when deactivateDataServices is
+     * triggered, but onDispose is not.
+     */
+    @Test
+    void testOnDeactivateCallbackIsCalledOnDialogDeactivation() {
+        var widget = getRegisteredTestWidget();
+        widget.resetLifecycleCounts();
+
+        var nc = NodeDialogManagerTest.createNodeWithNodeDialog(m_wfm,
+            () -> new DefaultNodeDialog(SettingsType.MODEL, RpcTestSettings.class));
+        var nodeWrapper = NodeWrapper.of(nc);
+        var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
+
+        // Initialize the RPC data service by calling it once
+        var serviceName = TestDefaultNodeDialogWidget.class.getName().replace(".", "");
+        dataServiceManager.callRpcDataService(nodeWrapper, RpcDataService.jsonRpcRequest(serviceName + ".getTestValue"));
+
+        dataServiceManager.deactivateDataServices(nodeWrapper);
+
+        assertThat(widget.getOnDeactivateCallCount()).isEqualTo(1);
+        assertThat(widget.getOnDisposeCallCount()).isEqualTo(0);
+    }
+
+    /**
+     * Tests that both the onDeactivate and onDispose callbacks from CustomWidgetRpcService are called when the node is
+     * removed from the workflow.
+     */
+    @Test
+    void testOnDisposeCallbackIsCalledOnNodeRemoval() {
+        var widget = getRegisteredTestWidget();
+        widget.resetLifecycleCounts();
+
+        var nc = NodeDialogManagerTest.createNodeWithNodeDialog(m_wfm,
+            () -> new DefaultNodeDialog(SettingsType.MODEL, RpcTestSettings.class));
+        var nodeWrapper = NodeWrapper.of(nc);
+        var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
+
+        // Initialize the RPC data service (this also registers the NodeCleanUpCallback)
+        var serviceName = TestDefaultNodeDialogWidget.class.getName().replace(".", "");
+        dataServiceManager.callRpcDataService(nodeWrapper, RpcDataService.jsonRpcRequest(serviceName + ".getTestValue"));
+
+        m_wfm.removeNode(nc.getID());
+
+        // Cleanup is asynchronous; wait for both callbacks to be triggered
+        Awaitility.await().untilAsserted(() -> {
+            assertThat(widget.getOnDisposeCallCount()).isEqualTo(1);
+            assertThat(widget.getOnDeactivateCallCount()).isEqualTo(1);
+        });
     }
 
     /**
