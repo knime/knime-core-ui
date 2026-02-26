@@ -52,21 +52,21 @@ describe("AiButton", () => {
 
     const wrapper = await doMount();
 
-    const button = wrapper.findComponent(".ai-button");
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
     expect(button.exists()).toBeFalsy();
   });
 
   it("renders ai button if K-AI is enabled", async () => {
     const wrapper = await doMount();
 
-    const button = wrapper.findComponent(".ai-button");
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
     expect(button.exists()).toBeTruthy();
   });
 
   it("ai button opens ai bar", async () => {
     const wrapper = await doMount();
 
-    const button = wrapper.find(".ai-button");
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
 
     // aiBar should be turned off at mount
     expect(wrapper.find("[data-testid='ai-popup']").exists()).toBeFalsy();
@@ -79,7 +79,7 @@ describe("AiButton", () => {
   it("ai button closes ai bar if it is opened", async () => {
     const wrapper = await doMount();
 
-    const button = wrapper.find(".ai-button");
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
 
     expect(wrapper.find("[data-testid='ai-popup']").exists()).toBeFalsy();
     await button.trigger("click");
@@ -91,7 +91,7 @@ describe("AiButton", () => {
   it("ai bar is not closed on click inside of ai bar", async () => {
     const wrapper = await doMount();
 
-    const button = wrapper.find(".ai-button");
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
     await wrapper.vm.$nextTick();
     await button.trigger("click");
     expect(wrapper.find("[data-testid='ai-popup']").exists()).toBeTruthy();

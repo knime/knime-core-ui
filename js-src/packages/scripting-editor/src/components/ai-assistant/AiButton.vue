@@ -82,6 +82,7 @@ onMounted(() => {
       ref="aiButtonRef"
       :label="showButtonText ? 'Ask K-AI' : ''"
       leading-icon="ai-general"
+      aria-label="K-AI Assistant Popup"
       :disabled="!enableAiButton"
       :model-value="showAiPopup"
       compact
