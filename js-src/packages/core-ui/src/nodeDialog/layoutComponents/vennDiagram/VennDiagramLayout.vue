@@ -20,7 +20,9 @@ const props = defineProps(
     <VerticalLayoutBase #default="{ element }" :elements="uischema.elements">
       <DispatchRenderer v-bind="props" :uischema="element as ControlElement" />
     </VerticalLayoutBase>
-    <VennDiagram v-bind="props" class="venn-diagram" />
+    <VerticalLayoutBase :elements="[uischema.elements[0]]" style="flex: 0">
+      <VennDiagram v-bind="props" />
+    </VerticalLayoutBase>
   </div>
 </template>
 
@@ -30,9 +32,5 @@ const props = defineProps(
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-
-  & .venn-diagram {
-    margin: 10px;
-  }
 }
 </style>
