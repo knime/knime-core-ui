@@ -4,13 +4,6 @@ import { type RendererProps, useJsonFormsControl } from "@jsonforms/vue";
 
 import { useFlowSettings } from "../../composables/components/useFlowVariables";
 
-const yellow = "#FFD800";
-const grey = "#D9D9D9";
-
-const valueToColor = (value: boolean): string => {
-  return value ? yellow : grey;
-};
-
 export default (props: RendererProps<ControlElement>) => {
   const { control, handleChange } = useJsonFormsControl(props);
 
@@ -25,12 +18,10 @@ export default (props: RendererProps<ControlElement>) => {
   const onClick = () =>
     disabled.value || handleChange(control.value.path, !control.value.data);
 
-  /**
-   * It is not possible to work with opacity on disabled, because the inner section lies over the circles
-   */
-  const fillColor = computed(() => valueToColor(control.value.data));
+  const isSelected = computed(() => control.value.data);
+
   return {
-    fillColor,
+    isSelected,
     onClick,
     disabled,
   };
@@ -41,10 +32,10 @@ export const useConstantVennDiagramPart = (constantValue: boolean) => {
     // do nothing
   };
   const disabled = ref(true);
-  const fillColor = ref(valueToColor(constantValue));
+  const isSelected = ref(constantValue);
 
   return {
-    fillColor,
+    isSelected,
     onClick,
     disabled,
   };
