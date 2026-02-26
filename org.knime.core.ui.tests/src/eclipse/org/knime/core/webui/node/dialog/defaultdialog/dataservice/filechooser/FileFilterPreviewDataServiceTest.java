@@ -50,8 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -64,7 +62,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
@@ -84,8 +84,7 @@ import org.mockito.MockedConstruction;
  */
 final class FileFilterPreviewDataServiceTest {
 
-    @TempDir
-    Path m_defaultDir;
+    FileSystem m_fs;
 
     Path m_tempDir;
 
@@ -105,51 +104,42 @@ final class FileFilterPreviewDataServiceTest {
 
     private MockedConstruction<LocalFileChooserBackend> m_fileChooserBackendMock;
 
-    private FileSystem m_fileSystem;
-
-    @SuppressWarnings("resource")
     @BeforeEach
     public void setUp() throws IOException {
+        m_fs = Jimfs.newFileSystem(Configuration.unix());
+        final var root = m_fs.getRootDirectories().iterator().next();
 
         // Create a temporary directory for testing.
-        m_tempDir = m_defaultDir.resolve("tempDir");
-        Files.createDirectory(m_tempDir);
+        m_tempDir = Files.createDirectory(root.resolve("tempDir"));
 
         // Create files in the root (tempDir).
-        m_file1 = m_tempDir.resolve("file1.txt");
-        m_file2 = m_tempDir.resolve("file2.txt");
-        Files.createFile(m_file1);
-        Files.createFile(m_file2);
+        m_file1 = Files.createFile(m_tempDir.resolve("file1.txt"));
+        m_file2 = Files.createFile(m_tempDir.resolve("file2.txt"));
 
         // Create a subdirectory with additional files.
-        m_subDir = m_tempDir.resolve("subdir");
-        Files.createDirectory(m_subDir);
-        m_file3 = m_subDir.resolve("file3.csv");
-        m_file4 = m_subDir.resolve("file4.txt");
-        Files.createFile(m_file3);
-        Files.createFile(m_file4);
+        m_subDir = Files.createDirectory(m_tempDir.resolve("subdir"));
+        m_file3 = Files.createFile(m_subDir.resolve("file3.csv"));
+        m_file4 = Files.createFile(m_subDir.resolve("file4.txt"));
 
         m_fsConnector = new FileSystemConnector();
         m_service = new FileFilterPreviewDataService(m_fsConnector, () -> Set.of(testSettingsTree));
 
-        m_fileSystem = mock(FileSystem.class);
         m_fileChooserBackendMock =
-            FileSystemTestMockingUtil.mockLocalFileChooserBackend(LocalFileChooserBackend.class, m_fileSystem, false);
+            FileSystemTestMockingUtil.mockLocalFileChooserBackend(m_fs, false);
     }
 
     @AfterEach
     public void tearDown() throws IOException {
         m_fsConnector.clear();
-        if (m_fileChooserBackendMock != null) {
-            m_fileChooserBackendMock.close();
-        }
+        m_fileChooserBackendMock.close();
+        m_fs.close();
     }
 
     @Test
     void testNonRecursiveList() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, false, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -164,7 +154,7 @@ final class FileFilterPreviewDataServiceTest {
     void testRecursiveList() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -179,7 +169,7 @@ final class FileFilterPreviewDataServiceTest {
     void testNonRecursiveFolders() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FOLDERS, false, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -195,7 +185,7 @@ final class FileFilterPreviewDataServiceTest {
     void testRecursiveFolders() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -211,7 +201,7 @@ final class FileFilterPreviewDataServiceTest {
     void testNonRecursiveFilesAndFolders() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_AND_FOLDERS, false, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -227,7 +217,7 @@ final class FileFilterPreviewDataServiceTest {
     void testRecursiveFilesAndFolders() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_AND_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -244,7 +234,7 @@ final class FileFilterPreviewDataServiceTest {
     void testPathsAreRelativeToProvidedFolder() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -261,17 +251,19 @@ final class FileFilterPreviewDataServiceTest {
                 ArrayUtils.contains(new int[]{1, 2}, Path.of(item).getNameCount())).isTrue()
                     .as("Expected either one or two levels of path");
         }
+    }
 
-        // and check again using the subdir as root
-        result = m_service.listItemsForPreview( //
+    @Test
+    void testPathsAreRelativeToProvidedSubfolder() throws IOException {
+        var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_subDir), //
+            m_subDir.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
         assertThat(result).isInstanceOf(PreviewResult.Success.class);
-        successResult = (PreviewResult.Success)result;
+        var successResult = (PreviewResult.Success)result;
 
         for (var item : successResult.m_itemsAfterFiltering) {
             assertThat(Path.of(item).getNameCount()).isEqualTo(1).as("Expected plain filenames");
@@ -282,7 +274,7 @@ final class FileFilterPreviewDataServiceTest {
     void testFiltersAreRespected() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir), //
+            m_tempDir.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(false)) //
         );
@@ -297,7 +289,7 @@ final class FileFilterPreviewDataServiceTest {
     void testFailsWhenRootIsFile() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_file1), //
+            m_file1.toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -311,7 +303,7 @@ final class FileFilterPreviewDataServiceTest {
     void testFailsWhenRootDoesNotExist() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
-            getStringResolvingTo(m_tempDir.resolve("nonexistent")), //
+            m_tempDir.resolve("nonexistent").toString(), //
             MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
@@ -340,19 +332,12 @@ final class FileFilterPreviewDataServiceTest {
     void testThrowsIfNoMultiFileSelectionIsPresent() {
         final var wrongFileFilterParams = new AdditionalFilterConfiguration(
             JsonFormsDataUtil.getMapper().valueToTree(new FileFilters(true)), EmptySettings.class.getName());
-        final var somePath = getStringResolvingTo(m_tempDir);
+        final var somePath = m_tempDir.toString();
         assertThrows(IllegalStateException.class, () -> m_service.listItemsForPreview("local", somePath,
             MultiFileSelectionMode.FILES_IN_FOLDERS, false, wrongFileFilterParams));
     }
 
     static final class EmptySettings implements NodeParameters {
-
-    }
-
-    private String getStringResolvingTo(final Path path) {
-        final var returnedString = path.toString();
-        when(m_fileSystem.getPath(returnedString)).thenReturn(path);
-        return returnedString;
 
     }
 
