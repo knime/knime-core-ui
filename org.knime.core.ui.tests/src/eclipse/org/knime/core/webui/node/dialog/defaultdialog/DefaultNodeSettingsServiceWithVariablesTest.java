@@ -49,6 +49,9 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
@@ -57,12 +60,16 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialogTest;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -192,6 +199,24 @@ class DefaultNodeSettingsServiceWithVariablesTest {
     }
 
     @Test
+    void testVariableSettingsOfIncorrectTypeFromNodeSettings() throws InvalidSettingsException {
+        final var settings = new NodeSettings("model");
+        settings.addInt("model setting", 42);
+        final var variableSettings = new VariableSettings(new NodeSettings("variables"), settings);
+        variableSettings.addUsedVariable("model setting", "flowVar1", false);
+
+        final var stringFlowVar = new FlowVariable("flowVar1", "not an integer");
+        final var context = mock(NodeParametersInput.class);
+        when(context.getAvailableInputFlowVariables(any(VariableType[].class)))
+            .thenReturn(Map.of("flowVar1", stringFlowVar));
+        final var result =
+            VariableSettingsUtil.getVariableSettingsJson(Map.of(SettingsType.MODEL, variableSettings), context);
+        final var flowVarSetting = result.get("model.model setting");
+        assertThat(flowVarSetting.get("controllingFlowVariableAvailable").booleanValue()).isTrue();
+        assertThat(flowVarSetting.get("controllingFlowVariableOfCorrectType").booleanValue()).isFalse();
+    }
+
+    @Test
     void testVariableSettingsFromNodeSettings() throws InvalidSettingsException {
         final var service = getDefaultNodeSettingsServiceWithVariables();
         final var textSettings = """
@@ -203,6 +228,7 @@ class DefaultNodeSettingsServiceWithVariablesTest {
         settings.addString("model setting", "dummyData");
         final var variableSettings = new VariableSettings(new NodeSettings("variables"), settings);
         variableSettings.addUsedVariable("model setting", "flowVar1", false);
+        // flowVar1 is not in the available variables, so controllingFlowVariableOfCorrectType is absent (null → omitted)
         assertThat(service.fromNodeSettings(createROSettings(settings, variableSettings), new PortObjectSpec[0]))
             .isEqualTo("""
                     {"data":{"model":{"model setting":"1"}},""" + """

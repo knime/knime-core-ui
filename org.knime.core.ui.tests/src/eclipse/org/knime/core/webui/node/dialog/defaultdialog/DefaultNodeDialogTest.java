@@ -280,7 +280,8 @@ public class DefaultNodeDialogTest {
                       "model.model setting": {
                         "controllingFlowVariableAvailable": true,
                         "controllingFlowVariableFlawed": false,
-                        "controllingFlowVariableName": "flow variable"
+                        "controllingFlowVariableName": "flow variable",
+                        "controllingFlowVariableOfCorrectType": true
                       }
                     }
                     """);
@@ -303,7 +304,8 @@ public class DefaultNodeDialogTest {
                       "view.view setting": {
                         "controllingFlowVariableAvailable": true,
                         "controllingFlowVariableFlawed": false,
-                        "controllingFlowVariableName": "flow variable"
+                        "controllingFlowVariableName": "flow variable",
+                        "controllingFlowVariableOfCorrectType": true
                       }
                     }
                     """);
@@ -341,7 +343,8 @@ public class DefaultNodeDialogTest {
                       "view.nested.nested view setting": {
                         "controllingFlowVariableAvailable": true,
                         "controllingFlowVariableFlawed": false,
-                        "controllingFlowVariableName": "flow variable"
+                        "controllingFlowVariableName": "flow variable",
+                        "controllingFlowVariableOfCorrectType": true
                       }
                     }
                     """);

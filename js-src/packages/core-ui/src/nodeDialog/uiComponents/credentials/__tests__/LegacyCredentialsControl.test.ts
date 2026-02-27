@@ -118,6 +118,7 @@ describe("LegacyCredentialsControl.vue", () => {
       });
     expect(flowVariablesMap[`${props.control.path}`]).toStrictEqual({
       controllingFlowVariableAvailable: true,
+      controllingFlowVariableOfCorrectType: true,
       controllingFlowVariableName: flowVarName,
     });
     expect(setFlowVarState).toHaveBeenCalledWith(flowVarName);
@@ -144,6 +145,7 @@ describe("LegacyCredentialsControl.vue", () => {
       });
     expect(flowVariablesMap[`${props.control.path}`]).toStrictEqual({
       controllingFlowVariableAvailable: true,
+      controllingFlowVariableOfCorrectType: true,
       controllingFlowVariableName: flowVarName,
     });
     expect(setFlowVarState).toHaveBeenNthCalledWith(1, flowVarName);

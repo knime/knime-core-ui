@@ -52,8 +52,11 @@ import static org.knime.core.webui.node.dialog.internal.VariableSettings.getOrCr
 import static org.knime.core.webui.node.dialog.internal.VariableSettings.getUsedVariableFrom;
 import static org.knime.core.webui.node.dialog.internal.VariableSettings.isVariableSettings;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
 
@@ -122,6 +125,12 @@ public final class InternalVariableSettings implements VariableSettingsWO, Varia
 
     private NodeSettings getOrCreate(final String key) {
         return getOrCreateSubSettings(m_variableSettings, key);
+    }
+
+    @Override
+    public Optional<Boolean> isUsedVariableTypeCorrect(final String key, final VariableType<?> type) {
+        // No underlying settings, so no decision can be made
+        return Optional.empty();
     }
 
 }

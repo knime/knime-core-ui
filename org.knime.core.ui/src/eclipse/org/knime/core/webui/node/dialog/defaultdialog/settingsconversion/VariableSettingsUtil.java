@@ -53,16 +53,16 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMa
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
@@ -70,6 +70,8 @@ import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -144,25 +146,26 @@ public final class VariableSettingsUtil {
     public static ObjectNode getVariableSettingsJson(final Map<SettingsType, VariableSettingsRO> settings,
         final NodeParametersInput context) {
         final var mapper = JsonFormsDataUtil.getMapper();
-        return VariableSettingsUtil.fromVariableSettingsToJson(settings,
-            Set.of(((NodeParametersInputImpl)context).getAvailableFlowVariableNames()), mapper);
+        final var allVariables =
+            context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
+        return VariableSettingsUtil.fromVariableSettingsToJson(settings, allVariables, mapper);
     }
 
     /**
      * Serializes variable settings trees in to a json-object.
      *
      * @param variableSettings the map of model and/or view variable settings
-     * @param availableFlowVariableNames
+     * @param allVariables the currently available flow variables
      * @param mapper the mapper used to create the resulting {@link JsonNode}s
      * @return a new JsonNode-instance
      */
     private static ObjectNode fromVariableSettingsToJson(final Map<SettingsType, VariableSettingsRO> variableSettings,
-        final Set<String> availableFlowVariableNames, final ObjectMapper mapper) {
+        final Map<String, FlowVariable> allVariables, final ObjectMapper mapper) {
         var flowVariableSettingsMap = new HashMap<String, FlowVariableSetting>();
         for (SettingsType settingsType : SettingsType.values()) {
             final var settings = variableSettings.get(settingsType);
             if (settings != null) {
-                addToFlowVariableSettingsMap(settingsType.getConfigKey(), settings, availableFlowVariableNames,
+                addToFlowVariableSettingsMap(settingsType.getConfigKey(), settings, allVariables,
                     flowVariableSettingsMap);
             }
         }
@@ -170,7 +173,7 @@ public final class VariableSettingsUtil {
     }
 
     private static void addToFlowVariableSettingsMap(final String keyPrefix, final VariableSettingsRO variableSettings,
-        final Set<String> flowVariables, final Map<String, FlowVariableSetting> flowVariableSettingsMap) {
+        final Map<String, FlowVariable> allVariables, final Map<String, FlowVariableSetting> flowVariableSettingsMap) {
         for (var key : variableSettings.getVariableSettingsIterable()) {
             var newKeyPrefix = keyPrefix + "." + DotSubstitutionUtil.substituteDots(key);
             if (variableSettings.isVariableSetting(key)) {
@@ -182,9 +185,12 @@ public final class VariableSettingsUtil {
                 } catch (InvalidSettingsException ex) {
                     // should never happen
                 }
-                var isUsedVariableAvailable = usedVariable != null && flowVariables.contains(usedVariable);
-                flowVariableSettingsMap.put(newKeyPrefix,
-                    new FlowVariableSetting(usedVariable, isUsedVariableAvailable, exposedVariable));
+                var isUsedVariableAvailable = usedVariable != null && allVariables.containsKey(usedVariable);
+                var isUsedVariableOfCorrectType = isUsedVariableAvailable ? variableSettings
+                    .isUsedVariableTypeCorrect(key, allVariables.get(usedVariable).getVariableType()).orElse(null)
+                    : null;
+                flowVariableSettingsMap.put(newKeyPrefix, new FlowVariableSetting(usedVariable, isUsedVariableAvailable,
+                    exposedVariable, isUsedVariableOfCorrectType));
             } else {
                 VariableSettingsRO subSettings;
                 try {
@@ -194,7 +200,7 @@ public final class VariableSettingsUtil {
                         ex);
                     continue;
                 }
-                addToFlowVariableSettingsMap(newKeyPrefix, subSettings, flowVariables, flowVariableSettingsMap);
+                addToFlowVariableSettingsMap(newKeyPrefix, subSettings, allVariables, flowVariableSettingsMap);
             }
         }
     }
@@ -254,26 +260,33 @@ public final class VariableSettingsUtil {
         @JsonProperty("controllingFlowVariableAvailable")
         final Boolean m_isControllingFlowVariableAvailable;
 
+        @JsonInclude(Include.NON_NULL)
+        @JsonProperty("controllingFlowVariableOfCorrectType")
+        final Boolean m_isUsedVariableOfCorrectType;
+
         @JsonCreator
         FlowVariableSetting(@JsonProperty("controllingFlowVariableName") final String controllingFlowVariableName,
             @JsonProperty("exposedFlowVariableName") final String exposedFlowVariableName,
             @JsonProperty("controllingFlowVariableFlawed") final Boolean isControllingFlowVariableFlawed) {
-            this(controllingFlowVariableName, false, exposedFlowVariableName, isControllingFlowVariableFlawed);
+            this(controllingFlowVariableName, false, exposedFlowVariableName, isControllingFlowVariableFlawed, null);
         }
 
         private FlowVariableSetting(final String controllingFlowVariableName,
             final Boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName,
-            final Boolean isControllingFlowVariableFlawed) {
+            final Boolean isControllingFlowVariableFlawed, final Boolean isUsedVariableOfCorrectType) {
             m_controllingFlowVariableName = controllingFlowVariableName;
             m_isControllingFlowVariableAvailable =
                 m_controllingFlowVariableName == null ? null : isControllingFlowVariableAvailable;
             m_exposedFlowVariableName = exposedFlowVariableName;
             m_isControllingFlowVariableFlawed = Objects.equal(isControllingFlowVariableFlawed, true);
+            m_isUsedVariableOfCorrectType = m_controllingFlowVariableName == null ? null : isUsedVariableOfCorrectType;
         }
 
         private FlowVariableSetting(final String controllingFlowVariableName,
-            final boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName) {
-            this(controllingFlowVariableName, isControllingFlowVariableAvailable, exposedFlowVariableName, false);
+            final boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName,
+            final Boolean isUsedVariableOfCorrectType) {
+            this(controllingFlowVariableName, isControllingFlowVariableAvailable, exposedFlowVariableName, false,
+                isUsedVariableOfCorrectType);
         }
 
         @JsonIgnore

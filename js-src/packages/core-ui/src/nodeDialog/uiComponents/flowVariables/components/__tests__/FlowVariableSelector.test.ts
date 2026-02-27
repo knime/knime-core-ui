@@ -201,6 +201,7 @@ describe("FlowVariableSelector.vue", () => {
     await scondFlowVariableOptionElement.trigger("click");
     expect(flowVariablesMap[props.persistPath]).toStrictEqual({
       controllingFlowVariableAvailable: true,
+      controllingFlowVariableOfCorrectType: true,
       controllingFlowVariableName: flowVar2.name,
     });
     expect(getFlowVariableOverrideValueMock).toHaveBeenCalledWith(
@@ -232,6 +233,7 @@ describe("FlowVariableSelector.vue", () => {
     await scondFlowVariableOptionElement.trigger("click");
     expect(flowVariablesMap[props.persistPath]).toStrictEqual({
       controllingFlowVariableAvailable: true,
+      controllingFlowVariableOfCorrectType: true,
       controllingFlowVariableName: flowVar2.name,
     });
     expect(wrapper.emitted("controllingFlowVariableSet")).toBeUndefined();

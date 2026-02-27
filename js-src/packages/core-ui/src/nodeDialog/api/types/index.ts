@@ -10,6 +10,7 @@ export type PossibleFlowVariable = {
 export type FlowSettings = {
   controllingFlowVariableName: string | null;
   exposedFlowVariableName: string | null;
-  controllingFlowVariableAvailable: boolean;
+  controllingFlowVariableAvailable?: boolean;
+  controllingFlowVariableOfCorrectType?: boolean;
   controllingFlowVariableFlawed?: boolean;
 };

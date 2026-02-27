@@ -97,16 +97,19 @@ describe("useFlowVariables", () => {
       controllingFlowVariableAvailable: boolean,
       controllingFlowVariableName: string | null,
       exposedFlowVariableName: string | null,
+      controllingFlowVariableOfCorrectType?: boolean,
     ): FlowSettings => ({
       controllingFlowVariableAvailable,
       controllingFlowVariableName,
       exposedFlowVariableName,
+      controllingFlowVariableOfCorrectType,
     });
 
     const CONTROLLING_FLOW_SETTINGS = createFlowSetting(
       true,
       "my_controlling_variable",
       null,
+      true,
     );
     const EXPOSING_FLOW_SETTINGS = createFlowSetting(
       false,
@@ -118,6 +121,7 @@ describe("useFlowVariables", () => {
       true,
       "my_controlling_variable",
       "my_exposed_variable",
+      true,
     );
 
     it("returns null for an missing flowVariablesMap", () => {
@@ -204,6 +208,53 @@ describe("useFlowVariables", () => {
           }),
         ),
       ).toEqual(MERGED_FLOW_SETTINGS);
+    });
+
+    describe("controllingFlowVariableOfCorrectType merging", () => {
+      it("is false when any entry has false (false wins over true)", () => {
+        flowVariablesMap = {
+          "path.to.setting_1": createFlowSetting(true, "var1", null, true),
+          "path.to.setting_2": createFlowSetting(true, "var2", null, false),
+        };
+        expect(
+          getFlowSettings(
+            createProps({
+              path: "path.to.my_setting",
+              configPaths: [["setting_1"], ["setting_2"]],
+            }),
+          )?.controllingFlowVariableOfCorrectType,
+        ).toBe(false);
+      });
+
+      it("is false when any entry has false (false wins over undefined)", () => {
+        flowVariablesMap = {
+          "path.to.setting_1": createFlowSetting(true, "var1", null),
+          "path.to.setting_2": createFlowSetting(true, "var2", null, false),
+        };
+        expect(
+          getFlowSettings(
+            createProps({
+              path: "path.to.my_setting",
+              configPaths: [["setting_1"], ["setting_2"]],
+            }),
+          )?.controllingFlowVariableOfCorrectType,
+        ).toBe(false);
+      });
+
+      it("is true when all entries are true", () => {
+        flowVariablesMap = {
+          "path.to.setting_1": createFlowSetting(true, "var1", null, true),
+          "path.to.setting_2": createFlowSetting(true, "var2", null, true),
+        };
+        expect(
+          getFlowSettings(
+            createProps({
+              path: "path.to.my_setting",
+              configPaths: [["setting_1"], ["setting_2"]],
+            }),
+          )?.controllingFlowVariableOfCorrectType,
+        ).toBe(true);
+      });
     });
 
     it("respects flow settings at paths starting with a config path", () => {

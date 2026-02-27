@@ -1,5 +1,6 @@
 import { computed } from "vue";
 
+import type { FlowSettings } from "@/nodeDialog/api/types";
 import type { FlowVariablesForSettings } from "@/nodeDialog/composables/nodeDialog/useDirtySettings";
 import { getFlowVariableSettingsProvidedByControl } from "../../../composables/components/useFlowVariables";
 import { getFlowVariablesMap } from "../../../composables/components/useProvidedFlowVariablesMap";
@@ -8,7 +9,7 @@ export const getControllingFlowVariablesMethods = ({
   flowVariablesMap,
   getSettingStateFlowVariables,
 }: {
-  flowVariablesMap: Record<string, any>;
+  flowVariablesMap: Record<string, FlowSettings>;
   getSettingStateFlowVariables: () => FlowVariablesForSettings;
 }) => {
   const {
@@ -24,6 +25,7 @@ export const getControllingFlowVariablesMethods = ({
     const flowVarAtPath = flowVariablesMap[path] || {};
     flowVarAtPath.controllingFlowVariableName = flowVariableName;
     flowVarAtPath.controllingFlowVariableAvailable = true;
+    flowVarAtPath.controllingFlowVariableOfCorrectType = true;
     flowVariablesMap[path] = flowVarAtPath;
     getDirtyControllingFlowVariable(path)?.set(flowVariableName);
   };
@@ -34,6 +36,7 @@ export const getControllingFlowVariablesMethods = ({
         delete flowVariablesMap[path].controllingFlowVariableFlawed;
         flowVariablesMap[path].controllingFlowVariableAvailable = false;
         flowVariablesMap[path].controllingFlowVariableName = null;
+        flowVariablesMap[path].controllingFlowVariableOfCorrectType = false;
       } else {
         delete flowVariablesMap[path];
       }
