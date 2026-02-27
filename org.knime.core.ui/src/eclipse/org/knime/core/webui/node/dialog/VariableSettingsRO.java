@@ -48,7 +48,10 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * Gives access to the variable settings tree. Infos on the settings which are exposed as or controlled by flow
@@ -97,5 +100,14 @@ public interface VariableSettingsRO {
      * @throws InvalidSettingsException if there no variable setting for the given key
      */
     String getExposedVariable(String key) throws InvalidSettingsException;
+
+    /**
+     * @param key the key to a used variable
+     * @param type of a variable to check
+     * @return an empty optional if no decision can be made (e.g. no underlying settings of the variable tree structure
+     *         are available to evaluate the variable type), {@code Optional#of(Boolean.TRUE)} if the used variable type
+     *         is applicable.
+     */
+    Optional<Boolean> isUsedVariableTypeCorrect(String key, VariableType<?> type);
 
 }

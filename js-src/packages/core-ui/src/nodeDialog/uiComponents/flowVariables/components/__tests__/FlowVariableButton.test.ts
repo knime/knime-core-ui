@@ -117,6 +117,49 @@ describe("FlowVariableButton.vue", () => {
     expect(toggleButton.props("hidden")).toBe(false);
   });
 
+  it("sets error to true and hidden to false when variable is missing", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: "myVar",
+        controllingFlowVariableAvailable: false,
+        exposedFlowVariableName: null,
+      },
+    });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("error")).toBe(true);
+    expect(toggleButton.props("hidden")).toBe(false);
+  });
+
+  it("sets error to true and hidden to false when variable has incorrect type", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: "myVar",
+        controllingFlowVariableAvailable: true,
+        controllingFlowVariableOfCorrectType: false,
+        exposedFlowVariableName: null,
+      },
+    });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("error")).toBe(true);
+    expect(toggleButton.props("hidden")).toBe(false);
+  });
+
+  it("does not set error when variable is available and of correct type", () => {
+    const wrapper = mountFlowVariableButton({
+      flowSettings: {
+        controllingFlowVariableName: "myVar",
+        controllingFlowVariableAvailable: true,
+        controllingFlowVariableOfCorrectType: true,
+        exposedFlowVariableName: null,
+      },
+    });
+
+    const toggleButton = wrapper.findComponent(KdsVariableToggleButton);
+    expect(toggleButton.props("error")).toBe(false);
+  });
+
   it("renders FlowVariablePopover in the slot after clicking the button", async () => {
     const wrapper = mountFlowVariableButton();
     // Click the toggle button to open the popover

@@ -22,8 +22,17 @@ const outSet = computed(() =>
   Boolean(flowSettings.value?.exposedFlowVariableName),
 );
 
-// TODO UIEXT-3393: set error state based on the actual flaw, e.g. name conflict with existing flow variable, invalid variable name, etc.
-const error = computed(() => false);
+const isMissing = computed(
+  () =>
+    Boolean(flowSettings.value?.controllingFlowVariableName) &&
+    flowSettings.value?.controllingFlowVariableAvailable === false,
+);
+const isWrongType = computed(
+  () =>
+    Boolean(flowSettings.value?.controllingFlowVariableName) &&
+    flowSettings.value?.controllingFlowVariableOfCorrectType === false,
+);
+const error = computed(() => isMissing.value || isWrongType.value);
 </script>
 
 <template>

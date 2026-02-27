@@ -45,12 +45,15 @@
  */
 package org.knime.core.webui.node.dialog.internal;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.workflow.VariableType;
+import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
@@ -273,6 +276,15 @@ public final class VariableSettings implements VariableSettingsWO, VariableSetti
         if (!settings.containsKey(key)) {
             settings.addString(key, value);
         }
+    }
+
+    @Override
+    public Optional<Boolean> isUsedVariableTypeCorrect(final String key, final VariableType<?> type) {
+        if (!m_nodeSettings.containsKey(key)) {
+            return Optional.empty();
+        }
+        return Optional.of(Arrays.stream(VariableTypeRegistry.getInstance().getOverwritingTypes(m_nodeSettings, key))
+            .anyMatch(type::equals));
     }
 
 }

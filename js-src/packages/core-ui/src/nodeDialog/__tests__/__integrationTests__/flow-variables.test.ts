@@ -200,6 +200,7 @@ describe("flow variables", () => {
       "model.customConfigKey": {
         controllingFlowVariableName: flowVar1.name,
         controllingFlowVariableAvailable: true,
+        controllingFlowVariableOfCorrectType: true,
       },
     });
     expect(wrapper.vm.getCurrentData().model.value).toBe(

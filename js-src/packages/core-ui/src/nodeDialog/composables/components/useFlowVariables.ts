@@ -41,6 +41,23 @@ export const getControlledOrExposedPathsStartingWith =
           Boolean(flowVariablesMap[key].exposedFlowVariableName),
       );
 
+/**
+ * Return false if either a or b has a controlling flow variable and the boolean at the given key is false.
+ * Otherwise, return true.
+ */
+const combineControllingFlowVariableValidationBoolean = (
+  a: FlowSettings | null,
+  b: FlowSettings | null,
+  key:
+    | "controllingFlowVariableOfCorrectType"
+    | "controllingFlowVariableAvailable",
+) => {
+  return !(
+    (a?.controllingFlowVariableName && a[key] === false) ||
+    (b?.controllingFlowVariableName && b[key] === false)
+  );
+};
+
 const getFlowSettingsFromMap = (
   flowVariablesMap: Record<string, FlowSettings>,
 ) => {
@@ -70,15 +87,24 @@ export const toFlowSetting = (
   return [...deprecatedFlowSettings, ...flowSettings].reduce(
     (a, b) => {
       return {
-        controllingFlowVariableAvailable:
-          a?.controllingFlowVariableAvailable || // NOSONAR
-          b?.controllingFlowVariableAvailable,
         controllingFlowVariableName: a?.controllingFlowVariableName
           ? a?.controllingFlowVariableName
           : b?.controllingFlowVariableName,
         exposedFlowVariableName: a?.exposedFlowVariableName
           ? a?.exposedFlowVariableName
           : b?.exposedFlowVariableName,
+        controllingFlowVariableAvailable:
+          combineControllingFlowVariableValidationBoolean(
+            a,
+            b,
+            "controllingFlowVariableAvailable",
+          ),
+        controllingFlowVariableOfCorrectType:
+          combineControllingFlowVariableValidationBoolean(
+            a,
+            b,
+            "controllingFlowVariableOfCorrectType",
+          ),
       };
     },
     null as FlowSettings | null,
