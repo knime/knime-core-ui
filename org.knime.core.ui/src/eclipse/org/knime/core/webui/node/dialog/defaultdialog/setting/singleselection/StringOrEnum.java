@@ -120,13 +120,6 @@ public final class StringOrEnum<E extends Enum<E>> implements Persistable {
      * @return the selected regular choices.
      */
     public String getStringChoice() {
-        if (getEnumChoice().isPresent()) {
-            /**
-             * By contract this should never happen, but better to return null instead of a value in case someone checks
-             * for not being null. The value can be non-null if m_regularChoice is overwritten via flow variable.
-             */
-            return null;
-        }
         return m_regularChoice;
     }
 
