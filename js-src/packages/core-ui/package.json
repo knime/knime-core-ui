@@ -60,7 +60,7 @@
     "@knime/rich-text-editor": "1.8.0",
     "@knime/styles": "1.15.0",
     "@knime/ui-extension-service": "2.6.0",
-    "@vueuse/core": "13.8.0",
+    "@vueuse/core": "14.2.1",
     "date-fns": "2.29.3",
     "focus-trap-vue": "4.0.2",
     "highlight.js": "11.10.0",
