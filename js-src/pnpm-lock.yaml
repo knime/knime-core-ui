@@ -21,7 +21,7 @@ overrides:
   lodash-es@>=4.0.0 <=4.17.22: '>=4.17.23'
   lodash@>=4.0.0 <=4.17.22: '>=4.17.23'
   markdown-it@>=13.0.0 <14.1.1: '>=14.1.1'
-  postcss-url>minimatch: 10.2.1
+  postcss-url>minimatch: 10.2.4
 
 importers:
 
@@ -4363,6 +4363,10 @@ packages:
   minimatch@10.2.1:
     resolution: {integrity: sha512-MClCe8IL5nRRmawL6ib/eT4oLyeKMGCghibcDWK+J0hh0Q8kqSdia6BvbRMVk6mPa6WqUa5uR2oxt6C5jd533A==}
     engines: {node: 20 || >=22}
+
+  minimatch@10.2.4:
+    resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
+    engines: {node: 18 || 20 || >=22}
 
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -11276,6 +11280,10 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.2
 
+  minimatch@10.2.4:
+    dependencies:
+      brace-expansion: 5.0.2
+
   minimatch@3.1.2:
     dependencies:
       brace-expansion: 1.1.12
@@ -12027,7 +12035,7 @@ snapshots:
     dependencies:
       make-dir: 3.1.0
       mime: 2.5.2
-      minimatch: 10.2.1
+      minimatch: 10.2.4
       postcss: 8.5.6
       xxhashjs: 0.2.2
 
