@@ -36,6 +36,12 @@ interface Props {
    */
   initialPaneSizes?: PaneSizes;
   /**
+   * Maximum allowed pane sizes in pixels.
+   * Keys correspond to panes in `PaneSizes`; omitted keys fall back to the
+   * component's default maximum sizes.
+   */
+  maxPaneSizes?: Partial<PaneSizes>;
+  /**
    * Called on apply if the main editor is being used. This function must be implemented
    * to join the settings from the main editor and other settings like from the
    * NodeParametersPanel into a single settings object as expected by the backend.
@@ -69,6 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
   menuItems: () => [],
   showControlBar: true,
   initialPaneSizes: () => ({ left: 280, right: 380, bottom: 300 }),
+  maxPaneSizes: () => ({}),
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: { script: string }) => settings,
   modelOrView: "model",
@@ -200,7 +207,7 @@ watchEffect(() => {
       use-pixel
       keep-element-on-close
       :secondary-snap-size="180"
-      :secondary-max-size="500"
+      :secondary-max-size="props.maxPaneSizes.left ?? 500"
       class="vertical-splitpanel allow-splitter-overflow-right-pane"
     >
       <template #secondary>
@@ -217,6 +224,7 @@ watchEffect(() => {
         v-model:secondary-size="bottomPaneSize"
         :hide-secondary-pane="isSmallEmbeddedMode || !hasBottomPaneTabs"
         direction="down"
+        :secondary-max-size="props.maxPaneSizes.bottom"
         use-pixel
         keep-element-on-close
         :secondary-snap-size="200"
@@ -228,7 +236,7 @@ watchEffect(() => {
           :hide-secondary-pane="isSmallEmbeddedMode || !$slots['right-pane']"
           direction="right"
           :secondary-snap-size="220"
-          :secondary-max-size="540"
+          :secondary-max-size="props.maxPaneSizes.right ?? 540"
           use-pixel
           keep-element-on-close
           splitter-id="verticalSplitpane"
