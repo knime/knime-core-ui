@@ -73,8 +73,8 @@ importers:
         specifier: 1.15.0
         version: 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/ui-extension-service':
-        specifier: 2.6.0
-        version: 2.6.0
+        specifier: 2.7.1
+        version: 2.7.1
       '@vueuse/core':
         specifier: 13.8.0
         version: 13.8.0(vue@3.5.18(typescript@5.4.5))
@@ -1368,6 +1368,10 @@ packages:
 
   '@knime/ui-extension-service@2.6.0':
     resolution: {integrity: sha512-dj25AP6P4Q4D/WZd8xi9uIlb7LBmRrC9zsnL581tp5iorwhHib5oC+uhBXmRv2y7006cKJQq7NrucfYMOrcCwQ==}
+    engines: {node: '>=22 <25'}
+
+  '@knime/ui-extension-service@2.7.1':
+    resolution: {integrity: sha512-aaouJCWnh+ve2RcVl6VR7WSlDNBQj5hlvVvMnaRc2QZn0gHka2sEQPc0pIx1QxZAGL0f3SRNtEETnm8ckfzQkw==}
     engines: {node: '>=22 <25'}
 
   '@knime/utils@1.10.0':
@@ -7556,6 +7560,11 @@ snapshots:
     dependencies:
       color-convert: 2.0.1
       uuid: 9.0.1
+
+  '@knime/ui-extension-service@2.7.1':
+    dependencies:
+      color-convert: 2.0.1
+      uuid: 13.0.0
 
   '@knime/utils@1.10.0(consola@3.2.3)':
     dependencies:

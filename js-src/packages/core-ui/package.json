@@ -59,7 +59,7 @@
     "@knime/knime-ui-table": "0.7.2",
     "@knime/rich-text-editor": "1.8.0",
     "@knime/styles": "1.15.0",
-    "@knime/ui-extension-service": "2.6.0",
+    "@knime/ui-extension-service": "2.7.1",
     "@vueuse/core": "13.8.0",
     "date-fns": "2.29.3",
     "focus-trap-vue": "4.0.2",
