@@ -19,5 +19,12 @@
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@10.26.0"
+  "packageManager": "pnpm@10.26.0",
+  "pnpm": {
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-v2wj-7wpq-c8vv"
+      ]
+    }
+  }
 }
