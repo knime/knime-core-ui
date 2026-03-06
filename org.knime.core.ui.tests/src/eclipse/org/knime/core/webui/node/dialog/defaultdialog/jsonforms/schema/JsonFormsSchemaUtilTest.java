@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.awt.Color;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -620,6 +621,25 @@ class JsonFormsSchemaUtilTest {
     @Test
     void testBuiltInJavaTime() throws JsonProcessingException {
         testSettingsWithoutContext(SettingWithJavaTime.class);
+    }
+
+    private static class SettingWithColor implements WidgetGroup {
+
+        private static final String SNAPSHOT = """
+                {
+                  "color": {
+                    "default": "#AABBCC",
+                    "type": "string"
+                  }
+                }
+                """;
+
+        Color m_color = new Color(0xAA, 0xBB, 0xCC);
+    }
+
+    @Test
+    void testColorSchemaTypeIsString() throws JsonProcessingException {
+        testSettingsWithoutContext(SettingWithColor.class);
     }
 
     private static void testSettings(final Class<? extends WidgetGroup> settingsClass, final PortObjectSpec... specs)
