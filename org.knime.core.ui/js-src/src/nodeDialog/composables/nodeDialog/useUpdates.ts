@@ -292,7 +292,7 @@ export default ({
     jsonDataService.data({
       method: "settings.update2",
       options: [null, trigger, currentDependencies],
-    });
+    }) as Promise<Result<UpdateResult[]>>;
 
   const sendAlerts = (messages: string[] | undefined) => {
     messages?.forEach((message) =>

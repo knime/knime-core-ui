@@ -130,7 +130,10 @@ describe("transitive updates", () => {
               state: "SUCCESS",
               result: [
                 {
-                  scope: getUpdatedScope({ trigger: options[1], getScope }),
+                  scope: getUpdatedScope({
+                    trigger: options![1] as Trigger,
+                    getScope,
+                  }),
                   values: [{ indices: [], value: "Updated" }],
                 },
               ] satisfies UpdateResult[],
