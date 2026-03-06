@@ -346,6 +346,8 @@ public final class JsonFormsConsts {
 
             public static final String TEXT_AREA = "textArea";
 
+            public static final String COLOR = "color";
+
             public static final String MULTI_SELECT_LIST_BOX = "multiSelectListBox";
 
             public static final String SINGLE_SELECT_LIST_BOX = "singleSelectListBox";

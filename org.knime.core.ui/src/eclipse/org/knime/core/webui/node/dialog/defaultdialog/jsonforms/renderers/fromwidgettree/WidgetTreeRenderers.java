@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.awt.Color;
 import java.lang.annotation.Annotation;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -165,6 +166,8 @@ public class WidgetTreeRenderers {
             node -> LocalDateTime.class.equals(node.getRawClass())),
         new WidgetTreeNodeTester(ZonedDateTimeRenderer::new, //
             node -> ZonedDateTime.class.equals(node.getRawClass())),
+        new WidgetTreeNodeTester(ColorRenderer::new, //
+            node -> Color.class.equals(node.getRawClass())),
         new WidgetTreeNodeTester(CredentialsRenderer::new,
             node -> Credentials.class.isAssignableFrom(node.getRawClass())), //
         new WidgetTreeNodeTester(LegacyCredentialsRenderer::new,

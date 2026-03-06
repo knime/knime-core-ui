@@ -53,6 +53,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TYPE_OBJECT;
 
+import java.awt.Color;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.time.Duration;
@@ -343,7 +344,7 @@ public final class JsonFormsSchemaUtil {
         }
         if (MonthDay.class.equals(fieldClass) || YearMonth.class.equals(fieldClass)
             || ZoneOffset.class.equals(fieldClass) || Period.class.equals(fieldClass)
-            || DataType.class.equals(fieldClass)) {
+            || DataType.class.equals(fieldClass) || Color.class.equals(fieldClass)) {
             // make `{... "type":"object"}` become `{... "type":"string"}`
             return Optional.of(String.class);
         }
