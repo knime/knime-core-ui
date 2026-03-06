@@ -1,6 +1,6 @@
 import type { PossibleFlowVariable } from "./types";
 
-type GetAvailableFlowVariables = (params: {
+export type GetAvailableFlowVariables = (params: {
   method: "flowVariables.getAvailableFlowVariables";
   options: [
     /**

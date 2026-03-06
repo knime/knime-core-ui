@@ -130,7 +130,7 @@ export const provideAndGetSetupMethod = () => {
   ): SetValue<T> => {
     const modelOrView = getModelOrView(dataPath);
     const newSetting = _registerSettings(modelOrView)(params);
-    settings.set(dataPath, newSetting);
+    settings.set(dataPath, newSetting as SettingState);
     return newSetting.setValue;
   };
 
