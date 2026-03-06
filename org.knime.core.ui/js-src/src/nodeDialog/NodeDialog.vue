@@ -185,11 +185,13 @@ const ready = ref(false);
 const getPersistSchema = () => persistSchema.value ?? {};
 
 const callDataService = (parameters: Parameters<Provided["getData"]>[0]) =>
-  jsonDataService?.data(parameters as { method?: string; options?: unknown })!;
+  jsonDataService?.data(
+    parameters as { method?: string; options?: unknown[] },
+  )!;
 
 const getAvailableFlowVariables = (persistPath: string) =>
   flowVariablesApi.getAvailableFlowVariables(
-    callDataService,
+    callDataService as flowVariablesApi.GetAvailableFlowVariables,
     persistPath,
     getData(),
   );
@@ -249,10 +251,10 @@ const clearControllingFlowVariable = (persistPath: string) => {
 };
 
 const performExternalValidation = async (id: string, value: any) => {
-  const receivedData = await callDataService({
+  const receivedData = (await callDataService({
     method: "settings.performExternalValidation",
     options: [id, value],
-  });
+  })) as { result?: string };
   return receivedData.result || null;
 };
 

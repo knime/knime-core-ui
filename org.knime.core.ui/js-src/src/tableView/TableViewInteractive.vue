@@ -253,7 +253,7 @@ export default {
     });
     this.sharedDataService = new SharedDataService(this.knimeService);
     this.sharedDataService.addSharedDataListener(
-      this.onViewSettingsChange.bind(this),
+      this.onViewSettingsChange.bind(this) as (data: unknown) => void,
     );
     const initialData =
       this.initialData === null
@@ -710,7 +710,7 @@ export default {
         clearImageDataCache,
         this.skipRemainingColumns,
         this.showOnlySelectedRows,
-      ]);
+      ]) as Promise<Table>;
     },
     // eslint-disable-next-line max-params
     requestUnfilteredAndUnsortedTable(
@@ -730,7 +730,7 @@ export default {
         clearImageDataCache,
         this.skipRemainingColumns,
         this.showOnlySelectedRows,
-      ]);
+      ]) as Promise<Table>;
     },
     getColumnsForRequest(updateDisplayedColumns: boolean) {
       return updateDisplayedColumns
@@ -1034,7 +1034,7 @@ export default {
     },
     requestTotalSelected() {
       if (this.searchTerm || this.colFilterActive) {
-        return this.performRequest("getTotalSelected");
+        return this.performRequest("getTotalSelected") as Promise<number>;
       } else {
         return this.getCurrentSelectedRowKeys().size;
       }
@@ -1062,10 +1062,10 @@ export default {
       const filterActive = this.currentRowCount !== this.totalRowCount;
       let backendSelectionPromise;
       if (selected || filterActive) {
-        const currentRowKeys = await this.performRequest(
+        const currentRowKeys = (await this.performRequest(
           "getCurrentRowKeys",
           [],
-        );
+        )) as string[];
         backendSelectionPromise =
           this.selectionService[selected ? "add" : "remove"](currentRowKeys);
       } else {
@@ -1114,7 +1114,8 @@ export default {
       });
     },
     async handleInitialSelection() {
-      const initialSelection = await this.selectionService.initialSelection();
+      const initialSelection =
+        (await this.selectionService.initialSelection()) as string[];
       this.totalSelected = initialSelection ? initialSelection.length : 0;
       this.transformSelection();
     },
@@ -1224,14 +1225,14 @@ export default {
       };
 
       try {
-        const copyContent = await this.performRequest("getCopyContent", [
+        const copyContent = (await this.performRequest("getCopyContent", [
           rowIndexConfig,
           rowKeyConfig,
           rect.withHeaders,
           rect.columnNames,
           fromIndex,
           toIndex,
-        ]);
+        ])) as { html: string; csv: string };
 
         const blobHTML = new Blob([copyContent.html], { type: "text/html" });
         const blobCSV = new Blob([copyContent.csv], { type: "text/plain" });
