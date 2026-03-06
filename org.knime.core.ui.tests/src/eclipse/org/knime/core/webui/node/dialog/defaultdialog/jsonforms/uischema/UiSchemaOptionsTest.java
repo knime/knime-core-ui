@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
+import java.awt.Color;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -1263,6 +1264,19 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("textAreaIncreasedRows");
         assertThatJson(response).inPath("$.elements[1].options.rows").isNumber().isEqualTo(BigDecimal.valueOf(10));
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo(Format.TEXT_AREA);
+    }
+
+    @Test
+    void testColorTypeHasColorFormat() {
+        class ColorWidgetTestSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            Color m_color;
+        }
+
+        var response = buildTestUiSchema(ColorWidgetTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("color");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo(Format.COLOR);
     }
 
     static final class TestStringProvider implements StateProvider<String> {

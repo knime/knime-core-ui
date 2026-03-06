@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 
 import static java.util.stream.Collectors.toMap;
 
+import java.awt.Color;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -182,6 +183,8 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return (OptionalContentPersistor<T>)createTimeIntervalPersistor(configKey);
         } else if (fieldType.equals(Credentials.class)) {
             return (OptionalContentPersistor<T>)createCredentialsPersistor(configKey);
+        } else if (fieldType.equals(Color.class)) {
+            return (OptionalContentPersistor<T>)createColorPersistor(configKey);
         } else if (fieldType.equals(FSLocation.class)) {
             return (OptionalContentPersistor<T>)createFSLocationPersistor(configKey);
         } else {
@@ -320,6 +323,10 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
     private static OptionalContentPersistor<Credentials> createCredentialsPersistor(final String configKey) {
         return new CredentialsPersistor(configKey);
+    }
+
+    private static OptionalContentPersistor<Color> createColorPersistor(final String configKey) {
+        return new ColorPersistor(configKey);
     }
 
     private static OptionalContentPersistor<FSLocation> createFSLocationPersistor(final String configKey) {
