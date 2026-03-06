@@ -51,10 +51,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil.getMapper;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.awt.Color;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -186,5 +188,28 @@ class JsonFormsDataUtilTest {
         // also test deserialization
         var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(serialised, TestZonedDateTimeSettings.class);
         assertEquals(settingsToSerialise.m_zonedDateTime, deserialised.m_zonedDateTime);
+    }
+
+    final static class TestColorSettings implements NodeParameters {
+        Color m_color = new Color(0xAA, 0xBB, 0xCC);
+    }
+
+    @Test
+    void testSerializationOfColors() throws JsonProcessingException {
+        var settingsToSerialise = new TestColorSettings();
+        var serialised = JsonFormsDataUtil.toJsonData(settingsToSerialise);
+
+        assertThatJson(serialised).inPath("color").isString().isEqualTo("#AABBCC");
+
+        var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(serialised, TestColorSettings.class);
+        assertEquals(settingsToSerialise.m_color, deserialised.m_color);
+    }
+
+    @Test
+    void testDeserializationOfInvalidColorFails() {
+        var invalidColorJson = getMapper().createObjectNode().put("color", "invalid");
+
+        assertThrows(JsonProcessingException.class,
+            () -> JsonFormsDataUtil.toDefaultNodeSettings(invalidColorJson, TestColorSettings.class));
     }
 }

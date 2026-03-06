@@ -1,0 +1,46 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Color Input Dialog",
+    "data": {
+      "view": {
+        "color": "#4F46E5"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string",
+              "title": "Color"
+            }
+          }
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Section",
+          "label": "Color",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/color",
+              "label": "Color input",
+              "options": {
+                "format": "color",
+                "placeholder": "#112233"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

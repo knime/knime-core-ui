@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.awt.Color;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -363,6 +364,27 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     @Test
     void testNullLocalDateTime() throws InvalidSettingsException {
         testSaveLoad(LocalDateTime.class, null);
+    }
+
+    @Test
+    void testColor() throws InvalidSettingsException {
+        testSaveLoad(Color.class, new Color(170, 187, 204));
+    }
+
+    @Test
+    void testNullColor() throws InvalidSettingsException {
+        testSaveLoad(Color.class, null);
+    }
+
+    @Test
+    void testInvalidColor() throws InvalidSettingsException {
+        var nodeSettings = new NodeSettings(KEY);
+        var notAValidColor = "not-a-valid-color";
+        nodeSettings.addString(KEY, notAValidColor);
+        var persistor = createPersistor(Color.class);
+
+        assertThat(assertThrows(InvalidSettingsException.class, () -> persistor.load(nodeSettings)))
+            .hasMessageContaining(notAValidColor, "parse", "color");
     }
 
     @Test

@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -160,6 +161,8 @@ public final class JsonFormsDataUtil {
         CredentialsUtil.addSerializerAndDeserializer(module);
         FSLocationJsonSerializationUtil.addSerializerAndDeserializer(module);
         DataTypeSerializationUtil.addSerializerAndDeserializer(module);
+        module.addSerializer(Color.class, new ColorSerializer());
+        module.addDeserializer(Color.class, new ColorDeserializer());
 
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
@@ -252,6 +255,28 @@ public final class JsonFormsDataUtil {
             var timeZone = ZoneId.of(timeZoneText);
 
             return ZonedDateTime.of(dateTime, timeZone);
+        }
+    }
+
+    private static class ColorSerializer extends JsonSerializer<Color> {
+
+        @Override
+        public void serialize(final Color value, final JsonGenerator gen, final SerializerProvider serializers)
+            throws IOException {
+            gen.writeString("#%02X%02X%02X".formatted(value.getRed(), value.getGreen(), value.getBlue()));
+        }
+    }
+
+    private static class ColorDeserializer extends JsonDeserializer<Color> {
+
+        @Override
+        public Color deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
+            final var value = p.getValueAsString();
+            if (value == null || !value.matches("#?[0-9a-fA-F]{6}")) {
+                throw ctxt.weirdStringException(value, Color.class, "Expected hex color in format #RRGGBB.");
+            }
+            final var normalized = value.startsWith("#") ? value : "#" + value;
+            return Color.decode(normalized);
         }
     }
 
