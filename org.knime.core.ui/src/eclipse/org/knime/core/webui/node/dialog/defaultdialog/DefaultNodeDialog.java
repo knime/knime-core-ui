@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.workflow.NodeID;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.data.RpcDataService.RpcDataServiceBuilder;
@@ -202,12 +203,32 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     public Optional<RpcDataService> createRpcDataService() {
         var serviceBuilder = RpcDataService.builder();
         addDefaultNodeDialogRpcServices(serviceBuilder, m_settingsClasses, m_serviceRegistry);
-        getAdditionalWidgets().forEach(
-            w -> w.getRpcDataService().ifPresent(s -> serviceBuilder.addService(toRpcServiceName(w.getClass()), s)));
+        final var additionalRpcServices = getAdditionalWidgets().stream()
+            .map(w -> new Pair<>(w, w.getCustomWidgetRpcService())).filter(p -> p.getSecond() != null).toList();
+        additionalRpcServices.forEach(
+            p -> serviceBuilder.addService(toRpcServiceName(p.getFirst().getClass()), p.getSecond().rpcService()));
+
+        Runnable onDeactivate = () -> {
+            m_serviceRegistry.onDeactivateRpc();
+            additionalRpcServices.forEach(p -> {
+                if (p.getSecond().onDeactivate() != null) {
+                    p.getSecond().onDeactivate().run();
+                }
+            });
+        };
+
+        Runnable onDispose = () -> {
+            additionalRpcServices.forEach(p -> {
+                if (p.getSecond().onDispose() != null) {
+                    p.getSecond().onDispose().run();
+                }
+            });
+        };
 
         return Optional.of( //
             serviceBuilder //
-                .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
+                .onDeactivate(onDeactivate) //
+                .onDispose(onDispose) //
                 .build() //
         );
     }
