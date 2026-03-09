@@ -58,6 +58,9 @@ onMounted(() => {
     lineOffset: number;
     lineCount: number;
   }> | undefined;
+  let sectionsWithContent:
+    | Array<{ isEditable: boolean; content: string }>
+    | undefined;
 
   // Check if we have multi-section script (new format)
   const scriptSections = initialData.scriptSections as Array<{
@@ -67,7 +70,7 @@ onMounted(() => {
 
   if (scriptSections && settingsInitialData !== undefined) {
     // Multi-section script mode
-    const sectionsWithContent = scriptSections.map((section) => {
+    sectionsWithContent = scriptSections.map((section) => {
       if (section.isEditable) {
         // Load content from settings using the config key
         const content =
@@ -97,12 +100,6 @@ onMounted(() => {
 
     // Combine all sections into a single script
     script = sectionsWithContent.map((s) => s.content).join("");
-
-    // Apply constrained editing after the editor is initialized
-    if (codeEditorState.editor.value) {
-      const constrainedRanges = calculateConstrainedRanges(sectionsWithContent);
-      applyConstrainedEditing(codeEditorState.editor.value, constrainedRanges);
-    }
   } else if (settingsInitialData !== undefined) {
     // Single script mode (legacy)
     const scriptConfigKey = initialData.mainScriptConfigKey ?? "script";
@@ -133,6 +130,12 @@ onMounted(() => {
 
   // Register settings and handle script changes
   if (scriptSectionsInfo) {
+    // Apply constrained editing now that the editor has the actual content loaded
+    if (codeEditorState.editor.value && sectionsWithContent) {
+      const constrainedRanges = calculateConstrainedRanges(sectionsWithContent);
+      applyConstrainedEditing(codeEditorState.editor.value, constrainedRanges);
+    }
+
     // Multi-section mode: decompose the script and save each editable section
     const register = getSettingsService().registerSettings(props.modelOrView);
     const registeredCallbacks = new Map<
