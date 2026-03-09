@@ -7,11 +7,11 @@ settings:
 catalogs:
   default:
     '@knime/kds-components':
-      specifier: 0.9.0
-      version: 0.9.0
+      specifier: 0.13.2
+      version: 0.13.2
     '@knime/kds-styles':
-      specifier: 0.9.0
-      version: 0.9.0
+      specifier: 0.13.2
+      version: 0.13.2
     vue:
       specifier: 3.5.18
       version: 3.5.18
@@ -62,7 +62,7 @@ importers:
         version: 1.18.14(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
       '@knime/kds-components':
         specifier: 'catalog:'
-        version: 0.9.0(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
+        version: 0.13.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/knime-ui-table':
         specifier: 0.8.1
         version: 0.8.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -114,7 +114,7 @@ importers:
         version: 8.3.0(eslint@8.57.1)(postcss-html@1.8.0)(prettier@3.0.0)(stylelint@16.25.0(typescript@5.4.5))(typescript@5.4.5)(vitest@2.1.5(@types/node@24.10.0)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.8)))
       '@knime/kds-styles':
         specifier: 'catalog:'
-        version: 0.9.0
+        version: 0.13.2
       '@knime/licenses':
         specifier: 1.4.0
         version: 1.4.0(consola@3.2.3)
@@ -216,10 +216,10 @@ importers:
     dependencies:
       '@knime/kds-components':
         specifier: 'catalog:'
-        version: 0.9.0(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))
+        version: 0.13.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))
       '@knime/kds-styles':
         specifier: 'catalog:'
-        version: 0.9.0
+        version: 0.13.2
       '@knime/styles':
         specifier: 1.15.0
         version: 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.10)
@@ -1135,9 +1135,6 @@ packages:
   '@fontsource/roboto@5.2.8':
     resolution: {integrity: sha512-oh9g4Cg3loVMz9MWeKWfDI+ooxxG1aRVetkiKIb2ESS2rrryGecQ/y4pAj4z5A5ebyw450dYRi/c4k/I3UBhHA==}
 
-  '@fontsource/roboto@5.2.9':
-    resolution: {integrity: sha512-ZTkyHiPk74B/aj8BZWbsxD5Yu+Lq+nR64eV4wirlrac2qXR7jYk2h6JlLYuOuoruTkGQWNw2fMuKNavw7/rg0w==}
-
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -1283,15 +1280,15 @@ packages:
       '@vueuse/core': ~13.8.0
       vue: ~3.5.0
 
-  '@knime/kds-components@0.5.2':
-    resolution: {integrity: sha512-rQ+hSmvhj9GiFBx0myILWGnFO0eLV+KdquGlp+nogobhZsgfi4HAf1gGKz9lFfA6El/ZJanKE7VHbmF3et6RHg==}
+  '@knime/kds-components@0.13.2':
+    resolution: {integrity: sha512-kT0quKTu8JFad0PasTBHlTbzgduJNrKjBbF9NyO6vqdYhklvJ4d0Kpo2xyhqTgFL6x5A1JRe8fC1eptpmnk4sQ==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
     peerDependencies:
       '@vueuse/core': ~13.8.0
       vue: ~3.5.0
 
-  '@knime/kds-components@0.9.0':
-    resolution: {integrity: sha512-BedGEgNlJuF36W2SIsBo7anV4ykndY8zxel6a4HIhWgSMMUSlsviT7crUmcBihRnZjSvGhrOdqbCrAJFT/Wv+A==}
+  '@knime/kds-components@0.5.2':
+    resolution: {integrity: sha512-rQ+hSmvhj9GiFBx0myILWGnFO0eLV+KdquGlp+nogobhZsgfi4HAf1gGKz9lFfA6El/ZJanKE7VHbmF3et6RHg==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
     peerDependencies:
       '@vueuse/core': ~13.8.0
@@ -1301,16 +1298,16 @@ packages:
     resolution: {integrity: sha512-Q8esSx5fN0qT3+sBHH87ZDq1jFYaNCebiB+bSUX7V4bU1IYXnoXSCOb4wVBCPp6nA8KoNQr5t/IjJLdIhYQ8sA==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
 
+  '@knime/kds-styles@0.13.2':
+    resolution: {integrity: sha512-/S7/cwpOcMzgh0GfiJpci7c5HjmmRPK03SxF4o5BjRmM712IyNZqW6VyDJ4enTeXE/LSk2F2UhKDQPIfCCgNkg==}
+    engines: {node: 24.10.0, npm: please-use-pnpm}
+
   '@knime/kds-styles@0.5.10':
     resolution: {integrity: sha512-8RCIm+OOEksmjCvJFmQjy0bBsggstHtdgzO2TDm/b+tFvwyJOSbqDDhVjC5quZAXrkN4kTdBBrlJyjY8vuKaQw==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
 
   '@knime/kds-styles@0.5.2':
     resolution: {integrity: sha512-pppxpnpZr7gzTgwL0nrS25mC5qjREDntcvOmHh759TOuDf5BwpeFsremcdY54MG2vgQgZOXfG5BSDYLHnKm2uA==}
-    engines: {node: 24.10.0, npm: please-use-pnpm}
-
-  '@knime/kds-styles@0.9.0':
-    resolution: {integrity: sha512-mq+/vD+2xBAXaSb5tsixvpkLIhLqgzBGVZcPx4hI0pPh9fk67NmcWd5IQBHCgJGoy6Ep/vkBJrkWhVovohXEdg==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
 
   '@knime/knime-ui-table@0.8.1':
@@ -3735,11 +3732,12 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-modules@2.0.0:
     resolution: {integrity: sha512-NGbfmJBp9x8IxyJSd1P+otYK8vonoJactOogrVfFRIAEY1ukil8RSKDz2Yo7wh1oihl51l/r6W4epkeKJHqL8A==}
@@ -5011,6 +5009,7 @@ packages:
   prebuild-install@7.1.3:
     resolution: {integrity: sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==}
     engines: {node: '>=10'}
+    deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
   prelude-ls@1.2.1:
@@ -5649,6 +5648,7 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   test-exclude@7.0.1:
     resolution: {integrity: sha512-pFYqmTw68LXVjeWJMST4+borgQP2AyMNbg1BpZh9LbyhUeNkeaPF9gzfPGUAnSMV3qPYdWUwDIjjCLiSDOl7vg==}
@@ -6127,10 +6127,12 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -7143,8 +7145,6 @@ snapshots:
 
   '@fontsource/roboto@5.2.8': {}
 
-  '@fontsource/roboto@5.2.9': {}
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -7487,6 +7487,22 @@ snapshots:
       consola: 3.4.2
       vue: 3.5.18(typescript@5.4.5)
 
+  '@knime/kds-components@0.13.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
+    dependencies:
+      '@knime/kds-styles': 0.13.2
+      '@knime/utils': 1.10.1(consola@3.4.2)
+      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.4.5))
+      consola: 3.4.2
+      vue: 3.5.18(typescript@5.4.5)
+
+  '@knime/kds-components@0.13.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))':
+    dependencies:
+      '@knime/kds-styles': 0.13.2
+      '@knime/utils': 1.10.1(consola@3.4.2)
+      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.9.3))
+      consola: 3.4.2
+      vue: 3.5.18(typescript@5.9.3)
+
   '@knime/kds-components@0.5.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
     dependencies:
       '@knime/kds-styles': 0.5.10
@@ -7495,23 +7511,14 @@ snapshots:
       consola: 3.4.2
       vue: 3.5.18(typescript@5.4.5)
 
-  '@knime/kds-components@0.9.0(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
-    dependencies:
-      '@knime/kds-styles': 0.9.0
-      '@knime/utils': 1.10.1(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.4.5))
-      consola: 3.4.2
-      vue: 3.5.18(typescript@5.4.5)
-
-  '@knime/kds-components@0.9.0(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.9.3)))(vue@3.5.18(typescript@5.9.3))':
-    dependencies:
-      '@knime/kds-styles': 0.9.0
-      '@knime/utils': 1.10.1(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.9.3))
-      consola: 3.4.2
-      vue: 3.5.18(typescript@5.9.3)
-
   '@knime/kds-styles@0.11.0':
+    dependencies:
+      '@fontsource/roboto': 5.2.10
+      '@fontsource/roboto-condensed': 5.2.8
+      '@fontsource/roboto-mono': 5.2.8
+      modern-normalize: 3.0.1
+
+  '@knime/kds-styles@0.13.2':
     dependencies:
       '@fontsource/roboto': 5.2.10
       '@fontsource/roboto-condensed': 5.2.8
@@ -7528,13 +7535,6 @@ snapshots:
   '@knime/kds-styles@0.5.2':
     dependencies:
       '@fontsource/roboto': 5.2.8
-      '@fontsource/roboto-condensed': 5.2.8
-      '@fontsource/roboto-mono': 5.2.8
-      modern-normalize: 3.0.1
-
-  '@knime/kds-styles@0.9.0':
-    dependencies:
-      '@fontsource/roboto': 5.2.9
       '@fontsource/roboto-condensed': 5.2.8
       '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 3.0.1
