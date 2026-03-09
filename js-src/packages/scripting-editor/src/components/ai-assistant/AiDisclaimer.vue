@@ -34,7 +34,7 @@ const handleAccept = () => {
   <div class="disclaimer-container">
     <template v-if="disclaimerText">
       <div class="disclaimer-box">
-        <p style="font-weight: bold">Disclaimer</p>
+        <p class="disclaimer-title">Disclaimer</p>
         <p class="content">
           {{ disclaimerText }}
         </p>
@@ -71,6 +71,10 @@ const handleAccept = () => {
     padding: var(--space-4);
     background-color: var(--knime-white);
     border-radius: var(--ai-bar-corner-radius);
+
+    & .disclaimer-title {
+      font-weight: bold;
+    }
 
     & .content {
       overflow-wrap: break-word;
