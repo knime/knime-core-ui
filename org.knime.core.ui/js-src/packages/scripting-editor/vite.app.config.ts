@@ -21,7 +21,7 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    outDir: "../../../org.knime.core.ui/js-src/dist-scripting-editor",
+    outDir: "../../dist-scripting-editor",
   },
   root: ".",
   optimizeDeps: {

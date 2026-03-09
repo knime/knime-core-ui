@@ -93,7 +93,7 @@ Build specific component:
 pnpm run build:TableView
 ```
 
-Results are output to `../../../org.knime.core.ui/js-src/dist`.
+Results are output to `../../dist`.
 
 ### Testing
 

@@ -9,11 +9,11 @@ This repository contains the core UI functionality for KNIME Analytics Platform 
 
 ## Frontend Development
 
-The frontend code is organized as a pnpm monorepo in `js-src/` containing:
+The frontend code is organized as a pnpm monorepo in `org.knime.core.ui/js-src/` containing:
 - **core-ui**: Vue-based views and dialogs for KNIME Analytics Platform
 - **scripting-editor**: Shared scripting editor components
 
-For frontend development setup, see [js-src/README.md](js-src/README.md).
+For frontend development setup, see [org.knime.core.ui/js-src/README.md](org.knime.core.ui/js-src/README.md).
 
 In case Eclipse complains about missing libs, have a look here:
 [org.knime.core.ui/lib/WHERE_ARE_THE_JARS.txt](org.knime.core.ui/lib/WHERE_ARE_THE_JARS.txt) and

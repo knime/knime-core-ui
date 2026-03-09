@@ -18,23 +18,23 @@ jobs:
         package: [core-ui, scripting-editor]
     defaults:
       run:
-        working-directory: js-src/packages/${{ matrix.package }}
+        working-directory: org.knime.core.ui/js-src/packages/${{ matrix.package }}
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: js-src/package.json
+          package_json_file: org.knime.core.ui/js-src/package.json
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: js-src/package.json
+          node-version-file: org.knime.core.ui/js-src/package.json
           cache: pnpm
-          cache-dependency-path: js-src/pnpm-lock.yaml
+          cache-dependency-path: org.knime.core.ui/js-src/pnpm-lock.yaml
       - name: Install dependencies
-        working-directory: js-src
+        working-directory: org.knime.core.ui/js-src
         run: pnpm install
       - name: Audit
-        working-directory: js-src
+        working-directory: org.knime.core.ui/js-src
         run: pnpm run audit
       - name: Type check
         run: pnpm run type-check

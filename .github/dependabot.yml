@@ -3,7 +3,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/js-src"
+    directory: "/org.knime.core.ui/js-src"
     schedule:
       interval: "weekly"
       day: "sunday"

@@ -10,7 +10,7 @@
     "audit": "pnpm audit --prod",
     "build:apps": "pnpm run --filter @knime/core-ui build && pnpm run --filter @knime/scripting-editor build:app",
     "coverage": "pnpm run -r --sequential coverage",
-    "prepare": "cd .. && husky ./js-src/.husky"
+    "prepare": "cd ../.. && husky ./org.knime.core.ui/js-src/.husky"
   },
   "devDependencies": {
     "@knime/eslint-config": "9.4.0",
