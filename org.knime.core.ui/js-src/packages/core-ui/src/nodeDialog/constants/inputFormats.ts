@@ -2,6 +2,7 @@ import type { Tester } from "@jsonforms/core";
 
 export const inputFormats = {
   button: "button",
+  codeEditor: "codeEditor",
   credentials: "credentials",
   legacyCredentials: "legacyCredentials",
   fileChooser: "fileChooser",

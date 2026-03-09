@@ -81,6 +81,7 @@ import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.text.CodeEditorWidget;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 
 /**
@@ -150,6 +151,9 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(//
             node -> new TextAreaRenderer(node, getPresentAnnotation(node, TextAreaWidget.class)), //
             hasAnnotationAssertingTypes(TextAreaWidget.class, String.class)), //
+        new WidgetTreeNodeTester(//
+            node -> new CodeEditorRenderer(node, getPresentAnnotation(node, CodeEditorWidget.class)), //
+            hasAnnotationAssertingTypes(CodeEditorWidget.class, String.class)), //
         new WidgetTreeNodeTester(IntegerRenderer::new,
             node -> List.of(Byte.class, Integer.class, Duration.class)
                 .contains(ClassUtils.primitiveToWrapper(node.getRawClass()))), // bytes and integers

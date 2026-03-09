@@ -86,6 +86,7 @@ import org.knime.node.parameters.widget.credentials.PasswordWidget;
 import org.knime.node.parameters.widget.credentials.UsernameWidget;
 import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.text.CodeEditorWidget;
 import org.knime.node.parameters.widget.text.RichTextInputWidget;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
@@ -153,7 +154,8 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <td>Text Input</td>
  * <td>{@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
- * {@link RichTextInputWidget}</td>
+ * {@link RichTextInputWidget}<br>
+ * {@link CodeEditorWidget}</td>
  * <td rowspan="2">✓</td>
  * </tr>
  * <tr>

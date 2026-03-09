@@ -26,6 +26,7 @@ import {
 
 import { arrayLayoutRenderer } from "./arrayLayoutRenderer";
 import { buttonRenderer } from "./buttonRenderer";
+import { codeEditorRenderer } from "./codeEditorRenderer";
 import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
 import { controlWithSubParametersRenderer } from "./controlWithSubParametersRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
@@ -46,6 +47,7 @@ import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 
 const coreUIControls: Record<string, VueControlRenderer> = {
   buttonRenderer, // since it will be removed soon and is based on the old update mechanism
+  codeEditorRenderer, // Monaco-based code editor with syntax highlighting
   stringFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
   multiFileChooserRenderer,

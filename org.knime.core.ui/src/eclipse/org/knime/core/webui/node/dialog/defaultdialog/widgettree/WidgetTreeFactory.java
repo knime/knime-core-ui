@@ -109,6 +109,7 @@ import org.knime.node.parameters.widget.credentials.PasswordWidget;
 import org.knime.node.parameters.widget.credentials.UsernameWidget;
 import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.text.CodeEditorWidget;
 import org.knime.node.parameters.widget.text.RichTextInputWidget;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
@@ -151,6 +152,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ButtonWidget.class, //
         ChoicesProvider.class, //
         SuggestionsProvider.class, //
+        CodeEditorWidget.class, //
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         CredentialsWidgetInternal.class, //
