@@ -1,0 +1,1 @@
+cd org.knime.core.ui/js-src/packages/core-ui && pnpm dlx nano-staged
