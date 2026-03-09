@@ -54,6 +54,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_CONTROL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_CONTROL_WITH_SUBPARAMETERS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_MULTI_RULE_WRAPPER;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -70,6 +71,7 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effects;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -133,7 +135,11 @@ final class LayoutNodesGenerator {
             return;
         }
         final var scope = getScope(node);
-        final var control = initializeControl(root, node, rootProvider).put(TAG_TYPE, TYPE_CONTROL);
+        final var effects = node.getAnnotation(Effects.class).map(Effects::value).orElse(new Effect[0]);
+
+        // For multiple effects, pre-build N-1 wrappers and place the control inside the innermost one
+        final var controlTarget = effects.length > 1 ? buildRuleWrappers(root, effects, scope) : root;
+        final var control = initializeControl(controlTarget, node, rootProvider).put(TAG_TYPE, TYPE_CONTROL);
 
         if (WidgetTreeUtil.hasScope(node)) {
             control.put(TAG_SCOPE, scope);
@@ -141,7 +147,10 @@ final class LayoutNodesGenerator {
             control.put(TAG_ID, scope);
         }
         addOptions(node, control);
-        addRule(node, control);
+
+        if (effects.length > 0) {
+            applyEffectRule(effects[effects.length - 1], control, scope);
+        }
     }
 
     private ObjectNode initializeControl(final ArrayNode root, final TreeNode<WidgetGroup> node,
@@ -175,16 +184,27 @@ final class LayoutNodesGenerator {
         }
     }
 
-    private void addRule(final TreeNode<WidgetGroup> node, final ObjectNode control) {
+    private void applyEffectRule(final Effect effect, final ObjectNode node, final String scope) {
         try {
-            final var effectAnnotation = node.getAnnotation(Effect.class);
-            if (effectAnnotation.isPresent()) {
-                m_rulesGenerator.applyEffectTo(effectAnnotation.get(), control);
-            }
+            m_rulesGenerator.applyEffectTo(effect, node);
         } catch (UiSchemaGenerationException ex) {
             throw new UiSchemaGenerationException(
-                String.format("Error when resolving @Effect annotation for %s.: %s", getScope(node), ex.getMessage()),
-                ex);
+                String.format("Error when resolving @Effect annotation for %s.: %s", scope, ex.getMessage()), ex);
         }
+    }
+
+    /**
+     * Builds N-1 nested MultiRuleWrapper nodes in {@code root} for effects[0..N-2] (outermost first), and returns the
+     * elements array of the innermost wrapper. The caller is responsible for adding the actual control to it.
+     */
+    private ArrayNode buildRuleWrappers(final ArrayNode root, final Effect[] effects, final String scope) {
+        var current = root;
+        for (int i = 0; i < effects.length - 1; i++) {
+            final var wrapper = current.addObject();
+            wrapper.put(TAG_TYPE, TYPE_MULTI_RULE_WRAPPER);
+            applyEffectRule(effects[i], wrapper, scope);
+            current = wrapper.putArray(TAG_ELEMENTS);
+        }
+        return current;
     }
 }

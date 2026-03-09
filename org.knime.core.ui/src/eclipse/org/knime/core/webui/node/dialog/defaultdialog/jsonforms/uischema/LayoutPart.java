@@ -52,6 +52,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DESCRIPTION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_MULTI_RULE_WRAPPER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_HORIZONTAL_LAYOUT;
@@ -114,10 +115,9 @@ enum LayoutPart {
     private static ArrayNode getSection(final LayoutNodeCreationContext creationContext) {
         final var layoutClass = creationContext.layoutClass();
         final var sectionAnnotation = layoutClass.getAnnotation(Section.class);
-        final var parent = creationContext.parent();
-        final var node = parent.addObject();
-        final var label = sectionAnnotation.title();
-        node.put(TAG_LABEL, label);
+        final var innerParent = getInnerParent(creationContext);
+        final var node = innerParent.addObject();
+        node.put(TAG_LABEL, sectionAnnotation.title());
         final var isSideDrawer = sectionAnnotation.sideDrawer();
         node.put(TAG_TYPE, isSideDrawer ? TYPE_SIDE_DRAWER_SECTION : TYPE_SECTION);
         if (isSideDrawer && !sectionAnnotation.sideDrawerSetText().isEmpty()) {
@@ -127,7 +127,7 @@ enum LayoutPart {
             node.put(TAG_DESCRIPTION, sectionAnnotation.description());
         }
         processAdvancedAnnotation(creationContext, node);
-        applyRules(node, creationContext);
+        applyLastEffectRule(node, creationContext);
         return node.putArray(TAG_ELEMENTS);
     }
 
@@ -138,19 +138,17 @@ enum LayoutPart {
     }
 
     private static ArrayNode getHorizontalLayout(final LayoutNodeCreationContext creationContext) {
-        final var parent = creationContext.parent();
-        final var node = parent.addObject();
+        final var node = getInnerParent(creationContext).addObject();
         node.put(TAG_TYPE, TYPE_HORIZONTAL_LAYOUT);
-        applyRules(node, creationContext);
+        applyLastEffectRule(node, creationContext);
         processAdvancedAnnotation(creationContext, node);
         return node.putArray(TAG_ELEMENTS);
     }
 
     private static ArrayNode getVerticalLayout(final LayoutNodeCreationContext creationContext) {
-        final var parent = creationContext.parent();
-        final var node = parent.addObject();
+        final var node = getInnerParent(creationContext).addObject();
         node.put(TAG_TYPE, TYPE_VERTICAL_LAYOUT);
-        applyRules(node, creationContext);
+        applyLastEffectRule(node, creationContext);
         processAdvancedAnnotation(creationContext, node);
         return node.putArray(TAG_ELEMENTS);
     }
@@ -162,8 +160,31 @@ enum LayoutPart {
         }
     }
 
-    private static void applyRules(final ObjectNode node, final LayoutNodeCreationContext creationContext) {
-        creationContext.rulesGenerator().applyEffectTo(creationContext.layoutClass.getAnnotation(Effect.class), node);
+    /**
+     * Pre-builds N-1 MultiRuleWrapper nodes in the parent for effects[0..N-2] and returns the innermost elements
+     * array where the actual layout node should be placed. Returns the original parent if there is at most one effect.
+     */
+    private static ArrayNode getInnerParent(final LayoutNodeCreationContext creationContext) {
+        final var effects = creationContext.layoutClass().getAnnotationsByType(Effect.class);
+        if (effects.length <= 1) {
+            return creationContext.parent();
+        }
+        var current = creationContext.parent();
+        for (int i = 0; i < effects.length - 1; i++) {
+            final var wrapper = current.addObject();
+            wrapper.put(TAG_TYPE, TYPE_MULTI_RULE_WRAPPER);
+            creationContext.rulesGenerator().applyEffectTo(effects[i], wrapper);
+            current = wrapper.putArray(TAG_ELEMENTS);
+        }
+        return current;
+    }
+
+    private static void applyLastEffectRule(final ObjectNode node,
+        final LayoutNodeCreationContext creationContext) {
+        final var effects = creationContext.layoutClass().getAnnotationsByType(Effect.class);
+        if (effects.length > 0) {
+            creationContext.rulesGenerator().applyEffectTo(effects[effects.length - 1], node);
+        }
     }
 
     private record LayoutNodeCreationContext(ArrayNode parent, Class<?> layoutClass,

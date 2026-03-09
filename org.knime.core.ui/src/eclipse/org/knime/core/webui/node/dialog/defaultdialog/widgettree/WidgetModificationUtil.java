@@ -69,11 +69,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.EffectsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetModificationUtil.WidgetTreeNodeModifier.WidgetTreeNodeAnnotationBuilder;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effects;
 
 /**
  * Resolves {@link Modification} annotations for {@link Tree}<{@link WidgetGroup}> and
@@ -174,6 +177,9 @@ final class WidgetModificationUtil {
 
         @Override
         public <T extends Annotation> Modification.AnnotationModifier modifyAnnotation(final Class<T> annotationClass) {
+            if (Effect.class.equals(annotationClass)) {
+                return modifySingleEffect();
+            }
             final var existingAnnotation =
                 m_widgetTreeNode.getAnnotation(annotationClass).orElseThrow(() -> new IllegalStateException(
                     "Annotation cannot be modified because it is not present: " + annotationClass.getSimpleName()));
@@ -181,8 +187,30 @@ final class WidgetModificationUtil {
                 existingAnnotation);
         }
 
+        private Modification.AnnotationModifier modifySingleEffect() {
+            final var effects = m_widgetTreeNode.getAnnotation(Effects.class)
+                .orElseThrow(() -> new IllegalStateException(
+                    "Annotation cannot be modified because it is not present: Effect"));
+            if (effects.value().length > 1) {
+                throw new IllegalStateException(
+                    "Cannot modify @Effect when multiple effects are present. Use Effects.class instead.");
+            }
+            final var singleEffect = effects.value()[0];
+            return new WidgetTreeNodeAnnotationBuilder<>(m_widgetTreeNode, (node, key, value) -> {
+                m_addOrReplaceAnnotation.accept(node, Effects.class, EffectsUtil.createEffects(new Effect[]{(Effect)value}));
+            }, Effect.class, singleEffect);
+        }
+
         @Override
         public <T extends Annotation> Modification.AnnotationModifier addAnnotation(final Class<T> annotationClass) {
+            if (Effect.class.equals(annotationClass)) {
+                // For Effects: append a new Effect to the existing Effects array
+                final var existingEffects = (Effects)m_widgetTreeNode.getAnnotation(Effects.class).orElse(null);
+                return new WidgetTreeNodeAnnotationBuilder<>(m_widgetTreeNode, (node, key, value) -> {
+                    final var newEffects = EffectsUtil.merge(existingEffects, EffectsUtil.createEffects(new Effect[]{(Effect)value}));
+                    m_addOrReplaceAnnotation.accept(node, Effects.class, newEffects);
+                }, Effect.class, null);
+            }
             if (m_widgetTreeNode.getAnnotation(annotationClass).isPresent()) {
                 throw new IllegalStateException(
                     "Annotation cannot be added because it is already present: " + annotationClass.getSimpleName());
@@ -193,6 +221,17 @@ final class WidgetModificationUtil {
 
         @Override
         public <T extends Annotation> void removeAnnotation(final Class<T> annotationClass) {
+            if (Effect.class.equals(annotationClass)) {
+                final var effects = m_widgetTreeNode.getAnnotation(Effects.class)
+                    .orElseThrow(() -> new IllegalStateException(
+                        "Annotation cannot be removed because it is not present: Effect"));
+                if (effects.value().length > 1) {
+                    throw new IllegalStateException(
+                        "Cannot remove @Effect when multiple effects are present. Use Effects.class instead.");
+                }
+                m_widgetTreeNode.removeAnnotation(Effects.class);
+                return;
+            }
             if (m_widgetTreeNode.getAnnotation(annotationClass).isEmpty()) {
                 throw new IllegalStateException(
                     "Annotation cannot be removed because it is not present: " + annotationClass.getSimpleName());

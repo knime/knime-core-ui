@@ -48,6 +48,7 @@
  */
 package org.knime.node.parameters.updates;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -59,8 +60,15 @@ import org.knime.node.parameters.layout.Section;
  * {@link HorizontalLayout}) can be disabled or hidden depending on the values of other fields which are annotated by
  * {@link ValueReference} or on the the node's input (e.g. the presence of certain dynamic ports)
  *
+ * Multiple {@link Effect} annotations can be placed on the same element. When multiple effects are present, the
+ * following rules determine the combined result: If any effect hides the element (i.e. {@link EffectType#HIDE} with a
+ * true predicate, or {@link EffectType#SHOW} with a false predicate), the element is hidden. Otherwise, if any
+ * enable/disable effect enables the element (i.e. {@link EffectType#ENABLE} with a true predicate, or
+ * {@link EffectType#DISABLE} with a false predicate), the element is enabled.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@Repeatable(Effects.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Effect {
 

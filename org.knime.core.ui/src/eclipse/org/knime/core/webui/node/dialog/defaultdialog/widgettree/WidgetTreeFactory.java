@@ -82,6 +82,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.EffectsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -93,7 +94,7 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.Effects;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
@@ -124,7 +125,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
         Layout.class, //
-        Effect.class, //
+        Effects.class, //
         Advanced.class, //
         /*
          * Since {@link MultiFileSelection} is a {@link WidgetGroup}.
@@ -141,7 +142,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
         new ClassAnnotationSpec(Layout.class, false), //
-        new ClassAnnotationSpec(Effect.class), //
+        new ClassAnnotationSpec(Effects.class), //
         new ClassAnnotationSpec(Advanced.class), //
         new ClassAnnotationSpec(Modification.class) //
     );
@@ -156,7 +157,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         CredentialsWidgetInternal.class, //
         CustomValidation.class, //
         DateTimeFormatPickerWidget.class, //
-        Effect.class, //
+        Effects.class, //
         FileReaderWidget.class, //
         FileWriterWidget.class, //
         FileSelectionWidget.class, //
@@ -196,7 +197,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(//
         Advanced.class, //
         ArrayWidget.class, //
-        Effect.class, //
+        Effects.class, //
         ArrayWidgetInternal.class, //
         Layout.class, //
         Modification.class, //
@@ -242,7 +243,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private void propagateLayoutAdvancedAndEffectAnnotationsToChildren(final Tree<WidgetGroup> tree) {
         tree.getChildren().forEach(child -> {
-            propagateAnnotationToChild(child, tree, Effect.class);
+            propagateAnnotationToChild(child, tree, Effects.class);
             propagateAnnotationToChild(child, tree, Advanced.class);
             if (tree.getAnnotation(Layout.class).isEmpty()) {
                 tree.getTypeAnnotation(Layout.class)
@@ -294,20 +295,16 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     }
 
     @Override
-    @SuppressWarnings("unchecked") // checked by Effect.class.equals(annotationClass)
+    @SuppressWarnings("unchecked") // checked by Effects.class.equals(annotationClass)
     protected <T extends Annotation> T getAnnotationFromField(final PropertyWriter field,
         final Class<T> annotationClass) {
-        if (Effect.class.equals(annotationClass)) {
+        if (Effects.class.equals(annotationClass)) {
+            final var fieldEffects = (Effects)super.getAnnotationFromField(field, Effects.class);
             final var widgetAnnotation = field.getAnnotation(Widget.class);
-            if (widgetAnnotation != null
-                && !EffectPredicateProvider.class.equals(widgetAnnotation.effect().predicate())) {
-                if (field.getAnnotation(Effect.class) != null) {
-                    throw new IllegalStateException(String.format(
-                        "Conflicting Effect annotations on field and inside Widget annotation for field %s",
-                        field.getName()));
-                }
-                return (T)widgetAnnotation.effect();
-            }
+            final Effects widgetEffects = widgetAnnotation != null && widgetAnnotation.effect().length > 0
+                ? EffectsUtil.createEffects(widgetAnnotation.effect()) : null;
+            final var merged = EffectsUtil.merge(fieldEffects, widgetEffects);
+            return (T)merged;
         }
         return super.getAnnotationFromField(field, annotationClass);
     }

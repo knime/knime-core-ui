@@ -60,9 +60,12 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.EffectsUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -184,7 +187,7 @@ public abstract class TreeFactory<S> {
     private Function<Class<? extends Annotation>, Annotation> getFieldAnnotationMethodFromType(final JavaType type) {
         return annotationClass -> {
             if (m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations.contains(annotationClass)) {
-                return type.getRawClass().getAnnotation(annotationClass);
+                return getEffectsFromClass(type.getRawClass(), annotationClass);
             }
             return null;
         };
@@ -329,8 +332,14 @@ public abstract class TreeFactory<S> {
         return annotationClass -> getAnnotationsFromFieldWithDeclaringClass(field, declaringClass, annotationClass);
     }
 
+    @SuppressWarnings("unchecked") // checked by Effects.class.equals(annotationClass)
     private <T extends Annotation> T getAnnotationsFromFieldWithDeclaringClass(final PropertyWriter field,
         final Class<?> declaringClass, final Class<T> annotationClass) {
+        if (Effects.class.equals(annotationClass)) {
+            final var classEffects = getEffectsFromClass(declaringClass, Effects.class);
+            final var fieldEffects = getAnnotationFromField(field, Effects.class);
+            return (T)EffectsUtil.merge(classEffects, fieldEffects);
+        }
         return Optional.ofNullable(getAnnotationFromField(field, annotationClass))
             .orElse(declaringClass.getAnnotation(annotationClass));
     }
@@ -344,9 +353,26 @@ public abstract class TreeFactory<S> {
      * @param annotationClass the class of the annotation
      * @return the annotation of the given class that is present on the field
      */
+    @SuppressWarnings("unchecked") // checked by Effects.class.equals(annotationClass)
     protected <T extends Annotation> T getAnnotationFromField(final PropertyWriter field,
         final Class<T> annotationClass) {
+        if (Effects.class.equals(annotationClass)) {
+            final var effects = field.getMember().getAnnotated().getAnnotationsByType(Effect.class);
+            return effects.length > 0 ? (T)EffectsUtil.createEffects(effects) : null;
+        }
         return field.getAnnotation(annotationClass);
+    }
+
+    /**
+     * Creates an {@link Effects} instance from the {@link Effect} annotations present on the given class.
+     */
+    @SuppressWarnings("unchecked")
+    static <T extends Annotation> T getEffectsFromClass(final Class<?> clazz, final Class<T> annotationClass) {
+        if (!Effects.class.equals(annotationClass)) {
+            return clazz.getAnnotation(annotationClass);
+        }
+        final var effects = clazz.getAnnotationsByType(Effect.class);
+        return effects.length > 0 ? (T)EffectsUtil.createEffects(effects) : null;
     }
 
     private TreeNodeBuilder getNextChildBuilder(final Tree<S> tree) {
@@ -405,6 +431,12 @@ public abstract class TreeFactory<S> {
         private Function<Class<? extends Annotation>, Annotation> getAnnotationFromFieldOrClass(
             final Function<Class<? extends Annotation>, Annotation> getFieldAnnotationFromClass) {
             return annotationClass -> {
+                if (Effects.class.equals(annotationClass)) {
+                    // Class-level effects are prepended before field-level effects
+                    final var classEffects = (Effects)getFieldAnnotationFromClass.apply(annotationClass);
+                    final var fieldEffects = (Effects)m_fieldAnnotations.apply(annotationClass);
+                    return EffectsUtil.merge(classEffects, fieldEffects);
+                }
                 final var fieldAnnotation = m_fieldAnnotations.apply(annotationClass);
                 if (fieldAnnotation != null) {
                     return fieldAnnotation;

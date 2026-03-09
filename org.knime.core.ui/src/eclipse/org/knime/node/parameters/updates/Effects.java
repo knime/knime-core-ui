@@ -44,60 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Mar 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.node.parameters.updates;
 
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+/**
+ * Container annotation for repeatable {@link Effect} annotations.
+ *
+ * @author Paul Bärnreuther
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Effects {
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
-
-    }
-
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
-    }
-
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
-    }
-
-    @Section(title = "Inject Fallback Dialog", sideDrawer = true)
-    interface InjectFallbackDialogSideDrawerSection {
-    }
-
-    @Section(title = "String with Suggestions", sideDrawer = true)
-    interface StringWithSuggestionsSection {
-    }
-
-    @Section(title = "Multiple @Effect annotations", sideDrawer = true)
-    interface MultipleEffectsSection {
-    }
-
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.class)
-    HiddenFeatureNewFileSelectionParameters m_newFileSelection = new HiddenFeatureNewFileSelectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
-
-    @Layout(InjectFallbackDialogSideDrawerSection.class)
-    HiddenFeatureInjectFallbackDialog m_hiddenFeatureInjectFallbackDialog = new HiddenFeatureInjectFallbackDialog();
-
-    @Layout(StringWithSuggestionsSection.class)
-    HiddenFeatureStringWithSuggestionsParameters m_stringWithSuggestions =
-        new HiddenFeatureStringWithSuggestionsParameters();
-
-    @Layout(MultipleEffectsSection.class)
-    HiddenFeatureMultipleEffectsParameters m_multipleEffects = new HiddenFeatureMultipleEffectsParameters();
+    /**
+     * @return the contained {@link Effect} annotations
+     */
+    Effect[] value();
 
 }
