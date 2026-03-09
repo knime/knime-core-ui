@@ -20,13 +20,17 @@ const props = defineProps(
     <VerticalLayoutBase #default="{ element }" :elements="uischema.elements">
       <DispatchRenderer v-bind="props" :uischema="element as ControlElement" />
     </VerticalLayoutBase>
-    <VerticalLayoutBase :elements="[uischema.elements[0]]" style="flex: 0">
+    <VerticalLayoutBase :elements="[uischema.elements[0]]" class="flex-none">
       <VennDiagram v-bind="props" />
     </VerticalLayoutBase>
   </div>
 </template>
 
 <style lang="postcss" scoped>
+.flex-none {
+  flex: 0;
+}
+
 .horizontal {
   width: 100%;
   display: inline-flex;

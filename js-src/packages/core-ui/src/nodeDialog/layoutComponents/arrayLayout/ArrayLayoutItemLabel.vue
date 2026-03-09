@@ -49,7 +49,7 @@ const subTitle = useProvidedState(
   <SectionHeading
     v-if="useSectionLayout"
     :title-text="elementTitle"
-    style="flex: 1"
+    class="flex-grow"
   />
   <div v-else class="vertical">
     <Label :text="elementTitle" compact />
@@ -58,6 +58,10 @@ const subTitle = useProvidedState(
 </template>
 
 <style scoped>
+.flex-grow {
+  flex: 1;
+}
+
 .vertical {
   display: flex;
   flex-direction: column;
