@@ -354,6 +354,8 @@ public final class JsonFormsConsts {
 
             public static final String DIRTY_TRACKER = "dirtyTracker";
 
+            public static final String CODE_EDITOR = "codeEditor";
+
         }
 
         /**
