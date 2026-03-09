@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from "vue";
-import * as monaco from "monaco-editor";
+import { editor } from "monaco-editor";
 
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
 const props = defineProps<VueControlPropsForLabelContent<string>>();
 
 const container = ref<HTMLDivElement>();
-let editor: monaco.editor.IStandaloneCodeEditor | undefined;
+let editorInstance: editor.IStandaloneCodeEditor | undefined;
 
 const language = props.control.uischema.options?.language ?? "";
 
@@ -15,7 +15,7 @@ onMounted(() => {
   if (!container.value) {
     return;
   }
-  editor = monaco.editor.create(container.value, {
+  editorInstance = editor.create(container.value, {
     value: props.control.data ?? "",
     language,
     automaticLayout: true,
@@ -27,8 +27,8 @@ onMounted(() => {
     readOnly: props.disabled,
   });
 
-  editor.onDidChangeModelContent(() => {
-    const value = editor?.getModel()?.getValue() ?? "";
+  editorInstance.onDidChangeModelContent(() => {
+    const value = editorInstance?.getModel()?.getValue() ?? "";
     if (value !== props.control.data) {
       props.changeValue(value);
     }
@@ -38,22 +38,22 @@ onMounted(() => {
 watch(
   () => props.disabled,
   (disabled) => {
-    editor?.updateOptions({ readOnly: disabled });
+    editorInstance?.updateOptions({ readOnly: disabled });
   },
 );
 
 watch(
   () => props.control.data,
   (newValue) => {
-    if (editor && newValue !== editor.getModel()?.getValue()) {
-      editor.getModel()?.setValue(newValue ?? "");
+    if (editorInstance && newValue !== editorInstance.getModel()?.getValue()) {
+      editorInstance.getModel()?.setValue(newValue ?? "");
     }
   },
 );
 
 onUnmounted(() => {
-  editor?.dispose();
-  editor = undefined;
+  editorInstance?.dispose();
+  editorInstance = undefined;
 });
 </script>
 
