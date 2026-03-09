@@ -62,9 +62,11 @@ import java.util.stream.Stream;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.EffectsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.Effects;
 
 import com.fasterxml.jackson.databind.JavaType;
 
@@ -262,7 +264,13 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * @param value of this annotation on the {@link #getParent() parent}
      */
     void addAnnotation(final Class<? extends Annotation> key, final Annotation value) {
-        m_annotations.putIfAbsent(key, value);
+        if (Effects.class.equals(key)) {
+            // For Effects: new value (e.g. from parent) is prepended — it has higher priority
+            final var existing = (Effects)m_annotations.get(Effects.class);
+            m_annotations.put(Effects.class, EffectsUtil.merge((Effects)value, existing));
+        } else {
+            m_annotations.putIfAbsent(key, value);
+        }
     }
 
     /**

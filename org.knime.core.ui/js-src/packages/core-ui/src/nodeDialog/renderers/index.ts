@@ -41,6 +41,7 @@ import {
 import { labeledGroupRenderer } from "./labeledGroupRenderer";
 import { legacyCredentialsRenderer } from "./legacyCredentialsRenderer";
 import { multiFileChooserRenderer } from "./multiFileChooserRenderer";
+import { multiRuleWrapperRenderer } from "./multiRuleWrapperRenderer";
 import { stringFileChooserRenderer } from "./stringFileChooserRenderer";
 import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 
@@ -61,6 +62,7 @@ const coreUIControls: Record<string, VueControlRenderer> = {
 const coreUILayouts: Record<string, VueLayoutRenderer> = {
   labeledGroupRenderer,
   controlWithSubParametersRenderer,
+  multiRuleWrapperRenderer,
 };
 
 const otherRenderers = [

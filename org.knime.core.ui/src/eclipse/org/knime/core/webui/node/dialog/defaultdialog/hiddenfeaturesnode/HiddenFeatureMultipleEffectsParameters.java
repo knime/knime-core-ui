@@ -44,60 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Mar 9, 2026 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+class HiddenFeatureMultipleEffectsParameters implements NodeParameters {
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
+    @Widget(title = "First", description = "")
+    @ValueReference(First.class)
+    boolean m_first;
+
+    static final class First implements BooleanReference {
 
     }
 
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
+    @Widget(title = "Second", description = "")
+    @ValueReference(Second.class)
+    boolean m_second;
+
+    static final class Second implements BooleanReference {
+
     }
 
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
+    @Widget(title = "Third", description = "")
+    @ValueReference(Third.class)
+    boolean m_third;
+
+    static final class Third implements BooleanReference {
+
     }
 
-    @Section(title = "Inject Fallback Dialog", sideDrawer = true)
-    interface InjectFallbackDialogSideDrawerSection {
-    }
+    @Widget(title = "First -> Disable, Second -> Hide, Third -> Disable", description = "")
+    @Effect(predicate = First.class, type = EffectType.DISABLE)
+    @Effect(predicate = Second.class, type = EffectType.HIDE)
+    @Effect(predicate = Third.class, type = EffectType.DISABLE)
+    String m_effect1 = "Effect case 1";
 
-    @Section(title = "String with Suggestions", sideDrawer = true)
-    interface StringWithSuggestionsSection {
-    }
+    @Widget(title = "First -> Hide, Second -> Hide, Third -> Enable",
+        description = "We expect either of the two checkboxes to hide the field."
+            + " This could be represented with a single rule of course and is "
+            + "just here for demonstration purposes.")
+    @Effect(predicate = First.class, type = EffectType.HIDE)
+    @Effect(predicate = Second.class, type = EffectType.HIDE)
+    @Effect(predicate = Third.class, type = EffectType.ENABLE)
+    String m_effect2 = "Effect case 2";
 
-    @Section(title = "Multiple @Effect annotations", sideDrawer = true)
-    interface MultipleEffectsSection {
-    }
-
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.class)
-    HiddenFeatureNewFileSelectionParameters m_newFileSelection = new HiddenFeatureNewFileSelectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
-
-    @Layout(InjectFallbackDialogSideDrawerSection.class)
-    HiddenFeatureInjectFallbackDialog m_hiddenFeatureInjectFallbackDialog = new HiddenFeatureInjectFallbackDialog();
-
-    @Layout(StringWithSuggestionsSection.class)
-    HiddenFeatureStringWithSuggestionsParameters m_stringWithSuggestions =
-        new HiddenFeatureStringWithSuggestionsParameters();
-
-    @Layout(MultipleEffectsSection.class)
-    HiddenFeatureMultipleEffectsParameters m_multipleEffects = new HiddenFeatureMultipleEffectsParameters();
+    @Widget(title = "Something below", description = "")
+    String m_somethingBelow = "";
 
 }

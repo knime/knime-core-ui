@@ -490,6 +490,11 @@ public final class JsonFormsConsts {
         public static final String TYPE_CONTROL_WITH_SUBPARAMETERS = "ControlWithSubParameters";
 
         /**
+         * The type of a wrapper layout that applies one additional rule to its single child element.
+         */
+        public static final String TYPE_MULTI_RULE_WRAPPER = "MultiRuleWrapper";
+
+        /**
          * The type of a side drawer section
          */
         public static final String TYPE_SIDE_DRAWER_SECTION = "SettingsSubPanelLayout";

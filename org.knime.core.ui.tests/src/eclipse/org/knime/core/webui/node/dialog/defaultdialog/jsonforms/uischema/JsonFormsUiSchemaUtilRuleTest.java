@@ -53,21 +53,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.HorizontalLayout;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.Effects;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  *
@@ -178,7 +184,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     }
 
     @Test
-    void testThrowsOnEffectInsideWidgetAndOnField() {
+    void testEffectInsideWidgetAndOnField() {
 
         final class EffectSettings implements NodeParameters {
 
@@ -193,12 +199,13 @@ class JsonFormsUiSchemaUtilRuleTest {
 
             @Effect(predicate = DummyCondition.class, type = EffectType.DISABLE)
             @Widget(title = "", description = "",
-                effect = @Effect(predicate = DummyCondition.class, type = EffectType.DISABLE))
+                effect = @Effect(predicate = DummyCondition.class, type = EffectType.SHOW))
             boolean m_disable;
 
         }
-
-        assertThrows(IllegalStateException.class, () -> buildTestUiSchema(EffectSettings.class));
+        final var response = buildTestUiSchema(EffectSettings.class);
+        assertThatJson(response).inPath("$.elements[0].rule.effect").isString().isEqualTo("DISABLE");
+        assertThatJson(response).inPath("$.elements[0].elements[0].rule.effect").isString().isEqualTo("SHOW");
     }
 
     @Test
@@ -1042,6 +1049,260 @@ class JsonFormsUiSchemaUtilRuleTest {
         assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
         assertThatJson(response).inPath("$.elements[0].rule.condition.schema.oneOf[0].const").isString()
             .isEqualTo(SettingsWithEnum.TestEnum.VAL2.name());
+    }
+
+    @Nested
+    final class MultipleEffectsTest {
+
+        static final class MyCondition implements EffectPredicateProvider {
+
+            @Override
+            public EffectPredicate init(final PredicateInitializer i) {
+                return i.getConstant(in -> true);
+            }
+
+        }
+
+        /**
+         * Asserts that a SHOW effect and an ENABLE effect on a single field are combined into a wrapper structure.
+         */
+        static void assertTwoEffectsAreCombined(final ObjectNode response) {
+            assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("MultiRuleWrapper");
+            assertThatJson(response).inPath("$.elements[0].rule.effect").isString().isEqualTo("SHOW");
+            assertThatJson(response).inPath("$.elements[0].rule.condition").isObject();
+            assertThatJson(response).inPath("$.elements[0].elements[0].type").isString().isEqualTo("Control");
+            assertThatJson(response).inPath("$.elements[0].elements[0].rule.effect").isString().isEqualTo("ENABLE");
+        }
+
+        @Test
+        void testMultipleFieldEffects() {
+
+            final class MultipleEffectsSettings implements NodeParameters {
+
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                boolean m_effect;
+
+            }
+
+            final var response = buildTestUiSchema(MultipleEffectsSettings.class);
+            assertTwoEffectsAreCombined(response);
+        }
+
+        @Test
+        void testEffectOnClassAddsToEffectOnField() {
+
+            @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+            final class EffectOnClassAndFieldSettings implements NodeParameters {
+
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                boolean m_effect;
+            }
+
+            final var response = buildTestUiSchema(EffectOnClassAndFieldSettings.class);
+            assertTwoEffectsAreCombined(response);
+        }
+
+        @Test
+        void testEffectOnParentFieldAddsToEffectOnChildField() {
+
+            final class ParentField implements WidgetGroup {
+
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                boolean m_childField;
+            }
+
+            final class EffectOnParentFieldSettings implements NodeParameters {
+
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                ParentField m_parentField;
+            }
+
+            final var response = buildTestUiSchema(EffectOnParentFieldSettings.class);
+            assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+        }
+
+        @Test
+        void testEffectsAnnotationOnField() {
+
+            final class EffectsAnnotationOnFieldSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effects({@Effect(predicate = MyCondition.class, type = EffectType.SHOW),
+                    @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)})
+                boolean m_effect;
+            }
+
+            final var response = buildTestUiSchema(EffectsAnnotationOnFieldSettings.class);
+            assertTwoEffectsAreCombined(response);
+
+        }
+
+        @Test
+        void testEffectsAnnotationOnClass() {
+
+            @Effects({@Effect(predicate = MyCondition.class, type = EffectType.SHOW),
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)})
+            final class EffectsAnnotationOnClassSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                boolean m_effect;
+
+            }
+
+            final var response = buildTestUiSchema(EffectsAnnotationOnClassSettings.class);
+            assertTwoEffectsAreCombined(response);
+        }
+
+        @Test
+        void testEffectAndEffectsOnField() {
+
+            final class EffectAndEffectsOnFieldSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Effects({@Effect(predicate = MyCondition.class, type = EffectType.ENABLE)})
+                boolean m_effect;
+            }
+
+            final var response = buildTestUiSchema(EffectAndEffectsOnFieldSettings.class);
+            assertTwoEffectsAreCombined(response);
+
+            final class EffectAndEffectsOnFieldSettingsDifferentOrder implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effects({@Effect(predicate = MyCondition.class, type = EffectType.SHOW)})
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                boolean m_effect;
+
+            }
+
+            final var response2 = buildTestUiSchema(EffectAndEffectsOnFieldSettingsDifferentOrder.class);
+            assertTwoEffectsAreCombined(response2);
+        }
+
+        /**
+         * A modification can add an effect to a field that already has one; both effects are then combined.
+         */
+        @Test
+        void testModificationAddsEffect() {
+
+            @Modification(ModifiedSettings.AddEffectModifier.class)
+            final class ModifiedSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Modification.WidgetReference(Ref.class)
+                boolean m_effect;
+
+                static final class AddEffectModifier implements Modification.Modifier {
+
+                    @Override
+                    public void modify(final WidgetGroupModifier group) {
+                        group.find(Ref.class).addAnnotation(Effect.class).withProperty("predicate", MyCondition.class)
+                            .withProperty("type", EffectType.ENABLE).modify();
+                    }
+
+                }
+
+                interface Ref extends Modification.Reference {
+
+                }
+            }
+
+            final var response = buildTestUiSchema(ModifiedSettings.class);
+            assertTwoEffectsAreCombined(response);
+
+        }
+
+        @Test
+        void testRemoveEffectNotPossibleForMoreThanOne() {
+
+            @Modification(ModifiedSettings.RemoveEffectModifier.class)
+            final class ModifiedSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                @Modification.WidgetReference(Ref.class)
+                boolean m_effect;
+
+                static final class RemoveEffectModifier implements Modification.Modifier {
+
+                    @Override
+                    public void modify(final WidgetGroupModifier group) {
+                        group.find(Ref.class).removeAnnotation(Effect.class);
+                    }
+
+                }
+
+                interface Ref extends Modification.Reference {
+                }
+            }
+
+            assertThrows(IllegalStateException.class, () -> buildTestUiSchema(ModifiedSettings.class));
+
+        }
+
+        @Test
+        void testModifyEffectNotPossibleForMoreThanOne() {
+
+            @Modification(ModifiedSettings.RemoveEffectModifier.class)
+            final class ModifiedSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Effect(predicate = MyCondition.class, type = EffectType.ENABLE)
+                @Modification.WidgetReference(Ref.class)
+                boolean m_effect;
+
+                static final class RemoveEffectModifier implements Modification.Modifier {
+
+                    @Override
+                    public void modify(final WidgetGroupModifier group) {
+                        group.find(Ref.class).modifyAnnotation(Effect.class).withProperty("type", EffectType.HIDE)
+                            .modify();
+                    }
+
+                }
+
+                interface Ref extends Modification.Reference {
+                }
+            }
+
+            assertThrows(IllegalStateException.class, () -> buildTestUiSchema(ModifiedSettings.class));
+        }
+
+        @Test
+        void testAddEffectWithAnExistingSameEffectRemovesTheExisting() {
+
+            @Modification(ModifiedSettings.AddEffectModifier.class)
+            final class ModifiedSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
+                @Modification.WidgetReference(Ref.class)
+                boolean m_effect;
+
+                static final class AddEffectModifier implements Modification.Modifier {
+
+                    @Override
+                    public void modify(final WidgetGroupModifier group) {
+                        group.find(Ref.class).addAnnotation(Effect.class).withProperty("predicate", MyCondition.class)
+                            .withProperty("type", EffectType.SHOW).modify();
+                        group.find(Ref.class).addAnnotation(Effect.class).withProperty("predicate", MyCondition.class)
+                            .withProperty("type", EffectType.ENABLE).modify();
+                    }
+
+                }
+
+                interface Ref extends Modification.Reference {
+                }
+            }
+
+            final var response = buildTestUiSchema(ModifiedSettings.class);
+            assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.elements[0].rule.effect").isString().isEqualTo("SHOW");
+
+        }
+
     }
 
 }

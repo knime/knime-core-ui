@@ -44,60 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Mar 2026 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effects;
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
+/**
+ * Utility for creating and merging {@link Effects} annotation instances programmatically.
+ *
+ * @author Paul Bärnreuther
+ */
+public final class EffectsUtil {
 
+    private EffectsUtil() {
     }
 
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
+    /**
+     * Creates an {@link Effects} annotation instance wrapping the given effects.
+     *
+     * @param effects the effects to wrap; must not be empty
+     * @return an implementation of {@link Effects}
+     */
+    public static Effects createEffects(final Effect[] effects) {
+        return new Effects() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Effects.class;
+            }
+
+            @Override
+            public Effect[] value() {
+                return effects;
+            }
+
+        };
     }
 
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
+    /**
+     * Merges two nullable {@link Effects} instances. The first argument's effects come before the second's (higher
+     * priority). Returns {@code null} if both are {@code null}.
+     *
+     * @param first higher-priority effects, may be {@code null}
+     * @param second lower-priority effects, may be {@code null}
+     * @return merged {@link Effects}, or {@code null} if both inputs are {@code null}
+     */
+    public static Effects merge(final Effects first, final Effects second) {
+        if (first == null) {
+            return second;
+        }
+        if (second == null) {
+            return first;
+        }
+        final var firstEffects = Arrays.stream(first.value()).toList();
+        final var filteredSecond = Arrays.stream(second.value())
+            .filter(e -> firstEffects.stream().noneMatch(f -> f.predicate().equals(e.predicate()) && f.type().equals(e.type())));
+        final var merged = Stream.concat(firstEffects.stream(), filteredSecond).toArray(Effect[]::new);
+        return createEffects(merged);
     }
-
-    @Section(title = "Inject Fallback Dialog", sideDrawer = true)
-    interface InjectFallbackDialogSideDrawerSection {
-    }
-
-    @Section(title = "String with Suggestions", sideDrawer = true)
-    interface StringWithSuggestionsSection {
-    }
-
-    @Section(title = "Multiple @Effect annotations", sideDrawer = true)
-    interface MultipleEffectsSection {
-    }
-
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.class)
-    HiddenFeatureNewFileSelectionParameters m_newFileSelection = new HiddenFeatureNewFileSelectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
-
-    @Layout(InjectFallbackDialogSideDrawerSection.class)
-    HiddenFeatureInjectFallbackDialog m_hiddenFeatureInjectFallbackDialog = new HiddenFeatureInjectFallbackDialog();
-
-    @Layout(StringWithSuggestionsSection.class)
-    HiddenFeatureStringWithSuggestionsParameters m_stringWithSuggestions =
-        new HiddenFeatureStringWithSuggestionsParameters();
-
-    @Layout(MultipleEffectsSection.class)
-    HiddenFeatureMultipleEffectsParameters m_multipleEffects = new HiddenFeatureMultipleEffectsParameters();
 
 }

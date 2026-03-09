@@ -55,8 +55,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
@@ -93,13 +91,14 @@ public @interface Widget {
     boolean advanced() default false;
 
     /**
-     * Add an effect annotation here as an alternative to putting it on the annotated field directly. if an effect
-     * annotation also exists on the field, an error is thrown.
+     * Add effect annotations here as an alternative to putting them on the annotated field directly. These are combined
+     * with any {@link Effect} annotations placed directly on the field. See {@link Effect} for how multiple effects are
+     * resolved.
      *
-     * @return whether the widget should be disabled or hidden.
+     * @return the effects that should apply to the widget.
      * @see Effect
      *
      */
-    Effect effect() default @Effect(predicate = EffectPredicateProvider.class, type = EffectType.SHOW);
+    Effect[] effect() default {};
 
 }
