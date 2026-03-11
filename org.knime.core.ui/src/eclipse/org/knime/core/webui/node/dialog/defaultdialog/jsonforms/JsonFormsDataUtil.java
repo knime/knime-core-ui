@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -269,14 +270,30 @@ public final class JsonFormsDataUtil {
 
     private static class ColorDeserializer extends JsonDeserializer<Color> {
 
+        private static final Pattern SIX_DIGIT_HEX_PATTERN = Pattern.compile("#?[0-9a-fA-F]{6}");
+
+        private static final Pattern THREE_DIGIT_HEX_PATTERN = Pattern.compile("#?[0-9a-fA-F]{3}");
+
         @Override
         public Color deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
             final var value = p.getValueAsString();
-            if (value == null || !value.matches("#?[0-9a-fA-F]{6}")) {
-                throw ctxt.weirdStringException(value, Color.class, "Expected hex color in format #RRGGBB.");
+            if (value == null) {
+                return Color.WHITE;
             }
-            final var normalized = value.startsWith("#") ? value : "#" + value;
-            return Color.decode(normalized);
+
+            final var valueTrimmed = value.trim();
+
+            if (THREE_DIGIT_HEX_PATTERN.matcher(valueTrimmed).matches()) {
+                int offset = valueTrimmed.startsWith("#") ? 1 : 0;
+                char r = valueTrimmed.charAt(offset);
+                char g = valueTrimmed.charAt(offset + 1);
+                char b = valueTrimmed.charAt(offset + 2);
+                return Color.decode("#" + r + r + g + g + b + b);
+            }
+            if (SIX_DIGIT_HEX_PATTERN.matcher(valueTrimmed).matches()) {
+                return Color.decode(valueTrimmed.startsWith("#") ? valueTrimmed : ("#" + valueTrimmed));
+            }
+            return Color.WHITE;
         }
     }
 
@@ -388,7 +405,8 @@ public final class JsonFormsDataUtil {
      */
     public static void traverseWithIndices(final JsonNode jsonNode, final List<List<String>> paths,
         final List<Integer> indices, final BiConsumer<List<Integer>, JsonNode> consumer) {
-        traverseWithIndicesInternal(jsonNode, paths, indices).forEach(pair -> consumer.accept(pair.getFirst(), pair.getSecond()));
+        traverseWithIndicesInternal(jsonNode, paths, indices)
+            .forEach(pair -> consumer.accept(pair.getFirst(), pair.getSecond()));
     }
 
     private static List<Pair<List<Integer>, JsonNode>> traverseWithIndicesInternal(final JsonNode jsonNode,
@@ -440,8 +458,8 @@ public final class JsonFormsDataUtil {
             return new Pair<>(List.of(List.of()), lastSegment);
         }
 
-        final var parentPaths = Stream.concat(paths.subList(0, paths.size() - 1).stream(), Stream.of(parentLastPath))
-            .toList();
+        final var parentPaths =
+            Stream.concat(paths.subList(0, paths.size() - 1).stream(), Stream.of(parentLastPath)).toList();
         return new Pair<>(parentPaths, lastSegment);
     }
 

@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil.getMapper;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -206,10 +205,38 @@ class JsonFormsDataUtilTest {
     }
 
     @Test
-    void testDeserializationOfInvalidColorFails() {
-        var invalidColorJson = getMapper().createObjectNode().put("color", "invalid");
+    void testDeserializationOfSixDigitColors() throws JsonProcessingException {
+        // standard six-digit color with leading '#'
+        var sixDigitColorJson = getMapper().createObjectNode().put("color", "#AABBCC");
+        var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(sixDigitColorJson, TestColorSettings.class);
+        assertEquals(new Color(0xAA, 0xBB, 0xCC), deserialised.m_color);
+        // six-digit color without leading '#'
+        var sixDigitColorWithoutHashJson = getMapper().createObjectNode().put("color", "AABBCC");
+        deserialised = JsonFormsDataUtil.toDefaultNodeSettings(sixDigitColorWithoutHashJson, TestColorSettings.class);
+        assertEquals(new Color(0xAA, 0xBB, 0xCC), deserialised.m_color);
+        // six-digit color with leading and trailing whitespace
+        var sixDigitColorWithWhitespaceJson = getMapper().createObjectNode().put("color", "  #AABBCC  ");
+        deserialised =
+            JsonFormsDataUtil.toDefaultNodeSettings(sixDigitColorWithWhitespaceJson, TestColorSettings.class);
+        assertEquals(new Color(0xAA, 0xBB, 0xCC), deserialised.m_color);
+    }
 
-        assertThrows(JsonProcessingException.class,
-            () -> JsonFormsDataUtil.toDefaultNodeSettings(invalidColorJson, TestColorSettings.class));
+    @Test
+    void testDeserializationOfThreeDigitColorsExpandsToEquivalentSixDigitColorValue() throws JsonProcessingException {
+        var threeDigitColorJson = getMapper().createObjectNode().put("color", "#ABC");
+
+        var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(threeDigitColorJson, TestColorSettings.class);
+        assertEquals(new Color(0xAA, 0xBB, 0xCC), deserialised.m_color);
+    }
+
+    @Test
+    void testDeserializationOfInvalidColorsFallsBackToWhite() throws JsonProcessingException {
+        var invalidColorJson = getMapper().createObjectNode().put("color", "invalid");
+        var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(invalidColorJson, TestColorSettings.class);
+        assertEquals(Color.WHITE, deserialised.m_color);
+
+        invalidColorJson = getMapper().createObjectNode().put("color", "#GG");
+        deserialised = JsonFormsDataUtil.toDefaultNodeSettings(invalidColorJson, TestColorSettings.class);
+        assertEquals(Color.WHITE, deserialised.m_color);
     }
 }
