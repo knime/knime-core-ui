@@ -52,6 +52,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.awt.Color;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectio
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -763,6 +765,36 @@ public class UpdatesUtilTest {
             assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
                 .isEqualTo("#/properties/model/properties/textMessage");
             assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("message");
+        }
+
+        @Test
+        void testColorPreviewProvider() {
+            class TestSettings implements NodeParameters {
+
+                static final class MyColorPreviewProvider implements StateProvider<ColorPreview.Preview> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                    }
+
+                    @Override
+                    public ColorPreview.Preview computeState(final NodeParametersInput context) {
+                        return new ColorPreview.Palette(new Color[]{Color.RED, Color.GREEN, Color.BLUE});
+                    }
+                }
+
+                @ColorPreview(MyColorPreviewProvider.class)
+                Void m_colorPreview;
+            }
+
+            final Map<SettingsType, WidgetGroup> settings = Map.of(SettingsType.MODEL, new TestSettings());
+            final var response = buildUpdates(settings);
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
+                .isEqualTo("#/properties/model/properties/colorPreview");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+                .isEqualTo("previewColors");
         }
 
         @Test

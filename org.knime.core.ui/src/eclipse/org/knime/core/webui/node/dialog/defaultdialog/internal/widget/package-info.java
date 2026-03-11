@@ -103,6 +103,21 @@
  * </table>
  * <br>
  *
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <caption>Type to Internal Widget Mapping</caption>
+ * <tr>
+ * <th>Type</th>
+ * <th>Internal Widget</th>
+ * <th>When to Use</th>
+ * </tr>
+ * <tr>
+ * <td>{@link Void}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview ColorPreview}</td>
+ * <td>Displaying a color palette or color gradient</td>
+ * </tr>
+ * </table>
+ * <br>
+ *
  * <h3>Additional internal widgets that are not tied to a specific type or public widget:</h3>
  * <ul>
  * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal

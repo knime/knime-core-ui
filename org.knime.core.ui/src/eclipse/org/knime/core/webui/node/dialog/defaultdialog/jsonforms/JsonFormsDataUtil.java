@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -60,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -162,8 +160,7 @@ public final class JsonFormsDataUtil {
         CredentialsUtil.addSerializerAndDeserializer(module);
         FSLocationJsonSerializationUtil.addSerializerAndDeserializer(module);
         DataTypeSerializationUtil.addSerializerAndDeserializer(module);
-        module.addSerializer(Color.class, new ColorSerializer());
-        module.addDeserializer(Color.class, new ColorDeserializer());
+        ColorJsonSerializationUtil.addSerializerAndDeserializer(module);
 
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
@@ -256,44 +253,6 @@ public final class JsonFormsDataUtil {
             var timeZone = ZoneId.of(timeZoneText);
 
             return ZonedDateTime.of(dateTime, timeZone);
-        }
-    }
-
-    private static class ColorSerializer extends JsonSerializer<Color> {
-
-        @Override
-        public void serialize(final Color value, final JsonGenerator gen, final SerializerProvider serializers)
-            throws IOException {
-            gen.writeString("#%02X%02X%02X".formatted(value.getRed(), value.getGreen(), value.getBlue()));
-        }
-    }
-
-    private static class ColorDeserializer extends JsonDeserializer<Color> {
-
-        private static final Pattern SIX_DIGIT_HEX_PATTERN = Pattern.compile("#?[0-9a-fA-F]{6}");
-
-        private static final Pattern THREE_DIGIT_HEX_PATTERN = Pattern.compile("#?[0-9a-fA-F]{3}");
-
-        @Override
-        public Color deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
-            final var value = p.getValueAsString();
-            if (value == null) {
-                return Color.WHITE;
-            }
-
-            final var valueTrimmed = value.trim();
-
-            if (THREE_DIGIT_HEX_PATTERN.matcher(valueTrimmed).matches()) {
-                int offset = valueTrimmed.startsWith("#") ? 1 : 0;
-                char r = valueTrimmed.charAt(offset);
-                char g = valueTrimmed.charAt(offset + 1);
-                char b = valueTrimmed.charAt(offset + 2);
-                return Color.decode("#" + r + r + g + g + b + b);
-            }
-            if (SIX_DIGIT_HEX_PATTERN.matcher(valueTrimmed).matches()) {
-                return Color.decode(valueTrimmed.startsWith("#") ? valueTrimmed : ("#" + valueTrimmed));
-            }
-            return Color.WHITE;
         }
     }
 

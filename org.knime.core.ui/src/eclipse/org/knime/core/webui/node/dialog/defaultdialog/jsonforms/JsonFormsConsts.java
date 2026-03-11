@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
@@ -226,6 +227,11 @@ public final class JsonFormsConsts {
         public static final String TAG_MESSAGE = "message";
 
         /**
+         * Used for providing the preview data of a {@link ColorPreview}
+         */
+        public static final String TAG_PREVIEW_COLORS = "previewColors";
+
+        /**
          * Used for providing dirty state in {@link DirtyTracker}
          */
         public static final String TAG_MAKE_DIRTY = "makeDirty";
@@ -355,6 +361,8 @@ public final class JsonFormsConsts {
             public static final String DYNAMIC_INPUT_TYPE = "dynamicInput";
 
             public static final String DIRTY_TRACKER = "dirtyTracker";
+
+            public static final String COLOR_PREVIEW = "colorPreview";
 
         }
 

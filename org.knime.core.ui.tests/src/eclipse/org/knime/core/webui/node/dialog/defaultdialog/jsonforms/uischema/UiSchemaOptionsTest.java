@@ -80,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdSt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
@@ -1619,6 +1620,35 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dirtyTracker");
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("makeDirty");
 
+    }
+
+    @Test
+    void testColorPreview() {
+
+        class TestSettings implements NodeParameters {
+
+            static final class PreviewProvider implements StateProvider<ColorPreview.Preview> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    throw new UnsupportedOperationException("This method should never be called");
+                }
+
+                @Override
+                public ColorPreview.Preview computeState(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    return new ColorPreview.Palette(new Color[]{Color.RED, Color.BLUE});
+                }
+            }
+
+            @ColorPreview(PreviewProvider.class)
+            Void m_colorPreview;
+        }
+
+        var response = buildTestUiSchema(TestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].id").isString().contains("colorPreview");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("colorPreview");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("previewColors");
     }
 
     static final class CustomStaticMinValidation extends MinValidation {

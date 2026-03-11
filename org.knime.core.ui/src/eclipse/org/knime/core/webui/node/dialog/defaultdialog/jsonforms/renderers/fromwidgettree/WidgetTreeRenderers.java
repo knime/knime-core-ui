@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectio
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
@@ -186,7 +187,9 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(node -> new DirtyTrackerRenderer(getPresentAnnotation(node, DirtyTracker.class)),
             hasAnnotationAssertingTypes(DirtyTracker.class, Void.class)),
         new WidgetTreeNodeTester(node -> new TextMessageRenderer(getPresentAnnotation(node, TextMessage.class)),
-            hasAnnotationAssertingTypes(TextMessage.class, Void.class))};
+            hasAnnotationAssertingTypes(TextMessage.class, Void.class)),
+        new WidgetTreeNodeTester(node -> new ColorPreviewRenderer(getPresentAnnotation(node, ColorPreview.class)),
+            hasAnnotationAssertingTypes(ColorPreview.class, Void.class))};
 
     private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {
         return node -> node.getPossibleAnnotations().contains(annotationClass)
