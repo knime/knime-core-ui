@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  type Ref,
-  computed,
-  onMounted,
-  reactive,
-  ref,
-  toRefs,
-  watch,
-} from "vue";
+import { type Ref, computed, onMounted, reactive, ref, toRefs } from "vue";
 
 import {
   type ColumnConfig,
@@ -163,58 +155,68 @@ const hasDynamicRowHeight = computed(
     settings.value.rowHeightMode === RowHeightMode.AUTO,
 );
 
-const getCurrentDataConfig = (sizes: number[]) =>
+const structuralDataConfig = computed(() =>
   getDataConfig({
     settings: props.settings,
-    columnSizes: sizes,
+    columnSizes: [],
     enableRowResizing: props.enableRowResizing,
     hasDynamicRowHeight: hasDynamicRowHeight.value,
     currentRowHeight,
     ...reactive(props.header),
-  });
-
+  }),
+);
 const structuralColumnConfigs = computed(
-  () => getCurrentDataConfig([]).columnConfigs,
+  () => structuralDataConfig.value.columnConfigs,
 );
-const rowConfig = computed(() => getCurrentDataConfig([]).rowConfig);
-const columnConfigs = reactive<ColumnConfig[]>([]);
+const rowConfig = computed(() => structuralDataConfig.value.rowConfig);
 
-watch(
-  structuralColumnConfigs,
-  (newConfigs) => {
-    const nextColumnConfigs = newConfigs.map((columnConfig, index) =>
-      reactive({
-        ...columnConfig,
-        size:
-          columnSizes.value[index] ??
-          columnConfigs[index]?.size ??
-          columnConfig.size,
-      }),
-    );
-    columnConfigs.splice(0, columnConfigs.length, ...nextColumnConfigs);
-    emit("updateColumnConfigs", columnConfigs);
-  },
-  { immediate: true },
+const rowColumnKeys = computed(() =>
+  structuralColumnConfigs.value.map((columnConfig) => columnConfig.key),
 );
-
-watch(
-  columnSizes,
-  (newSizes) => {
-    columnConfigs.forEach((columnConfig, index) => {
-      columnConfig.size = newSizes[index] ?? columnConfig.size;
-    });
-    emit("updateColumnConfigs", columnConfigs);
-  },
-  { deep: true },
+const rowColumnSizes = computed(() =>
+  structuralColumnConfigs.value.map(
+    (columnConfig, index) => columnSizes.value[index] ?? columnConfig.size,
+  ),
+);
+const rowColumnFormatters = computed(() =>
+  structuralColumnConfigs.value.map((columnConfig) => columnConfig.formatter),
+);
+const rowColumnClassGenerators = computed(() =>
+  structuralColumnConfigs.value.map(
+    (columnConfig) => columnConfig.classGenerator,
+  ),
+);
+const rowColumnHasSlotContent = computed(() =>
+  structuralColumnConfigs.value.map(
+    (columnConfig) => columnConfig.hasSlotContent,
+  ),
+);
+const rowColumnHasDataValueView = computed(() =>
+  structuralColumnConfigs.value.map(
+    (columnConfig) => columnConfig.hasDataValueView,
+  ),
+);
+const rowColumnNoPadding = computed(() =>
+  structuralColumnConfigs.value.map((columnConfig) => columnConfig.noPadding),
+);
+const rowColumnNoPaddingLeft = computed(() =>
+  structuralColumnConfigs.value.map(
+    (columnConfig) => columnConfig.noPaddingLeft,
+  ),
+);
+const rowColumnClickables = computed(() =>
+  structuralColumnConfigs.value.map((columnConfig) =>
+    Boolean(columnConfig.popoverRenderer),
+  ),
 );
 
 const dataConfig = computed(() => ({
-  columnConfigs,
+  columnConfigs: structuralColumnConfigs.value,
   rowConfig: rowConfig.value,
 }));
 
 const columnIds = computed(() =>
-  columnConfigs.map((columnConfig) => columnConfig.id),
+  structuralColumnConfigs.value.map((columnConfig) => columnConfig.id),
 );
 
 const tableConfig = computed(() =>
@@ -335,6 +337,15 @@ const useCodeRenderer = (index: number) =>
       :current-bottom-selection="selection?.bottom"
       :total-selected="selection?.totalSelected"
       :data-config="dataConfig"
+      :row-column-keys="rowColumnKeys"
+      :row-column-sizes="rowColumnSizes"
+      :row-column-formatters="rowColumnFormatters"
+      :row-column-class-generators="rowColumnClassGenerators"
+      :row-column-has-slot-content="rowColumnHasSlotContent"
+      :row-column-has-data-value-view="rowColumnHasDataValueView"
+      :row-column-no-padding="rowColumnNoPadding"
+      :row-column-no-padding-left="rowColumnNoPaddingLeft"
+      :row-column-clickables="rowColumnClickables"
       :table-config="tableConfig"
       :num-rows-above="rows.numRowsAbove"
       :num-rows-below="rows.numRowsBelow"
