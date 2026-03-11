@@ -230,6 +230,23 @@ describe("TableViewDisplay.vue", () => {
           });
         });
 
+        it("keeps column config identities stable on size updates", async () => {
+          const wrapper = shallowMountDisplay({ props });
+          const initialColumnConfigs = getColumnConfigs(wrapper);
+
+          useColumnSizesMock.columnSizes.value = [60, 70, 80];
+          await wrapper.vm.$nextTick();
+
+          const resizedColumnConfigs = getColumnConfigs(wrapper);
+          expect(resizedColumnConfigs).toBe(initialColumnConfigs);
+          expect(resizedColumnConfigs?.[0]).toBe(initialColumnConfigs?.[0]);
+          expect(resizedColumnConfigs?.[1]).toBe(initialColumnConfigs?.[1]);
+          expect(resizedColumnConfigs?.[2]).toBe(initialColumnConfigs?.[2]);
+          expect(resizedColumnConfigs?.[0].size).toBe(60);
+          expect(resizedColumnConfigs?.[1].size).toBe(70);
+          expect(resizedColumnConfigs?.[2].size).toBe(80);
+        });
+
         it("sets filter config", () => {
           const customColumnFilter = { is: "Dropdown", modelValue: "foo" };
           const columnFiltersMap = new Map();

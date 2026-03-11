@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type Ref, computed, onMounted, reactive, ref, toRefs } from "vue";
+import {
+  type Ref,
+  computed,
+  onMounted,
+  reactive,
+  ref,
+  toRefs,
+  watch,
+} from "vue";
 
 import {
   type ColumnConfig,
@@ -155,21 +163,58 @@ const hasDynamicRowHeight = computed(
     settings.value.rowHeightMode === RowHeightMode.AUTO,
 );
 
-const dataConfig = computed(() => {
-  const conf = getDataConfig({
+const getCurrentDataConfig = (sizes: number[]) =>
+  getDataConfig({
     settings: props.settings,
-    columnSizes: columnSizes.value,
+    columnSizes: sizes,
     enableRowResizing: props.enableRowResizing,
     hasDynamicRowHeight: hasDynamicRowHeight.value,
     currentRowHeight,
     ...reactive(props.header),
   });
-  emit("updateColumnConfigs", conf.columnConfigs);
-  return conf;
-});
+
+const structuralColumnConfigs = computed(
+  () => getCurrentDataConfig([]).columnConfigs,
+);
+const rowConfig = computed(() => getCurrentDataConfig([]).rowConfig);
+const columnConfigs = reactive<ColumnConfig[]>([]);
+
+watch(
+  structuralColumnConfigs,
+  (newConfigs) => {
+    const nextColumnConfigs = newConfigs.map((columnConfig, index) =>
+      reactive({
+        ...columnConfig,
+        size:
+          columnSizes.value[index] ??
+          columnConfigs[index]?.size ??
+          columnConfig.size,
+      }),
+    );
+    columnConfigs.splice(0, columnConfigs.length, ...nextColumnConfigs);
+    emit("updateColumnConfigs", columnConfigs);
+  },
+  { immediate: true },
+);
+
+watch(
+  columnSizes,
+  (newSizes) => {
+    columnConfigs.forEach((columnConfig, index) => {
+      columnConfig.size = newSizes[index] ?? columnConfig.size;
+    });
+    emit("updateColumnConfigs", columnConfigs);
+  },
+  { deep: true },
+);
+
+const dataConfig = computed(() => ({
+  columnConfigs,
+  rowConfig: rowConfig.value,
+}));
 
 const columnIds = computed(() =>
-  dataConfig.value.columnConfigs.map((columnConfig) => columnConfig.id),
+  columnConfigs.map((columnConfig) => columnConfig.id),
 );
 
 const tableConfig = computed(() =>
