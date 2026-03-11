@@ -244,6 +244,9 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
       .getElementsByClassName("sub-item-icon-name-wrapper")[0]
       .cloneNode(true) as HTMLElement;
     wrapperElement.classList.remove("sub-item-icon-name-wrapper");
+    wrapperElement.style.display = "flex";
+    wrapperElement.style.alignItems = "center";
+    wrapperElement.style.gap = "var(--kds-spacing-container-0-12x)";
     dragGhostContent = wrapperElement;
   } else {
     dragGhostContent = document.createElement("div");
@@ -397,6 +400,7 @@ const fallbackType = computed(() => {
                   class="sub-item-icon"
                   :icon-name="subItem.type.id"
                   :icon-title="subItem.type.title"
+                  :disabled="!subItem.supported"
                 />
                 <KdsDataType
                   v-else-if="
@@ -405,6 +409,7 @@ const fallbackType = computed(() => {
                   size="small"
                   :icon-name="fallbackType.id"
                   :icon-title="fallbackType.text"
+                  :disabled="!subItem.supported"
                 />
                 <span class="sub-item-name">
                   {{ subItem.name }}
@@ -484,6 +489,11 @@ const fallbackType = computed(() => {
   }
 }
 
+.collapser-content {
+  padding-top: var(--kds-spacing-container-0-12x);
+  padding-bottom: var(--kds-spacing-container-0-12x);
+}
+
 .top-card {
   --in-out-item-icon-size: 12px;
 
@@ -554,12 +564,6 @@ const fallbackType = computed(() => {
   min-width: 0;
 }
 
-.collapser-content {
-  font-size: 11px;
-  width: 100%;
-  padding-top: 1px;
-}
-
 .sub-item {
   display: flex;
   font: var(--kds-font-base-interactive-small);
@@ -585,7 +589,7 @@ const fallbackType = computed(() => {
   width: 100%;
 
   &.draggable {
-    cursor: grab;
+    cursor: pointer;
   }
 }
 
@@ -621,7 +625,7 @@ const fallbackType = computed(() => {
   }
 }
 
-.sub-item-content:hover .sub-item-icon-name-wrapper:not(.selected) {
+.sub-item:hover {
   background-color: var(--kds-color-background-neutral-hover);
   border-radius: var(--kds-border-radius-container-0-31x);
 }
@@ -639,17 +643,16 @@ const fallbackType = computed(() => {
   padding-left: var(--kds-spacing-container-0-25x);
   padding-right: var(--kds-spacing-container-0-25x);
   border-radius: var(--kds-border-radius-container-0-31x);
-  cursor: grab;
+  cursor: pointer;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
   display: flex;
   align-items: center;
   min-width: 0;
-  flex: 1 1 auto;
 
   &:active {
-    cursor: grabbing;
+    cursor: pointer;
   }
 
   &:hover {
