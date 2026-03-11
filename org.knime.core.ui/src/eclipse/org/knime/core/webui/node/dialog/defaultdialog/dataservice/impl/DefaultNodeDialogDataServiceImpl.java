@@ -128,8 +128,9 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         return m_triggerInvocationHandler;
     }
 
-    static NodeParametersInput createContext() {
-        return NodeParametersUtil.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
+    NodeParametersInput createContext() {
+        return NodeParametersUtil.createDefaultNodeSettingsContextWithServiceRegistry(
+            DataServiceContext.get().getInputSpecs(), m_serviceRegistry);
     }
 
     @Override

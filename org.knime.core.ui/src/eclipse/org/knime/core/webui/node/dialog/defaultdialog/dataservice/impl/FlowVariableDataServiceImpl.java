@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl.createContext;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_DATA;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
@@ -66,11 +65,13 @@ import org.knime.core.node.config.ConfigEditTreeModel;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
+import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;
@@ -114,6 +115,10 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
         final var context = createContext();
         return Arrays.asList(variableTypes).stream().flatMap(type -> getPossibleFlowVariables(context, type).stream())
             .collect(Collectors.toList());
+    }
+
+    static NodeParametersInput createContext() {
+        return NodeParametersUtil.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
     }
 
     private static List<PossibleFlowVariable> getPossibleFlowVariables(final NodeParametersInput context,
