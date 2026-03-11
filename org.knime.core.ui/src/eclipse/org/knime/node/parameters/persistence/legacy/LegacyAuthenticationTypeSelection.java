@@ -324,7 +324,7 @@ public final class LegacyAuthenticationTypeSelection implements NodeParameters {
         interface UsernameAndPasswordModRef extends ParameterReference<Credentials>, Modification.Reference {
         }
 
-        interface UsernameAndPasswordRef extends ParameterReference<Credentials> {
+        public interface UsernameAndPasswordRef extends ParameterReference<Credentials> {
         }
 
         static final class RemovePasswordOnTypeChangeProvider extends RemovePasswordProvider {
@@ -481,10 +481,13 @@ public final class LegacyAuthenticationTypeSelection implements NodeParameters {
         @ChoicesProvider(CredentialFlowVariablesProvider.class)
         @Modification.WidgetReference(CredentialsModRef.class)
         @Effect(predicate = IsCredentialsAuth.class, type = EffectType.SHOW)
+        @ValueReference(CredentialsFlowVarNameRef.class)
         String m_credentialsFlowVarName;
 
         interface CredentialsModRef extends ParameterReference<String>, Modification.Reference {
         }
+
+        public interface CredentialsFlowVarNameRef extends ParameterReference<String> {}
 
     }
 
