@@ -201,8 +201,8 @@ const browseAction: Record<Exclude<TabType, "CONNECTED">, string> = {
     />
     <div class="flex-grow">
       <ConnectionPreventsTab
-        v-if="isConnected && modelValue.fsCategory !== 'CONNECTED'"
-        :browse-action="browseAction[modelValue.fsCategory]"
+        v-if="isConnected && tabType !== 'CONNECTED'"
+        :browse-action="browseAction[tabType]"
       />
       <UrlTab
         v-else-if="modelValue.fsCategory === 'CUSTOM_URL'"
