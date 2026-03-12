@@ -6,6 +6,7 @@
    <extension-point id="createDataCellParameters" name="createDataCellParameters" schema="schema/CreateDataCellParameters.exsd"/>
    <extension-point id="defaultNodeDialogWidget" name="defaultNodeDialogWidget" schema="schema/DefaultNodeDialogWidget.exsd"/>
    <extension-point id="org.knime.core.ui.filterOperators" name="filterOperators" schema="schema/FilterOperators.exsd"/>
+   <extension-point id="org.knime.core.ui.HeadlessContentService" name="Headless Content Service" schema="schema/HeadlessContentService.exsd"/>
    <extension
          point="org.knime.core.RpcTransportFactory">
       <RpcTransportFactory
