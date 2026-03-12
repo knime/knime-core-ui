@@ -112,7 +112,7 @@ class ColumnNameAutoGuessValueProviderTest {
 
         final var simulator = new DialogUpdateSimulator(Map.of(SettingsType.MODEL, new TestParameters()), context);
 
-        final var result = simulator.simulateAfterOpenDialog();
+        final var result = simulator.simulateComputeOnParametersLoaded();
 
         final var valueUpdate = result.getValueUpdateAt("columnName");
         assertThat(valueUpdate).isEqualTo("string");
@@ -128,7 +128,7 @@ class ColumnNameAutoGuessValueProviderTest {
         final var simulator =
             new DialogUpdateSimulator(Map.of(SettingsType.MODEL, new TestParameters("other_column")), context);
 
-        final var result = simulator.simulateAfterOpenDialog();
+        final var result = simulator.simulateComputeOnParametersLoaded();
 
         assertThrows(NullPointerException.class, () -> result.getValueUpdateAt("columnName"));
     }

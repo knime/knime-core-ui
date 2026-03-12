@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 
 /**
  * A {@link StateProvider} that updates its value each time the dialog is opened. The new value is computed based on the
@@ -101,7 +102,7 @@ abstract class UpdateOnOpenValueProvider<S> implements StateProvider<S> {
 
     @Override
     public void init(final StateProviderInitializer initializer) {
-        initializer.computeAfterOpenDialog();
+        ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
         m_currentValueSupplier = initializer.getValueSupplier(m_selfReference);
     }
 

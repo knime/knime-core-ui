@@ -69,6 +69,7 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 
 /**
  * Use this simulator to simulate the updates that are defined by {@link StateProvider}s within {@link NodeParameters}
@@ -177,6 +178,13 @@ public class DialogUpdateSimulator implements UpdateSimulator {
     @Override
     public UpdateSimulatorResult simulateAfterOpenDialog() {
         return simulateTrigger(new Trigger.IdTrigger("after-open-dialog"));
+    }
+
+    /**
+     * @return triggers all state providers using {@link StateProviderInitializerInternal#computeOnParametersLoaded()}
+     */
+    public UpdateSimulatorResult simulateComputeOnParametersLoaded() {
+        return simulateTrigger(new Trigger.IdTrigger("on-loaded-params"));
     }
 
 }
