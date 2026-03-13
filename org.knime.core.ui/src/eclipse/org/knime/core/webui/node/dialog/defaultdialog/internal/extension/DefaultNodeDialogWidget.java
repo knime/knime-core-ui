@@ -103,7 +103,31 @@ public interface DefaultNodeDialogWidget {
      *
      * @return the RPC data service specific to this widget.
      */
-    Optional<Object> getRpcDataService();
+    default Optional<Object> getRpcDataService() {
+        return Optional.empty();
+    }
+
+    /**
+     * See {@link #getRpcDataService}. Provide an RPC service that is capable of deactivation and disposal.
+     *
+     * @return The RPC service for this widget, or null if no such service is required.
+     *
+     * @since 5.12
+     */
+    default CustomWidgetRpcService getCustomWidgetRpcService() {
+        return getRpcDataService().map(service -> new CustomWidgetRpcService(service, null, null)).orElse(null);
+    }
+
+    /**
+     * A record to provide an RPC service that is capable of deactivation and disposal.
+     *
+     * @param rpcService see {@link #getRpcDataService}
+     * @param onDeactivate called whenever the dialog is no longer active. Can be null.
+     * @param onDispose called when the node is disposed, e.g. when it is deleted or when the workflow is closed. Can be
+     *            null.
+     */
+    public record CustomWidgetRpcService(Object rpcService, Runnable onDeactivate, Runnable onDispose) {
+    }
 
     /**
      * Define what additional annotations and properties of annotations that should be linked to the state provider

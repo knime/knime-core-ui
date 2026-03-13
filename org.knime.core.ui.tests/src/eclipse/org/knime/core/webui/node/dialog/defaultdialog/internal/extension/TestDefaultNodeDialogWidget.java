@@ -57,6 +57,7 @@ import java.lang.annotation.Target;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.JsonDataType;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -144,6 +145,29 @@ public final class TestDefaultNodeDialogWidget implements DefaultNodeDialogWidge
     }
 
     private final TestRpcDataService m_rpcDataService = new TestRpcDataService();
+
+    private final AtomicInteger m_onDeactivateCallCount = new AtomicInteger();
+
+    private final AtomicInteger m_onDisposeCallCount = new AtomicInteger();
+
+    void resetLifecycleCounts() {
+        m_onDeactivateCallCount.set(0);
+        m_onDisposeCallCount.set(0);
+    }
+
+    int getOnDeactivateCallCount() {
+        return m_onDeactivateCallCount.get();
+    }
+
+    int getOnDisposeCallCount() {
+        return m_onDisposeCallCount.get();
+    }
+
+    @Override
+    public CustomWidgetRpcService getCustomWidgetRpcService() {
+        return new CustomWidgetRpcService(m_rpcDataService, m_onDeactivateCallCount::incrementAndGet,
+            m_onDisposeCallCount::incrementAndGet);
+    }
 
     @Override
     public boolean isApplicable(final TreeNode<WidgetGroup> node) {
