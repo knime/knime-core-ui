@@ -63,6 +63,7 @@ import java.util.function.Supplier;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.PersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
@@ -176,8 +177,9 @@ public @interface DynamicParameters {
             final var widgetTree = new WidgetTreeFactory().createTree(dataClass);
             final var schema = buildSchema(dataClass, widgetTree, parametersInput, dataMapper);
             final var uiSchema = buildUISchema(List.of(widgetTree), parametersInput);
+            final var serviceRegistry = ((NodeParametersInputImpl)parametersInput).getServiceRegistry().orElse(null);
             final var updates =
-                UpdatesUtil.constructUpdates(widgetTree, (ObjectNode)serializedData, parametersInput, null);
+                UpdatesUtil.constructUpdates(widgetTree, (ObjectNode)serializedData, parametersInput, serviceRegistry);
             final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandler =
                 () -> TriggerInvocationHandler.fromWidgetTrees(List.of(widgetTree), parametersInput);
 

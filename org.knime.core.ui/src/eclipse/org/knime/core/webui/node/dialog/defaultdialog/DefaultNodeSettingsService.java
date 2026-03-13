@@ -179,8 +179,8 @@ public final class DefaultNodeSettingsService implements NodeSettingsService {
         }
     }
 
-    private static NodeParametersInput createContext(final PortObjectSpec[] specs) {
-        return NodeParametersUtil.createDefaultNodeSettingsContext(specs);
+    private NodeParametersInput createContext(final PortObjectSpec[] specs) {
+        return NodeParametersUtil.createDefaultNodeSettingsContextWithServiceRegistry(specs, m_serviceRegistry);
     }
 
     /**

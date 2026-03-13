@@ -69,6 +69,7 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 
@@ -97,6 +98,8 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     private final URLConfiguration m_urlConfiguration;
 
     private final WizardNode<?, ?> m_wizardNode;
+
+    private NodeDialogServiceRegistry m_serviceRegistry;
 
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
@@ -131,8 +134,8 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     @SuppressWarnings("javadoc")
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null, null,
-            null, null);
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null, null, null,
+            null);
     }
 
     /**
@@ -317,5 +320,18 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         CheckUtils.checkNotNull(m_wizardNode,
             "No wizard node is available in this context. This method should be called only for widgets.");
         return m_wizardNode;
+    }
+
+    void setServiceRegistry(final NodeDialogServiceRegistry serviceRegistry) {
+        m_serviceRegistry = serviceRegistry;
+    }
+
+    /**
+     * Service registry needed for certain special rpc service calls. It's available in rpc calls of the default dialog.
+     *
+     * @return the service registry if available, otherwise an empty optional
+     */
+    public Optional<NodeDialogServiceRegistry> getServiceRegistry() {
+        return Optional.ofNullable(m_serviceRegistry);
     }
 }

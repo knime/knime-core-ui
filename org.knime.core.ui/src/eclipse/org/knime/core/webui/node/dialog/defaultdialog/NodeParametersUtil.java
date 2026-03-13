@@ -74,6 +74,7 @@ import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.data.util.InputPortUtil;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
@@ -99,6 +100,21 @@ public final class NodeParametersUtil {
      */
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortObjectSpec[] specs) {
         return createDefaultNodeSettingsContext(specs, null);
+    }
+
+    /**
+     * Method to create a new {@link NodeParametersInput} from input {@link PortObjectSpec PortObjectSpecs} and a
+     * service registry holding state for both the RPC and the Initial Data Service
+     *
+     * @param specs the non-null specs with which to create the schema
+     * @param serviceRegistry
+     * @return the newly created context
+     */
+    public static NodeParametersInput createDefaultNodeSettingsContextWithServiceRegistry(final PortObjectSpec[] specs,
+        final NodeDialogServiceRegistry serviceRegistry) {
+        final var context = (NodeParametersInputImpl)createDefaultNodeSettingsContext(specs);
+        context.setServiceRegistry(serviceRegistry);
+        return context;
     }
 
     /**
@@ -166,8 +182,8 @@ public final class NodeParametersUtil {
             portConfig = portsConfiguration;
         }
 
-        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, flowStack,
-            credentialsProvider, inPortObjects, dialogNode, portConfig, urlConfig, wizardNode);
+        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, flowStack, credentialsProvider,
+            inPortObjects, dialogNode, portConfig, urlConfig, wizardNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {
