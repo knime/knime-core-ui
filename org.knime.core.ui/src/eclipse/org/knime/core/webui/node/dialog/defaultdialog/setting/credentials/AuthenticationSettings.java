@@ -56,7 +56,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
@@ -147,7 +146,6 @@ public final class AuthenticationSettings extends BaseAuthenticationSettings {
     @CredentialsWidget
     @CredentialsWidgetInternal(hasPasswordProvider = RequiresPasswordProvider.class,
         hasUsernameProvider = RequiresUsernameProvider.class)
-    @Modification.WidgetReference(CredentialsRef.class)
     final Credentials m_credentials;
 
     /**
