@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSel
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
@@ -180,6 +181,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         TextAreaWidget.class, //
         TextInputWidget.class, //
         TextMessage.class, //
+        ColorPreview.class, //
         DirtyTracker.class, //
         TwinlistWidget.class, //
         TypedStringFilterWidgetInternal.class, //

@@ -79,6 +79,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
@@ -350,6 +351,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 UiSchema.TAG_MESSAGE, //
                 TextMessage.class, //
                 TextMessage::value, //
+                null //
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_PREVIEW_COLORS, //
+                ColorPreview.class, //
+                ColorPreview::value, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>(//
