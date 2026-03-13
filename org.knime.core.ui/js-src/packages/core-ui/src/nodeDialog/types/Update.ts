@@ -31,9 +31,9 @@ export interface Update {
   triggerInitially?: boolean;
 }
 
-export type IndicesValuePairs = { indices: number[]; value: unknown }[]; // synchronous computeBeforeOpenDialog results
-export type IndexIdsValuePairs = { indices: string[]; value: unknown }[]; // asynchronous results
-export type Pairs = IndicesValuePairs | IndexIdsValuePairs;
+export type IndicesValuePairs<T = unknown> = { indices: number[]; value: T }[]; // synchronous computeBeforeOpenDialog results
+export type IndexIdsValuePairs<T = unknown> = { indices: string[]; value: T }[]; // asynchronous results
+export type Pairs<T = unknown> = IndicesValuePairs<T> | IndexIdsValuePairs<T>;
 
 // value updates
 export interface ValueUpdateResult {

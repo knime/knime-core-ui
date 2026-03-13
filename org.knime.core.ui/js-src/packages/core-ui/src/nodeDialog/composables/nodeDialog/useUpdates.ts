@@ -196,6 +196,68 @@ const getToBeAdjustedSegments = (
   };
 };
 
+const isNullValueOrHasNonNullData = (value: DynamicSettings): boolean =>
+  value === null || value.data !== null;
+
+/**
+ * Dynamic settings updates are combined ui-state and value updates,
+ * so before resolving the ui-state update, we update
+ * underlying values.
+ *
+ * But we don't want to update values in case settings are provided with null data
+ * (since our contract in the backend is that in this case, only the ui state should be updated)
+ */
+const handleDynamicSettingsValueUpdate = ({
+  updateResult,
+  onValueUpdate,
+  indices,
+  newSettings,
+  resolveValueUpdateResult,
+  settingsIdContext,
+}: {
+  updateResult: UpdateResult;
+  onValueUpdate: (path: string, setValuePromise: Promise<void>) => void;
+  indices: number[];
+  newSettings: DialogSettings;
+  resolveValueUpdateResult: (params: {
+    updateResult: ValueUpdateResult;
+    onValueUpdate: (path: string, setValuePromise: Promise<void>) => void;
+    indices: number[];
+    newSettings: DialogSettings;
+    settingsIdContext?: SettingsIdContext;
+    skipIfEqual?: boolean;
+  }) => void;
+  settingsIdContext?: SettingsIdContext;
+}) => {
+  if (
+    isLocationUiStateUpdateResult(updateResult) &&
+    updateResult.providedOptionName === DYNAMIC_SETTINGS_KEY
+  ) {
+    const toBeUpdatedValues = (
+      updateResult.values as Pairs<DynamicSettings>
+    ).filter(({ value }) =>
+      isNullValueOrHasNonNullData(value as DynamicSettings),
+    ) as Pairs<DynamicSettings>;
+    if (toBeUpdatedValues.length > 0) {
+      const derivedValueUpdateResult: ValueUpdateResult = {
+        scope: updateResult.scope,
+        values: toBeUpdatedValues.map(({ indices, value }) => ({
+          indices,
+          value: value?.data ?? null,
+        })),
+      };
+      resolveValueUpdateResult({
+        updateResult: derivedValueUpdateResult,
+        onValueUpdate,
+        indices,
+        newSettings,
+        settingsIdContext,
+        skipIfEqual: true,
+      });
+    }
+  }
+};
+
 export default ({
   callStateProviderListener,
   callStateProviderListenerByIndices,
@@ -304,26 +366,15 @@ export default ({
           settingsIdContext,
         });
       } else {
-        if (
-          isLocationUiStateUpdateResult(updateResult) &&
-          updateResult.providedOptionName === DYNAMIC_SETTINGS_KEY
-        ) {
-          const derivedValueUpdateResult: ValueUpdateResult = {
-            scope: updateResult.scope,
-            values: updateResult.values.map(({ indices, value }) => ({
-              indices,
-              value: (value as DynamicSettings)?.data ?? null,
-            })),
-          };
-          resolveValueUpdateResult({
-            updateResult: derivedValueUpdateResult,
-            onValueUpdate,
-            indices,
-            newSettings,
-            settingsIdContext,
-            skipIfEqual: true,
-          });
-        }
+        handleDynamicSettingsValueUpdate({
+          updateResult,
+          onValueUpdate,
+          indices,
+          newSettings,
+          resolveValueUpdateResult,
+          settingsIdContext,
+        });
+
         const toLocation = <T>(indexLocation: T): T & StateProviderLocation => {
           if (isLocationBased(updateResult)) {
             return {
