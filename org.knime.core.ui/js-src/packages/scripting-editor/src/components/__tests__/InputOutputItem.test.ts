@@ -472,6 +472,7 @@ describe("InputOutputItem", () => {
         iconName: subItem?.type.id,
         iconTitle: subItem?.type.title,
         size: "small",
+        disabled: !subItem?.supported,
       });
     });
 
@@ -502,6 +503,7 @@ describe("InputOutputItem", () => {
           iconName,
           iconTitle,
           size: "small",
+          disabled: false,
         });
       },
     );
