@@ -92,7 +92,8 @@ final class TableCreatorNodeSettingsService implements NodeSettingsService {
 
     static Map<String, String> getDataTypesMap() {
         return DataTypeRegistry.getInstance().availableDataTypes().stream()
-            .collect(Collectors.toMap(DataTypeSerializer::typeToString, dt -> dt.getPreferredValueClass().getName()));
+            .collect(Collectors.toMap(DataTypeSerializer::typeToString, dt -> dt.getPreferredValueClass().getName(),
+                (l, r) -> l));
     }
 
     @Override
