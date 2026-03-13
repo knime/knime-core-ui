@@ -14,7 +14,7 @@ jobs:
       run:
         working-directory: org.knime.core.ui/js-src/packages/scripting-editor
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: org.knime.core.ui/js-src/package.json
