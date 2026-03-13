@@ -3,16 +3,15 @@ import { computed } from "vue";
 
 import HtmlRenderer from "@/tableView/renderers/HtmlRenderer.vue";
 import ImageRenderer from "@/tableView/renderers/ImageRenderer.vue";
-import MultiLineTextRenderer from "@/tableView/renderers/MultiLineTextRenderer.vue";
 import type { ColumnContentType } from "@/tableView/types/Table";
 
+import ColumnLabel from "./ColumnLabel.vue";
 import MissingValueCell from "./MissingValueCell.vue";
 
 const props = defineProps<{
   cell: { value: string; isMissing: boolean };
   columnName: string;
   displayColumnHeaders: boolean;
-  iconAlign: string;
   contentType: ColumnContentType;
   tileWidth: number;
   isResizeActive: boolean;
@@ -26,19 +25,13 @@ const emit = defineEmits<{
 
 const isHTML = computed(() => props.contentType === "html");
 const isImage = computed(() => props.contentType === "img_path");
-const isMultiLineText = computed(() => props.contentType === "multi_line_txt");
 </script>
 
 <template>
   <div class="tile-row">
-    <span v-if="displayColumnHeaders" class="column-label" :title="columnName"
-      >{{ columnName }}:</span
-    >
-    <div :title="isImage ? undefined : cell.value">
-      <MissingValueCell
-        v-if="cell.isMissing"
-        :style="{ alignSelf: iconAlign }"
-      />
+    <ColumnLabel v-if="displayColumnHeaders" :column-name="columnName" />
+    <div class="tile-value" :title="isImage ? undefined : cell.value">
+      <MissingValueCell v-if="cell.isMissing" />
       <ImageRenderer
         v-else-if="isImage"
         :include-data-in-html="isReport"
@@ -51,11 +44,10 @@ const isMultiLineText = computed(() => props.contentType === "multi_line_txt");
       />
       <HtmlRenderer
         v-else-if="isHTML"
+        class="stacked-html-content"
         :content="cell.value"
         :used-for-auto-size-calculation="undefined"
       />
-      <MultiLineTextRenderer v-else-if="isMultiLineText" :text="cell.value" />
-      <div v-else class="cell-value">{{ cell.value }}</div>
     </div>
   </div>
 </template>
@@ -70,18 +62,16 @@ const isMultiLineText = computed(() => props.contentType === "multi_line_txt");
   flex-direction: column;
   min-width: 0;
 
-  & .column-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  & .tile-value {
     min-width: 0;
-    font-weight: 700;
-  }
-
-  & .cell-value {
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    & .stacked-html-content {
+      display: block;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
   }
 }
 </style>

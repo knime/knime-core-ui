@@ -109,13 +109,9 @@ public final class TileViewViewParameters implements NodeParameters {
     @Layout(DataSection.class)
     public ColumnFilter m_displayedColumns;
 
-    @Widget(title = "Title", description = "The title of the view.")
-    @Layout(ViewSection.class)
-    String m_title = "Tile View";
-
     @Widget(title = "Tile title column", description = "Defines the column used to display the title of each tile.")
     @ChoicesProvider(TitleColumnChoicesProvider.class)
-    @Layout(ViewSection.class)
+    @Layout(DataSection.class)
     public StringOrEnum<RowIDOrNoneChoice> m_titleColumn = new StringOrEnum<>(RowIDOrNoneChoice.ROW_ID);
 
     @Widget(title = "Color column",
@@ -123,8 +119,18 @@ public final class TileViewViewParameters implements NodeParameters {
             + " Only columns which have a color scheme associated can be selected."
             + " You might need to use a Color Designer node before this node to add color schemes to specific columns.")
     @ChoicesProvider(ColorColumnsProvider.class)
-    @Layout(ViewSection.class)
+    @Layout(DataSection.class)
     public StringOrEnum<NoneChoice> m_colorColumn = new StringOrEnum<>(NoneChoice.NONE);
+
+    @Widget(title = "Title", description = "The title of the view.")
+    @Layout(ViewSection.class)
+    String m_title = "Tile View";
+
+    @Widget(title = "Show column names",
+        description = "Enable or disable displaying column names."
+            + " The column names will be shown along with the cell entries in each tile.")
+    @Layout(ViewSection.class)
+    boolean m_displayColumnHeaders = true;
 
     @Widget(title = "Tiles per row",
         description = "Number of tiles to display per row."
@@ -134,18 +140,9 @@ public final class TileViewViewParameters implements NodeParameters {
     @ValueReference(TilesPerRowReference.class)
     int m_tilesPerRow = 1;
 
-    @Widget(title = "Display column headers",
-        description = "Enable or disable the display of column headers."
-            + " The column headers will be shown along with the cell entries in each tile.")
-    @Layout(ViewSection.class)
-    boolean m_displayColumnHeaders = true;
-
-    @Widget(title = "Text alignment", description = "The alignment of the text in the tiles.")
-    @ValueSwitchWidget
-    @Layout(ViewSection.class)
-    TextAlignment m_textAlignment = TextAlignment.LEFT;
-
-    @Widget(title = "Page size", description = "Select the amount of tiles shown per page.")
+    @Widget(title = "Page size",
+        description = "Select the amount of tiles shown per page."
+            + " This setting has no effect during report generation because all rows are always shown.")
     @Layout(ViewSection.class)
     @NumberInputWidget(minValidationProvider = PageSizeMinValidation.class)
     public int m_pageSize = 10;
@@ -173,10 +170,6 @@ public final class TileViewViewParameters implements NodeParameters {
             NONE, //
             @Label(RowIDChoice.ROW_ID_LABEL)
             ROW_ID
-    }
-
-    enum TextAlignment {
-            LEFT, CENTER, RIGHT
     }
 
     public String[] getDisplayedColumns(final DataTableSpec spec) {

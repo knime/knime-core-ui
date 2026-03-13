@@ -32,6 +32,7 @@ export const useSelection = (
 
   const updateSelection = (rowId: string, selected: boolean) => {
     selectionService[selected ? "add" : "remove"]([rowId]);
+    transformSelection();
   };
 
   return { selection, transformSelection, onSelectionChange, updateSelection };

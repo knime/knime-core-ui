@@ -11,7 +11,6 @@ const makeProps = (overrides: Partial<Parameters<typeof useTile>[0]> = {}) => ({
   )[],
   title: "Title Value",
   showTitle: true,
-  textAlignment: "LEFT" as const,
   selectionMode: SelectionMode.EDIT,
   isReport: false,
   ...overrides,
@@ -50,28 +49,6 @@ describe("useTile", () => {
       expect(transformedRow.value[2].value).toBe(
         "Missing Value (Some missing value reason)",
       );
-    });
-  });
-
-  describe("textAlign", () => {
-    it.each([
-      ["CENTER", "center"],
-      ["LEFT", "left"],
-      ["RIGHT", "right"],
-    ] as const)("maps %s to '%s'", (textAlignment, expected) => {
-      const { textAlign } = useTile(makeProps({ textAlignment }));
-      expect(textAlign.value).toBe(expected);
-    });
-  });
-
-  describe("iconAlign", () => {
-    it.each([
-      ["LEFT", "flex-start"],
-      ["CENTER", "center"],
-      ["RIGHT", "flex-end"],
-    ] as const)("maps %s to '%s'", (textAlignment, expected) => {
-      const { iconAlign } = useTile(makeProps({ textAlignment }));
-      expect(iconAlign.value).toBe(expected);
     });
   });
 
@@ -120,24 +97,22 @@ describe("useTile", () => {
   });
 
   describe("rowSpan", () => {
-    it("counts title row, data columns and selection footer", () => {
+    it("counts title row and data columns", () => {
       // row has 4 entries: index + rowId + 2 data columns => 2 data columns
-      // showTitle=true => +1; selectionMode=EDIT => +1; total = 2 + 1 + 1 = 4
+      // showTitle=true => +1; total = 2 + 1 = 3
       const { rowSpan } = useTile(makeProps());
-      expect(rowSpan.value).toBe(4);
+      expect(rowSpan.value).toBe(3);
     });
 
     it("excludes title row when showTitle=false", () => {
       const { rowSpan } = useTile(makeProps({ showTitle: false }));
-      // 2 data + 0 title + 1 selection = 3
-      expect(rowSpan.value).toBe(3);
+      expect(rowSpan.value).toBe(2);
     });
 
-    it("excludes selection row when selectionMode is OFF", () => {
+    it("is unchanged by selectionMode", () => {
       const { rowSpan } = useTile(
         makeProps({ selectionMode: SelectionMode.OFF }),
       );
-      // 2 data + 1 title + 0 selection = 3
       expect(rowSpan.value).toBe(3);
     });
 

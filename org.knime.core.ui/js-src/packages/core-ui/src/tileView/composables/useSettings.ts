@@ -14,7 +14,6 @@ export interface TileViewSettings {
   colorColumn: ColorColumn;
   tilesPerRow: number;
   displayColumnHeaders: boolean;
-  textAlignment: "LEFT" | "CENTER" | "RIGHT";
   pageSize: number;
   selectionMode: SelectionMode;
   showOnlySelectedRows: boolean;
@@ -28,7 +27,6 @@ export const DEFAULT_SETTINGS: TileViewSettings = {
   colorColumn: { specialChoice: "NONE" },
   tilesPerRow: 3,
   displayColumnHeaders: true,
-  textAlignment: "LEFT",
   pageSize: 10,
   selectionMode: SelectionMode.EDIT,
   showOnlySelectedRows: false,

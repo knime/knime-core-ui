@@ -64,8 +64,8 @@ importers:
         specifier: 'catalog:'
         version: 0.14.0(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
       '@knime/knime-ui-table':
-        specifier: 0.8.1
-        version: 0.8.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
+        specifier: link:/Users/robin/Documents/Projects/knime-ui-table
+        version: link:../../../../../knime-ui-table
       '@knime/rich-text-editor':
         specifier: 1.8.14
         version: 1.8.14(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
@@ -1280,30 +1280,9 @@ packages:
       '@vueuse/core': ~13.8.0
       vue: ~3.5.0
 
-  '@knime/kds-components@0.5.2':
-    resolution: {integrity: sha512-rQ+hSmvhj9GiFBx0myILWGnFO0eLV+KdquGlp+nogobhZsgfi4HAf1gGKz9lFfA6El/ZJanKE7VHbmF3et6RHg==}
-    engines: {node: 24.10.0, npm: please-use-pnpm}
-    peerDependencies:
-      '@vueuse/core': ~13.8.0
-      vue: ~3.5.0
-
   '@knime/kds-styles@0.14.0':
     resolution: {integrity: sha512-scJ+/ByjKwUfy/9KP9h0oX3MjldgsmyfkWIXFD65+NEk4MPY6/U9OKQAmok/OMDtaa/mKNo5ISca5qHiBmVk0Q==}
     engines: {node: 24.10.0, npm: please-use-pnpm}
-
-  '@knime/kds-styles@0.5.10':
-    resolution: {integrity: sha512-8RCIm+OOEksmjCvJFmQjy0bBsggstHtdgzO2TDm/b+tFvwyJOSbqDDhVjC5quZAXrkN4kTdBBrlJyjY8vuKaQw==}
-    engines: {node: 24.10.0, npm: please-use-pnpm}
-
-  '@knime/kds-styles@0.5.2':
-    resolution: {integrity: sha512-pppxpnpZr7gzTgwL0nrS25mC5qjREDntcvOmHh759TOuDf5BwpeFsremcdY54MG2vgQgZOXfG5BSDYLHnKm2uA==}
-    engines: {node: 24.10.0, npm: please-use-pnpm}
-
-  '@knime/knime-ui-table@0.8.1':
-    resolution: {integrity: sha512-4ABIYdq4z4I9YoEYXJpetQR4LlsRya0nxCU7z1sMV3ZQWnm1lADdXS71gs1IyWxvSUctUKigX5zmspNCjLbbVw==}
-    engines: {node: 22.x}
-    peerDependencies:
-      vue: ~3.5.0
 
   '@knime/licenses@1.4.0':
     resolution: {integrity: sha512-7tIT3tEOcHTSPAS7Kx/aJTa1T50ckqBd4w38otIb7xb6P0ilZr7oNYog99fDP7GdoX6nl9JV2WbykDWn/fNcjQ==}
@@ -7482,59 +7461,12 @@ snapshots:
       consola: 3.4.2
       vue: 3.5.18(typescript@5.9.3)
 
-  '@knime/kds-components@0.5.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))':
-    dependencies:
-      '@knime/kds-styles': 0.5.10
-      '@knime/utils': 1.10.1(consola@3.4.2)
-      '@vueuse/core': 13.8.0(vue@3.5.18(typescript@5.4.5))
-      consola: 3.4.2
-      vue: 3.5.18(typescript@5.4.5)
-
   '@knime/kds-styles@0.14.0':
     dependencies:
       '@fontsource/roboto': 5.2.10
       '@fontsource/roboto-condensed': 5.2.8
       '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 3.0.1
-
-  '@knime/kds-styles@0.5.10':
-    dependencies:
-      '@fontsource/roboto': 5.2.8
-      '@fontsource/roboto-condensed': 5.2.8
-      '@fontsource/roboto-mono': 5.2.8
-      modern-normalize: 3.0.1
-
-  '@knime/kds-styles@0.5.2':
-    dependencies:
-      '@fontsource/roboto': 5.2.8
-      '@fontsource/roboto-condensed': 5.2.8
-      '@fontsource/roboto-mono': 5.2.8
-      modern-normalize: 3.0.1
-
-  '@knime/knime-ui-table@0.8.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))':
-    dependencies:
-      '@floating-ui/vue': 1.1.8(vue@3.5.18(typescript@5.4.5))
-      '@knime/components': 1.45.8(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.18(typescript@5.4.5))
-      '@knime/kds-components': 0.5.2(@vueuse/core@13.8.0(vue@3.5.18(typescript@5.4.5)))(vue@3.5.18(typescript@5.4.5))
-      '@knime/kds-styles': 0.5.2
-      '@knime/styles': 1.15.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
-      '@knime/utils': 1.10.1(consola@3.2.3)
-      '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.18(typescript@5.4.5))
-      lodash-es: 4.17.23
-      raf-throttle: 2.0.6
-      uuid: 9.0.1
-      vue: 3.5.18(typescript@5.4.5)
-    transitivePeerDependencies:
-      - '@emotion/is-prop-valid'
-      - '@fontsource/roboto'
-      - '@fontsource/roboto-mono'
-      - '@popperjs/core'
-      - '@vue/composition-api'
-      - '@vueuse/core'
-      - consola
-      - focus-trap
-      - react
-      - react-dom
 
   '@knime/licenses@1.4.0(consola@3.2.3)':
     dependencies:

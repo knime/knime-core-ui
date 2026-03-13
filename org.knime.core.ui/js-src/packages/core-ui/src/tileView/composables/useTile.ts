@@ -9,13 +9,10 @@ import {
 import type { Cell } from "@/tableView/types/Table";
 import { SelectionMode } from "@/tableView/types/ViewSettings";
 
-import type { TileViewSettings } from "./useSettings";
-
 interface TileProps {
   row: (Cell | string | null)[];
   title: Cell | string | null;
   showTitle: boolean;
-  textAlignment: TileViewSettings["textAlignment"];
   selectionMode: SelectionMode;
   isReport: boolean;
 }
@@ -33,17 +30,6 @@ export const useTile = (props: TileProps) => {
     props.row.map((cell) => unpackCellValue(cell)),
   );
 
-  const textAlign = computed(
-    () => props.textAlignment.toLowerCase() as "left" | "center" | "right",
-  );
-
-  const iconAlign = computed(() => {
-    if (props.textAlignment === "CENTER") {
-      return "center";
-    }
-    return props.textAlignment === "RIGHT" ? "flex-end" : "flex-start";
-  });
-
   const titleCell = computed(() => unpackCellValue(props.title));
 
   const showSelection = computed(
@@ -54,19 +40,13 @@ export const useTile = (props: TileProps) => {
     () => props.selectionMode === SelectionMode.EDIT,
   );
 
-  // title row + one row per data column (skipping row index and row id) + optional footer row
+  // title row + one row per data column (skipping row index and row id)
   const rowSpan = computed(
-    () =>
-      (props.showTitle ? 1 : 0) +
-      props.row.length -
-      2 +
-      (showSelection.value ? 1 : 0),
+    () => (props.showTitle ? 1 : 0) + Math.max(props.row.length - 2, 0),
   );
 
   return {
     transformedRow,
-    textAlign,
-    iconAlign,
     titleCell,
     showSelection,
     enableSelection,

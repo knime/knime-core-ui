@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
 import { TopControls } from "@knime/knime-ui-table";
@@ -7,12 +6,11 @@ import type { TableConfig } from "@knime/knime-ui-table";
 import {
   CachingSelectionService,
   JsonDataService,
-  ReportingService,
   SharedDataService,
 } from "@knime/ui-extension-service";
 
 import { SelectionMode } from "@/tableView/types/ViewSettings";
-import TileView from "../TileView.vue";
+import TileViewInteractive from "../TileViewInteractive.vue";
 import { DEFAULT_SETTINGS } from "../composables/useSettings";
 
 // --- service mocks ---
@@ -28,16 +26,11 @@ let jsonDataServiceMock: {
     add: ReturnType<typeof vi.fn>;
     remove: ReturnType<typeof vi.fn>;
   },
-  sharedDataServiceMock: { addSharedDataListener: ReturnType<typeof vi.fn> },
-  reportingServiceMock: {
-    isReportingActive: ReturnType<typeof vi.fn>;
-    setRenderCompleted: ReturnType<typeof vi.fn>;
-  };
+  sharedDataServiceMock: { addSharedDataListener: ReturnType<typeof vi.fn> };
 
 vi.mock("@knime/ui-extension-service", () => ({
   JsonDataService: vi.fn(),
   CachingSelectionService: vi.fn(),
-  ReportingService: vi.fn(),
   SharedDataService: vi.fn(),
 }));
 
@@ -62,13 +55,16 @@ const makeInitialData = (rowCount = 2) => ({
 });
 
 const shallowMountComponent = () =>
-  shallowMount(TileView, {
+  shallowMount(TileViewInteractive, {
     global: {
       provide: { getKnimeService: () => ({}) },
+      stubs: {
+        TileViewDisplay: false,
+      },
     },
   });
 
-describe("TileView.vue", () => {
+describe("TileViewInteractive.vue", () => {
   beforeEach(() => {
     jsonDataServiceMock = {
       initialData: vi.fn().mockResolvedValue(makeInitialData()),
@@ -82,11 +78,6 @@ describe("TileView.vue", () => {
       remove: vi.fn(),
     };
     sharedDataServiceMock = { addSharedDataListener: vi.fn() };
-    reportingServiceMock = {
-      isReportingActive: vi.fn().mockReturnValue(false),
-      setRenderCompleted: vi.fn(),
-    };
-
     (JsonDataService as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       () => jsonDataServiceMock,
     );
@@ -96,9 +87,6 @@ describe("TileView.vue", () => {
     (
       SharedDataService as unknown as ReturnType<typeof vi.fn>
     ).mockImplementation(() => sharedDataServiceMock);
-    (
-      ReportingService as unknown as ReturnType<typeof vi.fn>
-    ).mockImplementation(() => reportingServiceMock);
   });
 
   it("shows EmptyDataState before data is loaded", () => {
@@ -508,36 +496,6 @@ describe("TileView.vue", () => {
       expect(pageConfig!.currentSize).toBe(4); // filtered row count
     });
 
-    it("sets showPageControls=false when reporting is active", async () => {
-      reportingServiceMock.isReportingActive.mockReturnValue(true);
-      const wrapper = await mountAndLoad();
-      const { pageConfig } = wrapper
-        .findComponent(TopControls)
-        .props("tableConfig") as TableConfig;
-
-      expect(pageConfig!.showPageControls).toBe(false);
-    });
-
-    it("hides settingsItems when reporting is active, even if showOnlySelectedRowsConfigurable is true", async () => {
-      reportingServiceMock.isReportingActive.mockReturnValue(true);
-      jsonDataServiceMock.initialData.mockResolvedValue({
-        ...makeInitialData(),
-        settings: {
-          ...DEFAULT_SETTINGS,
-          title: "Test View",
-          displayedColumns: { selected: ["col-a"] },
-          showOnlySelectedRowsConfigurable: true,
-          showOnlySelectedRows: false,
-        },
-      });
-      const wrapper = await mountAndLoad();
-      const { settingsItems } = wrapper
-        .findComponent(TopControls)
-        .props("tableConfig") as TableConfig;
-
-      expect(settingsItems).toEqual([]);
-    });
-
     it("checkbox setBoolean resets page and fetches with showOnlySelectedRows=true", async () => {
       jsonDataServiceMock.initialData.mockResolvedValue({
         ...makeInitialData(),
@@ -570,57 +528,6 @@ describe("TileView.vue", () => {
           true,
         ],
       });
-    });
-  });
-
-  describe("reporting", () => {
-    it("calls setRenderCompleted after data is loaded", async () => {
-      reportingServiceMock.isReportingActive.mockReturnValue(true);
-      shallowMountComponent();
-      await vi.dynamicImportSettled();
-      await Promise.resolve();
-      await Promise.resolve();
-
-      expect(reportingServiceMock.setRenderCompleted).toHaveBeenCalled();
-    });
-
-    it("does not call setRenderCompleted before data is loaded", () => {
-      reportingServiceMock.isReportingActive.mockReturnValue(true);
-      shallowMountComponent();
-
-      expect(reportingServiceMock.setRenderCompleted).not.toHaveBeenCalled();
-    });
-
-    it("calls setRenderCompleted after pending images are resolved", async () => {
-      reportingServiceMock.isReportingActive.mockReturnValue(true);
-      jsonDataServiceMock.initialData.mockResolvedValue(makeInitialData(1));
-
-      const tileStub = defineComponent({
-        name: "Tile",
-        emits: ["pending-image", "rendered-image"],
-        setup(_, { emit }) {
-          emit("pending-image", "img-1");
-          return () => null;
-        },
-      });
-
-      const wrapper = shallowMount(TileView, {
-        global: {
-          provide: { getKnimeService: () => ({}) },
-          stubs: {
-            Tile: tileStub,
-          },
-        },
-      });
-
-      await vi.dynamicImportSettled();
-      await wrapper.vm.$nextTick();
-      await wrapper.vm.$nextTick();
-
-      expect(reportingServiceMock.setRenderCompleted).not.toHaveBeenCalled();
-      wrapper.findComponent(tileStub).vm.$emit("rendered-image", "img-1");
-      await wrapper.vm.$nextTick();
-      expect(reportingServiceMock.setRenderCompleted).toHaveBeenCalledTimes(1);
     });
   });
 });

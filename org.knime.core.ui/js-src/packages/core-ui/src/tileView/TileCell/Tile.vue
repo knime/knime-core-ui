@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { Checkbox } from "@knime/components";
-
 import type { Cell, ColumnContentType } from "@/tableView/types/Table";
 import { SelectionMode } from "@/tableView/types/ViewSettings";
+import { useTile } from "../composables/useTile";
 
 import MissingValue from "./MissingValueCell.vue";
 import TileCell from "./TileCell.vue";
-import { useTile } from "./composables/useTile";
 
 const props = defineProps<{
   rowIndex: number;
@@ -15,7 +13,6 @@ const props = defineProps<{
   title: Cell | string | null;
   showTitle: boolean;
   columns: string[];
-  textAlignment: "LEFT" | "CENTER" | "RIGHT";
   displayColumnHeaders: boolean;
   color: string | null;
   selectionMode: SelectionMode;
@@ -26,71 +23,49 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "update-selection": [string, boolean];
+  updateSelection: [string, boolean];
   pendingImage: [string];
   renderedImage: [string];
 }>();
 
-const {
-  transformedRow,
-  textAlign,
-  iconAlign,
-  titleCell,
-  showSelection,
-  enableSelection,
-  rowSpan,
-} = useTile(props);
-
-const onUpdateSelection = (selected: boolean) => {
-  emit("update-selection", transformedRow.value[1].value, selected);
-};
+const { transformedRow, titleCell, showSelection, enableSelection, rowSpan } =
+  useTile(props);
 </script>
 
 <template>
   <div
     class="tile"
     :class="{
-      selected: showSelection && props.selected,
-      colored: props.color !== null,
+      'selection-enabled': enableSelection,
+      selected: showSelection && selected,
+      colored: color !== null,
     }"
     :style="{
-      textAlign,
       gridRow: `span ${rowSpan}`,
-      '--tile-color': props.color || undefined,
-      cursor: enableSelection ? 'pointer' : 'default',
+      '--tile-color': color || undefined,
     }"
-    @click="enableSelection && onUpdateSelection(!props.selected)"
+    @click="
+      enableSelection &&
+        emit('updateSelection', transformedRow[1].value, !selected)
+    "
   >
-    <div v-if="props.showTitle" class="tile-title" :title="titleCell.value">
-      <MissingValue
-        v-if="titleCell.isMissing"
-        :style="{ alignSelf: iconAlign }"
-      />
+    <div v-if="showTitle" class="tile-title" :title="titleCell.value">
+      <MissingValue v-if="titleCell.isMissing" />
       <span v-else class="tile-title-text">{{ titleCell.value }}</span>
     </div>
     <TileCell
       v-for="(cell, index) in transformedRow.slice(2)"
-      :key="`column-${props.row[1]}-${index}`"
+      :key="`column-${row[1]}-${index}`"
       :cell="cell"
-      :column-name="props.columns[index]"
+      :column-name="columns[index]"
       :display-column-headers
-      :icon-align
-      :content-type="props.columnContentTypes[index]"
+      :content-type="columnContentTypes[index]"
       :tile-width
       :is-resize-active
       :is-report
       @pending-image="(id: string) => emit('pendingImage', id)"
       @rendered-image="(id: string) => emit('renderedImage', id)"
     />
-    <div v-if="showSelection" class="tile-selection">
-      <Checkbox
-        :id="`row-${props.rowIndex}`"
-        :disabled="!enableSelection"
-        :model-value="props.selected"
-        @update:model-value="onUpdateSelection"
-        >selected</Checkbox
-      >
-    </div>
   </div>
 </template>
 
@@ -107,6 +82,14 @@ const onUpdateSelection = (selected: boolean) => {
   overflow: hidden;
   position: relative;
   min-width: 0;
+
+  &.selection-enabled {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--knime-porcelain);
+    }
+  }
 
   &.colored {
     padding-top: 20px;
@@ -131,9 +114,9 @@ const onUpdateSelection = (selected: boolean) => {
     display: flex;
     flex-direction: column;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--knime-black);
-    line-height: 14px;
+    line-height: 16px;
     min-width: 0;
 
     & .tile-title-text {
@@ -143,9 +126,13 @@ const onUpdateSelection = (selected: boolean) => {
       min-width: 0;
     }
   }
+}
 
-  & .tile-selection {
-    height: 20px;
+@media print {
+  .tile {
+    break-inside: avoid;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
   }
 }
 </style>
