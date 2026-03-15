@@ -2,8 +2,8 @@ packages:
   - packages/*
 
 catalog:
-  '@knime/kds-components': 0.14.0
-  '@knime/kds-styles': 0.14.0
+  '@knime/kds-components': 0.16.0
+  '@knime/kds-styles': 0.16.0
   vue: 3.5.18
 
 minimumReleaseAge: 1440
